@@ -269,8 +269,8 @@ getDb().then(() => {
 
 function seedDefaultAdmin() {
   if (!db) return;
-  const existing = dbGet('SELECT id FROM users LIMIT 1');
-  if (existing) return;
+  const existingAdmin = dbGet('SELECT id FROM users WHERE role = ? LIMIT 1', 'admin');
+  if (existingAdmin) return;
 
   const SESSION_SECRET = env.SESSION_SECRET || 'change-this-to-a-random-string';
 
