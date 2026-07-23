@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import { dbGet, dbAll } from '$lib/server/db';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, url }) => {
   const share = dbGet(`
     SELECT ps.*, a.*
     FROM public_shares ps
@@ -30,6 +30,6 @@ export const load: PageServerLoad = async ({ params }) => {
       ...share,
       media
     },
-    siteUrl: ''
+    siteUrl: url.origin
   };
 };

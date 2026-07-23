@@ -6,6 +6,7 @@
   
   let title = $state('');
   let description = $state('');
+  let content = $state('');
   let locationName = $state('');
   let lat = $state<number | null>(null);
   let lng = $state<number | null>(null);
@@ -63,6 +64,7 @@
         body: JSON.stringify({
           title,
           description,
+          content,
           locationName,
           lat,
           lng,
@@ -141,6 +143,21 @@
           rows="3"
           class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100 resize-none"
         ></textarea>
+      </div>
+
+      <!-- Content / Story -->
+      <div>
+        <label for="content" class="block text-sm font-medium text-navy-600 mb-2">
+          Story
+        </label>
+        <textarea
+          id="content"
+          bind:value={content}
+          placeholder="Tell the story of this adventure..."
+          rows="8"
+          class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100 resize-y"
+        ></textarea>
+        <p class="mt-1 text-xs text-navy-400">HTML is supported for rich formatting.</p>
       </div>
 
       <!-- Template -->

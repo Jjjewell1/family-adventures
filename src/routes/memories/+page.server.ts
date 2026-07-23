@@ -45,7 +45,7 @@ export const load: PageServerLoad = async () => {
 
   const allAdventures = dbAll(`
     SELECT * FROM adventures
-    WHERE is_draft = 0 AND start_date IS NOT NULL
+    WHERE is_draft = 0 AND visibility = 'family' AND start_date IS NOT NULL
     ORDER BY start_date
   `) as Adventure[];
 

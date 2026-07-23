@@ -59,7 +59,7 @@ export function setSessionCookie(cookies: any, userId: string) {
   cookies.set(SESSION_COOKIE, token, {
     path: '/',
     httpOnly: true,
-    secure: true,
+    secure: env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60
   });
@@ -76,8 +76,8 @@ export function getSessionUser(cookies: any): User | null {
   return user || null;
 }
 
-export function loginWithImmichApiKey(apiKey: string): User | null {
-  const immichUser = getImmichCurrentUser(apiKey);
+export async function loginWithImmichApiKey(apiKey: string): Promise<User | null> {
+  const immichUser = await getImmichCurrentUser(apiKey);
   
   if (!immichUser) return null;
 

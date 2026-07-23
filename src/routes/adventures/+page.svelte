@@ -106,10 +106,15 @@
         </svg>
       </div>
       <h3 class="text-lg font-medium text-navy-600">No adventures yet</h3>
-      <p class="text-navy-400 mt-2">Start documenting your family's journeys!</p>
       {#if data.user}
+        <p class="text-navy-400 mt-2">Start documenting your family's journeys!</p>
         <a href="/adventures/create" class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-full bg-ocean-500 text-white text-sm font-medium hover:bg-ocean-600 transition-colors">
           Create First Adventure
+        </a>
+      {:else}
+        <p class="text-navy-400 mt-2">Sign in to start documenting your family's journeys!</p>
+        <a href="/auth/login" class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-full bg-ocean-500 text-white text-sm font-medium hover:bg-ocean-600 transition-colors">
+          Sign In
         </a>
       {/if}
     </div>

@@ -14,6 +14,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   const {
     title,
     description,
+    content,
     locationName,
     lat,
     lng,
@@ -40,14 +41,15 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 
   dbRun(`
-    INSERT INTO adventures (id, author_id, title, slug, description, location_name, lat, lng, start_date, end_date, mood, template_type, visibility, is_draft)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO adventures (id, author_id, title, slug, description, content, location_name, lat, lng, start_date, end_date, mood, template_type, visibility, is_draft)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `,
     id,
     user.id,
     title.trim(),
     slug,
     description || null,
+    content || null,
     locationName || null,
     lat || null,
     lng || null,

@@ -1,8 +1,8 @@
-import { redirect } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { logout } from '$lib/server/auth';
 
-export const GET: RequestHandler = async ({ cookies }) => {
+export const POST: RequestHandler = async ({ cookies }) => {
   logout(cookies);
-  redirect(302, '/');
+  return json({ success: true });
 };

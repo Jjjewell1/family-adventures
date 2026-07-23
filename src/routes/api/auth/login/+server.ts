@@ -10,7 +10,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     return json({ message: 'API key is required' }, { status: 400 });
   }
 
-  const user = loginWithImmichApiKey(apiKey.trim());
+  const user = await loginWithImmichApiKey(apiKey.trim());
   
   if (!user) {
     return json({ message: 'Invalid API key or Immich server unreachable' }, { status: 401 });

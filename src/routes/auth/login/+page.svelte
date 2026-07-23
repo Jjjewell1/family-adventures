@@ -22,7 +22,7 @@
       });
 
       if (response.ok) {
-        goto('/adventures');
+        goto('/');
         window.location.reload();
       } else {
         const err = await response.json();
