@@ -1,0 +1,117 @@
+import { env } from '$env/dynamic/private';
+import { dbRun, dbGet } from './db';
+import type { User } from '$lib/shared/types';
+import { generateToken } from '$lib/shared/utils';
+import { getImmichCurrentUser } from './immich';
+import { createHmac, randomBytes } from 'crypto';
+
+const SESSION_SECRET = env.SESSION_SECRET || 'change-this-to-a-random-string';
+const SESSION_COOKIE = 'family_adventures_session';
+
+export function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString('hex');
+  const hash = createHmac('sha256', SESSION_SECRET)
+    .update(password + salt)
+    .digest('hex');
+  return `${salt}:${hash}`;
+}
+
+export function verifyPassword(password: string, stored: string): boolean {
+  const [salt, hash] = stored.split(':');
+  const verifyHash = createHmac('sha256', SESSION_SECRET)
+    .update(password + salt)
+    .digest('hex');
+  return hash === verifyHash;
+}
+
+export function createSessionToken(userId: string): string {
+  const payload = { userId, exp: Date.now() + 7 * 24 * 60 * 60 * 1000 };
+  const data = JSON.stringify(payload);
+  const signature = createHmac('sha256', SESSION_SECRET)
+    .update(data)
+    .digest('hex');
+  return Buffer.from(data).toString('base64') + '.' + signature;
+}
+
+export function verifySessionToken(token: string): { userId: string } | null {
+  try {
+    const [dataB64, signature] = token.split('.');
+    if (!dataB64 || !signature) return null;
+
+    const data = Buffer.from(dataB64, 'base64').toString();
+    const expectedSig = createHmac('sha256', SESSION_SECRET)
+      .update(data)
+      .digest('hex');
+
+    if (signature !== expectedSig) return null;
+
+    const payload = JSON.parse(data);
+    if (payload.exp < Date.now()) return null;
+
+    return { userId: payload.userId };
+  } catch {
+    return null;
+  }
+}
+
+export function setSessionCookie(cookies: any, userId: string) {
+  const token = createSessionToken(userId);
+  cookies.set(SESSION_COOKIE, token, {
+    path: '/',
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60
+  });
+}
+
+export function getSessionUser(cookies: any): User | null {
+  const token = cookies.get(SESSION_COOKIE);
+  if (!token) return null;
+
+  const session = verifySessionToken(token);
+  if (!session) return null;
+
+  const user = dbGet('SELECT * FROM users WHERE id = ?', session.userId) as User | undefined;
+  return user || null;
+}
+
+export function loginWithImmichApiKey(apiKey: string): User | null {
+  const immichUser = getImmichCurrentUser(apiKey);
+  
+  if (!immichUser) return null;
+
+  let user = dbGet('SELECT * FROM users WHERE immich_user_id = ?', immichUser.id) as User | undefined;
+
+  if (!user) {
+    const userId = generateToken();
+    dbRun(`
+      INSERT INTO users (id, immich_user_id, name, email, avatar_url, role)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `, userId, immichUser.id, immichUser.name, immichUser.email, immichUser.profileImagePath || null, 'member');
+    
+    user = dbGet('SELECT * FROM users WHERE id = ?', userId) as User;
+  }
+
+  return user;
+}
+
+export function logout(cookies: any) {
+  cookies.delete(SESSION_COOKIE, { path: '/' });
+}
+
+export function requireAuth(cookies: any): User {
+  const user = getSessionUser(cookies);
+  if (!user) {
+    throw new Error('Unauthorized');
+  }
+  return user;
+}
+
+export function requireAdmin(cookies: any): User {
+  const user = requireAuth(cookies);
+  if (user.role !== 'admin') {
+    throw new Error('Forbidden');
+  }
+  return user;
+}

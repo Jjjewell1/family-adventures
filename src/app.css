@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+@theme {
+  --color-sand-50: #FDF9F3;
+  --color-sand-100: #FDF6EC;
+  --color-sand-200: #F5E6D3;
+  --color-sand-300: #E8D4B8;
+  --color-sand-400: #D4B896;
+  --color-sand-500: #C4A67A;
+  --color-sand-600: #A68B5B;
+  --color-sand-700: #8B7348;
+  --color-sand-800: #6B5738;
+  --color-sand-900: #4A3D28;
+
+  --color-ocean-50: #E6F5F5;
+  --color-ocean-100: #B3E0E0;
+  --color-ocean-200: #80CCCC;
+  --color-ocean-300: #4DB8B8;
+  --color-ocean-400: #1AA6A6;
+  --color-ocean-500: #0E7C7B;
+  --color-ocean-600: #0B6362;
+  --color-ocean-700: #084A49;
+  --color-ocean-800: #053130;
+  --color-ocean-900: #021818;
+
+  --color-coral-50: #FDE8EA;
+  --color-coral-100: #F9C2C7;
+  --color-coral-200: #F49CA4;
+  --color-coral-300: #EF7681;
+  --color-coral-400: #EA505E;
+  --color-coral-500: #E8505B;
+  --color-coral-600: #C44049;
+  --color-coral-700: #9F3037;
+  --color-coral-800: #7B2025;
+  --color-coral-900: #561013;
+
+  --color-sunset-50: #FEF3E2;
+  --color-sunset-100: #FCE0B3;
+  --color-sunset-200: #FACD84;
+  --color-sunset-300: #F9BA55;
+  --color-sunset-400: #F9A620;
+  --color-sunset-500: #E08F0D;
+  --color-sunset-600: #B3720A;
+  --color-sunset-700: #865508;
+  --color-sunset-800: #593805;
+  --color-sunset-900: #2C1B03;
+
+  --color-navy-50: #E8EDF2;
+  --color-navy-100: #C5D0DB;
+  --color-navy-200: #9FB2C1;
+  --color-navy-300: #7894A7;
+  --color-navy-400: #5A7D94;
+  --color-navy-500: #1A2B3C;
+  --color-navy-600: #152230;
+  --color-navy-700: #101924;
+  --color-navy-800: #0B1018;
+  --color-navy-900: #06080C;
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--color-sand-100) 0%, var(--color-sand-50) 50%, #FFFFFF 100%);
+  color: var(--color-navy-500);
+  font-family: var(--font-sans);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Wave animation for backgrounds */
+@keyframes wave {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(-5px) translateY(3px); }
+  50% { transform: translateX(0) translateY(6px); }
+  75% { transform: translateX(5px) translateY(3px); }
+}
+
+.wave-animation {
+  animation: wave 8s ease-in-out infinite;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-ocean-500) 0%, var(--color-coral-500) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(26, 43, 60, 0.12);
+}
+
+/* Beachy glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Tide line decoration */
+.tide-line {
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--color-ocean-200) 20%, 
+    var(--color-ocean-300) 50%, 
+    var(--color-ocean-200) 80%, 
+    transparent 100%
+  );
+  height: 2px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-sand-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-ocean-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ocean-400);
+}
