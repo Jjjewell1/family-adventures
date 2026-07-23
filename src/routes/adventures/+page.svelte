@@ -2,7 +2,7 @@
   import type { PageData } from './$types';
   import { formatDate, timeAgo } from '$lib/shared/utils';
   import { getImmichAssetUrl } from '$lib/shared/immich';
-  
+
   let { data } = $props();
   let filterTag = $state<string | null>(null);
   let filterYear = $state<number | null>(null);
@@ -151,6 +151,11 @@
                 {adventure.location_name}
               </div>
             {/if}
+            {#if adventure.is_draft}
+              <div class="absolute top-3 left-3 inline-flex items-center rounded-full bg-sunset-500/90 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                Draft
+              </div>
+            {/if}
           </div>
 
           <!-- Content -->
@@ -192,11 +197,22 @@
             {/if}
 
             <!-- Author -->
-            <div class="flex items-center gap-2 mt-4 pt-4 border-t border-sand-100">
-              <div class="h-6 w-6 rounded-full bg-gradient-to-br from-coral-400 to-sunset-400 flex items-center justify-center text-white text-xs font-medium">
-                {adventure.author_name.charAt(0).toUpperCase()}
+            <div class="flex items-center justify-between mt-4 pt-4 border-t border-sand-100">
+              <div class="flex items-center gap-2">
+                <div class="h-6 w-6 rounded-full bg-gradient-to-br from-coral-400 to-sunset-400 flex items-center justify-center text-white text-xs font-medium">
+                  {adventure.author_name.charAt(0).toUpperCase()}
+                </div>
+                <span class="text-xs text-navy-400">{adventure.author_name}</span>
               </div>
-              <span class="text-xs text-navy-400">{adventure.author_name}</span>
+              {#if data.user && data.user.id === adventure.author_id}
+                <a
+                  href="/adventures/{adventure.slug}/edit"
+                  class="text-xs text-ocean-500 hover:text-ocean-600 font-medium"
+                  onclick={(e) => e.stopPropagation()}
+                >
+                  Edit
+                </a>
+              {/if}
             </div>
           </div>
         </a>

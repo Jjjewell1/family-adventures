@@ -87,7 +87,8 @@
       });
 
       if (response.ok) {
-        goto(`/adventures/${data.adventure.slug}`);
+        const result = await response.json();
+        goto(`/adventures/${result.slug}`);
       } else {
         const err = await response.json();
         error = err.message || 'Failed to save changes';
