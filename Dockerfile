@@ -1,5 +1,4 @@
 FROM node:20-alpine AS base
-ENV NODE_ENV=production
 WORKDIR /app
 
 FROM base AS deps
