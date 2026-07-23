@@ -278,7 +278,7 @@
   {#if data.user && data.user.id === data.adventure.author_id}
     <div class="flex flex-wrap gap-3">
       <a
-        href="/adventures/edit/{data.adventure.id}"
+        href="/adventures/{data.adventure.slug}/edit"
         class="inline-flex items-center gap-2 rounded-full border border-sand-300 bg-white px-4 py-2 text-sm font-medium text-navy-600 hover:bg-sand-50 transition-colors"
       >
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
