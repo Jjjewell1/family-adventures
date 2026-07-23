@@ -3,7 +3,7 @@ import { error } from '@sveltejs/kit';
 import { dbGet, dbAll } from '$lib/server/db';
 
 export const load: PageServerLoad = async ({ params, url }) => {
-  const share = dbGet(`
+  const share = await dbGet(`
     SELECT ps.*, a.*
     FROM public_shares ps
     JOIN adventures a ON ps.adventure_id = a.id
@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
   }
 
   // Get media
-  const media = dbAll(`
+  const media = await dbAll(`
     SELECT * FROM adventure_media
     WHERE adventure_id = ?
     ORDER BY order_index

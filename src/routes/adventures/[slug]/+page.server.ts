@@ -4,7 +4,7 @@ import { dbGet, dbAll } from '$lib/server/db';
 import type { Adventure, Comment, Tag, Reaction } from '$lib/shared/types';
 
 export const load: PageServerLoad = async ({ params, url }) => {
-  const adventure = dbGet(`
+  const adventure = await dbGet(`
     SELECT a.*, u.name as author_name, u.avatar_url as author_avatar
     FROM adventures a
     JOIN users u ON a.author_id = u.id
@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
   }
 
   // Get tags
-  const tags = dbAll(`
+  const tags = await dbAll(`
     SELECT t.*
     FROM tags t
     JOIN adventure_tags at2 ON t.id = at2.tag_id
@@ -24,14 +24,14 @@ export const load: PageServerLoad = async ({ params, url }) => {
   `, adventure.id) as Tag[];
 
   // Get media
-  const media = dbAll(`
+  const media = await dbAll(`
     SELECT * FROM adventure_media
     WHERE adventure_id = ?
     ORDER BY order_index
   `, adventure.id);
 
   // Get comments with authors
-  const comments = dbAll(`
+  const comments = await dbAll(`
     SELECT c.*, u.name as author_name, u.avatar_url as author_avatar
     FROM comments c
     LEFT JOIN users u ON c.author_id = u.id
@@ -40,8 +40,8 @@ export const load: PageServerLoad = async ({ params, url }) => {
   `, adventure.id) as (Comment & { author_name: string; author_avatar: string | null })[];
 
   // Get replies for each comment
-  const commentsWithReplies = comments.map(comment => {
-    const replies = dbAll(`
+  const commentsWithReplies = await Promise.all(comments.map(async comment => {
+    const replies = await dbAll(`
       SELECT c.*, u.name as author_name, u.avatar_url as author_avatar
       FROM comments c
       LEFT JOIN users u ON c.author_id = u.id
@@ -57,10 +57,10 @@ export const load: PageServerLoad = async ({ params, url }) => {
         author: { name: r.author_name, avatar_url: r.author_avatar }
       }))
     };
-  });
+  }));
 
   // Get reactions
-  const reactions = dbAll(`
+  const reactions = await dbAll(`
     SELECT r.*, u.name as author_name
     FROM reactions r
     LEFT JOIN users u ON r.author_id = u.id

@@ -5,7 +5,7 @@ import { dbRun, dbGet } from '$lib/server/db';
 import { generateToken } from '$lib/shared/utils';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
-  const user = getSessionUser(cookies);
+  const user = await getSessionUser(cookies);
   if (!user) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -18,26 +18,26 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 
   // Check if reaction already exists
-  const existing = dbGet(
+  const existing = await dbGet(
     'SELECT id FROM reactions WHERE adventure_id = ? AND author_id = ? AND emoji = ?',
     adventureId, user.id, emoji
   );
 
   if (existing) {
     // Remove reaction (toggle)
-    dbRun('DELETE FROM reactions WHERE id = ?', (existing as any).id);
+    await dbRun('DELETE FROM reactions WHERE id = ?', (existing as any).id);
     return json({ removed: true });
   }
 
   const id = generateToken();
 
-  dbRun(`
+  await dbRun(`
     INSERT INTO reactions (id, adventure_id, author_id, emoji)
     VALUES (?, ?, ?, ?)
   `, id, adventureId, user.id, emoji);
 
   // Add to activity feed
-  dbRun(`
+  await dbRun(`
     INSERT INTO activity_feed (id, user_id, adventure_id, action_type, metadata)
     VALUES (?, ?, ?, 'reacted', ?)
   `, generateToken(), user.id, adventureId, JSON.stringify({ emoji }));

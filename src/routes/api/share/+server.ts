@@ -5,7 +5,7 @@ import { dbRun, dbGet } from '$lib/server/db';
 import { generateToken } from '$lib/shared/utils';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
-  const user = getSessionUser(cookies);
+  const user = await getSessionUser(cookies);
   if (!user) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -18,7 +18,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 
   // Check adventure exists and user owns it
-  const adventure = dbGet('SELECT id, author_id FROM adventures WHERE id = ?', adventureId) as any;
+  const adventure = await dbGet('SELECT id, author_id FROM adventures WHERE id = ?', adventureId) as any;
   if (!adventure) {
     return json({ error: 'Adventure not found' }, { status: 404 });
   }
@@ -30,7 +30,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   const token = generateToken();
   const id = generateToken();
 
-  dbRun(`
+  await dbRun(`
     INSERT INTO public_shares (id, adventure_id, share_token)
     VALUES (?, ?, ?)
   `, id, adventureId, token);
@@ -45,7 +45,7 @@ export const GET: RequestHandler = async ({ url }) => {
     return json({ error: 'Token is required' }, { status: 400 });
   }
 
-  const share = dbGet(`
+  const share = await dbGet(`
     SELECT ps.*, a.title, a.slug, a.description, a.cover_asset_id
     FROM public_shares ps
     JOIN adventures a ON ps.adventure_id = a.id

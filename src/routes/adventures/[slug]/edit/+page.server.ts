@@ -5,13 +5,13 @@ import { getSessionUser } from '$lib/server/auth';
 import type { Adventure, Tag, AdventureMedia } from '$lib/shared/types';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
-  const user = getSessionUser(cookies);
+  const user = await getSessionUser(cookies);
 
   if (!user) {
     redirect(302, '/auth/login');
   }
 
-  const adventure = dbGet(`
+  const adventure = await dbGet(`
     SELECT a.*
     FROM adventures a
     WHERE a.slug = ?
@@ -25,13 +25,13 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
     error(403, 'You can only edit your own adventures');
   }
 
-  const tags = dbAll('SELECT * FROM tags ORDER BY name') as Tag[];
+  const tags = await dbAll('SELECT * FROM tags ORDER BY name') as Tag[];
 
-  const adventureTags = dbAll(`
+  const adventureTags = await dbAll(`
     SELECT tag_id FROM adventure_tags WHERE adventure_id = ?
   `, adventure.id) as { tag_id: string }[];
 
-  const media = dbAll(`
+  const media = await dbAll(`
     SELECT * FROM adventure_media
     WHERE adventure_id = ?
     ORDER BY order_index

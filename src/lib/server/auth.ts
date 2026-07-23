@@ -64,40 +64,40 @@ export function setSessionCookie(cookies: any, userId: string) {
   });
 }
 
-export function getSessionUser(cookies: any): User | null {
+export async function getSessionUser(cookies: any): Promise<User | null> {
   const token = cookies.get(SESSION_COOKIE);
   if (!token) return null;
 
   const session = verifySessionToken(token);
   if (!session) return null;
 
-  const user = dbGet('SELECT * FROM users WHERE id = ?', session.userId) as User | undefined;
+  const user = await dbGet('SELECT * FROM users WHERE id = ?', session.userId) as User | undefined;
   return user || null;
 }
 
-export function loginWithPassword(email: string, password: string): User | null {
-  const user = dbGet('SELECT * FROM users WHERE email = ?', email) as User | undefined;
+export async function loginWithPassword(email: string, password: string): Promise<User | null> {
+  const user = await dbGet('SELECT * FROM users WHERE email = ?', email) as User | undefined;
   if (!user) return null;
   if (!user.password_hash) return null;
   if (!verifyPassword(password, user.password_hash)) return null;
   return user;
 }
 
-export function createUser(email: string, name: string, password: string, role: string = 'member'): User {
+export async function createUser(email: string, name: string, password: string, role: string = 'member'): Promise<User> {
   const userId = generateToken();
   const passwordHash = hashPassword(password);
   const username = email.split('@')[0];
 
-  dbRun(`
+  await dbRun(`
     INSERT INTO users (id, username, email, name, password_hash, role)
     VALUES (?, ?, ?, ?, ?, ?)
   `, userId, username, email, name, passwordHash, role);
 
-  return dbGet('SELECT * FROM users WHERE id = ?', userId) as User;
+  return await dbGet('SELECT * FROM users WHERE id = ?', userId) as User;
 }
 
-export function hasUsers(): boolean {
-  const result = dbGet('SELECT COUNT(*) as count FROM users') as { count: number } | undefined;
+export async function hasUsers(): Promise<boolean> {
+  const result = await dbGet('SELECT COUNT(*) as count FROM users') as { count: number } | undefined;
   return (result?.count ?? 0) > 0;
 }
 
@@ -105,16 +105,16 @@ export function logout(cookies: any) {
   cookies.delete(SESSION_COOKIE, { path: '/' });
 }
 
-export function requireAuth(cookies: any): User {
-  const user = getSessionUser(cookies);
+export async function requireAuth(cookies: any): Promise<User> {
+  const user = await getSessionUser(cookies);
   if (!user) {
     throw new Error('Unauthorized');
   }
   return user;
 }
 
-export function requireAdmin(cookies: any): User {
-  const user = requireAuth(cookies);
+export async function requireAdmin(cookies: any): Promise<User> {
+  const user = await requireAuth(cookies);
   if (user.role !== 'admin') {
     throw new Error('Forbidden');
   }

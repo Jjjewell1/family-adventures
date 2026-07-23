@@ -3,7 +3,7 @@ import { dbAll } from '$lib/server/db';
 import type { Adventure } from '$lib/shared/types';
 
 export const load: PageServerLoad = async () => {
-  const adventures = dbAll(`
+  const adventures = await dbAll(`
     SELECT a.*, u.name as author_name
     FROM adventures a
     JOIN users u ON a.author_id = u.id

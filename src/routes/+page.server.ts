@@ -3,7 +3,7 @@ import { dbGet, dbAll } from '$lib/server/db';
 import type { Adventure } from '$lib/shared/types';
 
 export const load: PageServerLoad = async () => {
-  const recentAdventures = dbAll(`
+  const recentAdventures = await dbAll(`
     SELECT a.*, u.name as author_name, u.avatar_url as author_avatar
     FROM adventures a
     JOIN users u ON a.author_id = u.id
@@ -12,7 +12,7 @@ export const load: PageServerLoad = async () => {
     LIMIT 6
   `) as (Adventure & { author_name: string; author_avatar: string | null })[];
 
-  const stats = dbGet(`
+  const stats = await dbGet(`
     SELECT 
       COUNT(*) as total_adventures,
       COUNT(DISTINCT author_id) as total_contributors

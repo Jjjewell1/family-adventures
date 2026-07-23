@@ -5,7 +5,7 @@ import { dbRun, dbGet } from '$lib/server/db';
 import { generateToken } from '$lib/shared/utils';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
-  const user = getSessionUser(cookies);
+  const user = await getSessionUser(cookies);
   if (!user) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -18,20 +18,20 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 
   // Check adventure exists
-  const adventure = dbGet('SELECT id FROM adventures WHERE id = ?', adventureId);
+  const adventure = await dbGet('SELECT id FROM adventures WHERE id = ?', adventureId);
   if (!adventure) {
     return json({ error: 'Adventure not found' }, { status: 404 });
   }
 
   const id = generateToken();
 
-  dbRun(`
+  await dbRun(`
     INSERT INTO comments (id, adventure_id, author_id, parent_id, content)
     VALUES (?, ?, ?, ?, ?)
   `, id, adventureId, user.id, parentId || null, content.trim());
 
   // Add to activity feed
-  dbRun(`
+  await dbRun(`
     INSERT INTO activity_feed (id, user_id, adventure_id, action_type, metadata)
     VALUES (?, ?, ?, 'commented', ?)
   `, generateToken(), user.id, adventureId, JSON.stringify({ commentId: id }));

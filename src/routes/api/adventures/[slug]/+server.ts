@@ -6,12 +6,12 @@ import { slugify } from '$lib/shared/utils';
 import type { Adventure } from '$lib/shared/types';
 
 export const PUT: RequestHandler = async ({ params, request, cookies }) => {
-  const user = getSessionUser(cookies);
+  const user = await getSessionUser(cookies);
   if (!user) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const adventure = dbGet('SELECT * FROM adventures WHERE slug = ?', params.slug) as Adventure | undefined;
+  const adventure = await dbGet('SELECT * FROM adventures WHERE slug = ?', params.slug) as Adventure | undefined;
   if (!adventure) {
     return json({ error: 'Adventure not found' }, { status: 404 });
   }
@@ -44,13 +44,13 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
   let slug = adventure.slug;
   if (title.trim() !== adventure.title) {
     slug = slugify(title);
-    const existing = dbGet('SELECT id FROM adventures WHERE slug = ? AND id != ?', slug, adventure.id);
+    const existing = await dbGet('SELECT id FROM adventures WHERE slug = ? AND id != ?', slug, adventure.id);
     if (existing) {
       slug = `${slug}-${Date.now()}`;
     }
   }
 
-  dbRun(`
+  await dbRun(`
     UPDATE adventures
     SET title = ?, slug = ?, description = ?, content = ?, location_name = ?,
         lat = ?, lng = ?, start_date = ?, end_date = ?, mood = ?,
@@ -74,10 +74,10 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
   );
 
   // Replace tags
-  dbRun('DELETE FROM adventure_tags WHERE adventure_id = ?', adventure.id);
+  await dbRun('DELETE FROM adventure_tags WHERE adventure_id = ?', adventure.id);
   if (tags && tags.length > 0) {
     for (const tagId of tags) {
-      dbRun('INSERT OR IGNORE INTO adventure_tags (adventure_id, tag_id) VALUES (?, ?)', adventure.id, tagId);
+      await dbRun('INSERT OR IGNORE INTO adventure_tags (adventure_id, tag_id) VALUES (?, ?)', adventure.id, tagId);
     }
   }
 
@@ -85,12 +85,12 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
 };
 
 export const DELETE: RequestHandler = async ({ params, cookies }) => {
-  const user = getSessionUser(cookies);
+  const user = await getSessionUser(cookies);
   if (!user) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const adventure = dbGet('SELECT * FROM adventures WHERE slug = ?', params.slug) as Adventure | undefined;
+  const adventure = await dbGet('SELECT * FROM adventures WHERE slug = ?', params.slug) as Adventure | undefined;
   if (!adventure) {
     return json({ error: 'Adventure not found' }, { status: 404 });
   }
@@ -100,13 +100,13 @@ export const DELETE: RequestHandler = async ({ params, cookies }) => {
   }
 
   // Delete related data (foreign keys with CASCADE should handle most, but be explicit)
-  dbRun('DELETE FROM adventure_media WHERE adventure_id = ?', adventure.id);
-  dbRun('DELETE FROM adventure_tags WHERE adventure_id = ?', adventure.id);
-  dbRun('DELETE FROM comments WHERE adventure_id = ?', adventure.id);
-  dbRun('DELETE FROM reactions WHERE adventure_id = ?', adventure.id);
-  dbRun('DELETE FROM public_shares WHERE adventure_id = ?', adventure.id);
-  dbRun('DELETE FROM activity_feed WHERE adventure_id = ?', adventure.id);
-  dbRun('DELETE FROM adventures WHERE id = ?', adventure.id);
+  await dbRun('DELETE FROM adventure_media WHERE adventure_id = ?', adventure.id);
+  await dbRun('DELETE FROM adventure_tags WHERE adventure_id = ?', adventure.id);
+  await dbRun('DELETE FROM comments WHERE adventure_id = ?', adventure.id);
+  await dbRun('DELETE FROM reactions WHERE adventure_id = ?', adventure.id);
+  await dbRun('DELETE FROM public_shares WHERE adventure_id = ?', adventure.id);
+  await dbRun('DELETE FROM activity_feed WHERE adventure_id = ?', adventure.id);
+  await dbRun('DELETE FROM adventures WHERE id = ?', adventure.id);
 
   return json({ success: true });
 };

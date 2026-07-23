@@ -8,7 +8,7 @@ export const load: PageServerLoad = async () => {
   const currentDay = today.getDate();
 
   // Get adventures that happened on this day in previous years
-  const memories = dbAll(`
+  const memories = await dbAll(`
     SELECT a.*, u.name as author_name
     FROM adventures a
     JOIN users u ON a.author_id = u.id
@@ -43,7 +43,7 @@ export const load: PageServerLoad = async () => {
   const thirtyDaysFromNow = new Date();
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-  const allAdventures = dbAll(`
+  const allAdventures = await dbAll(`
     SELECT * FROM adventures
     WHERE is_draft = 0 AND visibility = 'family' AND start_date IS NOT NULL
     ORDER BY start_date

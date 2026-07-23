@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 import { dbAll } from '$lib/server/db';
 
 export const load: PageServerLoad = async () => {
-  const media = dbAll(`
+  const media = await dbAll(`
     SELECT 
       am.*,
       a.title as adventure_title,

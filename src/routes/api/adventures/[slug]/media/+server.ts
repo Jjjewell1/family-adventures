@@ -6,12 +6,12 @@ import { generateToken } from '$lib/shared/utils';
 import type { Adventure } from '$lib/shared/types';
 
 export const POST: RequestHandler = async ({ params, request, cookies }) => {
-  const user = getSessionUser(cookies);
+  const user = await getSessionUser(cookies);
   if (!user) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const adventure = dbGet('SELECT * FROM adventures WHERE slug = ?', params.slug) as Adventure | undefined;
+  const adventure = await dbGet('SELECT * FROM adventures WHERE slug = ?', params.slug) as Adventure | undefined;
   if (!adventure) {
     return json({ error: 'Adventure not found' }, { status: 404 });
   }
@@ -32,7 +32,7 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
   }
 
   // Get next order index
-  const maxOrder = dbGet(
+  const maxOrder = await dbGet(
     'SELECT COALESCE(MAX(order_index), -1) as max_idx FROM adventure_media WHERE adventure_id = ?',
     adventure.id
   ) as { max_idx: number } | undefined;
@@ -40,7 +40,7 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
 
   const mediaId = generateToken();
 
-  dbRun(`
+  await dbRun(`
     INSERT INTO adventure_media (id, adventure_id, immich_asset_id, file_path, media_type, caption, order_index)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `,
@@ -53,18 +53,18 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
     nextOrder
   );
 
-  const media = dbGet('SELECT * FROM adventure_media WHERE id = ?', mediaId);
+  const media = await dbGet('SELECT * FROM adventure_media WHERE id = ?', mediaId);
 
   return json({ media });
 };
 
 export const DELETE: RequestHandler = async ({ params, request, cookies }) => {
-  const user = getSessionUser(cookies);
+  const user = await getSessionUser(cookies);
   if (!user) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const adventure = dbGet('SELECT * FROM adventures WHERE slug = ?', params.slug) as Adventure | undefined;
+  const adventure = await dbGet('SELECT * FROM adventures WHERE slug = ?', params.slug) as Adventure | undefined;
   if (!adventure) {
     return json({ error: 'Adventure not found' }, { status: 404 });
   }
@@ -80,7 +80,7 @@ export const DELETE: RequestHandler = async ({ params, request, cookies }) => {
     return json({ error: 'Media ID is required' }, { status: 400 });
   }
 
-  dbRun('DELETE FROM adventure_media WHERE id = ? AND adventure_id = ?', mediaId, adventure.id);
+  await dbRun('DELETE FROM adventure_media WHERE id = ? AND adventure_id = ?', mediaId, adventure.id);
 
   return json({ success: true });
 };

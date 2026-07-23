@@ -35,7 +35,7 @@ export const load: PageServerLoad = async ({ url }) => {
       ORDER BY a.start_date DESC NULLS LAST, a.created_at DESC
     `;
 
-    const rows = dbAll(query, ...params) as any[];
+    const rows = await dbAll(query, ...params) as any[];
     adventures = rows.map(row => ({
       ...row,
       tags: row.tags_raw ? row.tags_raw.split(',').map((t: string) => {
@@ -44,7 +44,7 @@ export const load: PageServerLoad = async ({ url }) => {
       }) : []
     }));
   } else {
-    const rows = dbAll(`
+    const rows = await dbAll(`
       SELECT a.*, u.name as author_name, u.avatar_url as author_avatar,
         GROUP_CONCAT(DISTINCT t.id || ':' || t.name || ':' || t.color) as tags_raw
       FROM adventures a
@@ -65,7 +65,7 @@ export const load: PageServerLoad = async ({ url }) => {
     }));
   }
 
-  const tags = dbAll('SELECT * FROM tags ORDER BY name') as Tag[];
+  const tags = await dbAll('SELECT * FROM tags ORDER BY name') as Tag[];
 
   return {
     adventures,

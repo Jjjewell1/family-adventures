@@ -5,7 +5,7 @@ import { dbRun, dbGet, dbAll } from '$lib/server/db';
 import { slugify, generateToken } from '$lib/shared/utils';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
-  const user = getSessionUser(cookies);
+  const user = await getSessionUser(cookies);
   if (!user) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -35,12 +35,12 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   let slug = slugify(title);
 
   // Ensure unique slug
-  const existing = dbGet('SELECT id FROM adventures WHERE slug = ?', slug);
+  const existing = await dbGet('SELECT id FROM adventures WHERE slug = ?', slug);
   if (existing) {
     slug = `${slug}-${Date.now()}`;
   }
 
-  dbRun(`
+  await dbRun(`
     INSERT INTO adventures (id, author_id, title, slug, description, content, location_name, lat, lng, start_date, end_date, mood, template_type, visibility, is_draft)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `,
@@ -64,12 +64,12 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   // Add tags
   if (tags && tags.length > 0) {
     for (const tagId of tags) {
-      dbRun('INSERT OR IGNORE INTO adventure_tags (adventure_id, tag_id) VALUES (?, ?)', id, tagId);
+      await dbRun('INSERT OR IGNORE INTO adventure_tags (adventure_id, tag_id) VALUES (?, ?)', id, tagId);
     }
   }
 
   // Add to activity feed
-  dbRun(`
+  await dbRun(`
     INSERT INTO activity_feed (id, user_id, adventure_id, action_type, metadata)
     VALUES (?, ?, ?, 'created_adventure', ?)
   `, generateToken(), user.id, id, JSON.stringify({ title }));

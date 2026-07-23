@@ -4,7 +4,7 @@ import { getSessionUser, hashPassword, verifyPassword } from '$lib/server/auth';
 import { dbRun, dbGet } from '$lib/server/db';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
-  const user = getSessionUser(cookies);
+  const user = await getSessionUser(cookies);
   if (!user) return json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await request.json();
@@ -18,7 +18,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     return json({ error: 'Password must be at least 6 characters' }, { status: 400 });
   }
 
-  const fullUser = dbGet('SELECT password_hash FROM users WHERE id = ?', user.id) as { password_hash: string } | undefined;
+  const fullUser = await dbGet('SELECT password_hash FROM users WHERE id = ?', user.id) as { password_hash: string } | undefined;
   if (!fullUser?.password_hash) {
     return json({ error: 'No password set for this account' }, { status: 400 });
   }
@@ -28,7 +28,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 
   const newHash = hashPassword(newPassword);
-  dbRun('UPDATE users SET password_hash = ? WHERE id = ?', newHash, user.id);
+  await dbRun('UPDATE users SET password_hash = ? WHERE id = ?', newHash, user.id);
 
   return json({ success: true });
 };

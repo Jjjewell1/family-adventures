@@ -228,15 +228,15 @@ function initializeDatabase() {
 }
 
 // Helper functions that mimic better-sqlite3 API
-export function dbRun(sql: string, ...params: any[]): void {
-  if (!db) throw new Error('Database not initialized');
-  db.run(sql, params);
+export async function dbRun(sql: string, ...params: any[]): Promise<void> {
+  await getDb();
+  db!.run(sql, params);
   markDirty();
 }
 
-export function dbGet<T = any>(sql: string, ...params: any[]): T | undefined {
-  if (!db) throw new Error('Database not initialized');
-  const stmt = db.prepare(sql);
+export async function dbGet<T = any>(sql: string, ...params: any[]): Promise<T | undefined> {
+  await getDb();
+  const stmt = db!.prepare(sql);
   stmt.bind(params);
   if (stmt.step()) {
     const columns = stmt.getColumnNames();
@@ -252,9 +252,9 @@ export function dbGet<T = any>(sql: string, ...params: any[]): T | undefined {
   return undefined;
 }
 
-export function dbAll<T = any>(sql: string, ...params: any[]): T[] {
-  if (!db) throw new Error('Database not initialized');
-  const stmt = db.prepare(sql);
+export async function dbAll<T = any>(sql: string, ...params: any[]): Promise<T[]> {
+  await getDb();
+  const stmt = db!.prepare(sql);
   stmt.bind(params);
   const rows: T[] = [];
   while (stmt.step()) {
@@ -278,9 +278,9 @@ getDb().then(() => {
   seedDefaultAdmin();
 }).catch(console.error);
 
-function seedDefaultAdmin() {
+async function seedDefaultAdmin() {
   if (!db) return;
-  const existingAdmin = dbGet('SELECT id FROM users WHERE role = ? LIMIT 1', 'admin');
+  const existingAdmin = await dbGet('SELECT id FROM users WHERE role = ? LIMIT 1', 'admin');
   if (existingAdmin) return;
 
   const SESSION_SECRET = env.SESSION_SECRET || 'change-this-to-a-random-string';
