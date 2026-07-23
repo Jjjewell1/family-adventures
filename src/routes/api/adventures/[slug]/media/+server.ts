@@ -21,10 +21,10 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
   }
 
   const body = await request.json();
-  const { adventureId, immichAssetId, caption, mediaType } = body;
+  const { adventureId, immichAssetId, filePath, caption, mediaType } = body;
 
-  if (!immichAssetId?.trim()) {
-    return json({ error: 'Asset ID is required' }, { status: 400 });
+  if (!immichAssetId?.trim() && !filePath?.trim()) {
+    return json({ error: 'Asset ID or file path is required' }, { status: 400 });
   }
 
   if (adventureId !== adventure.id) {
@@ -41,12 +41,13 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
   const mediaId = generateToken();
 
   dbRun(`
-    INSERT INTO adventure_media (id, adventure_id, immich_asset_id, media_type, caption, order_index)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO adventure_media (id, adventure_id, immich_asset_id, file_path, media_type, caption, order_index)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `,
     mediaId,
     adventure.id,
-    immichAssetId.trim(),
+    immichAssetId?.trim() || null,
+    filePath?.trim() || null,
     mediaType || 'photo',
     caption || null,
     nextOrder

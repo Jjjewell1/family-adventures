@@ -90,6 +90,16 @@ function migrateDatabase() {
       markDirty();
     }
   }
+
+  // Check if adventure_media has file_path column
+  const mediaTableInfo = db.exec("PRAGMA table_info(adventure_media)");
+  if (mediaTableInfo.length > 0) {
+    const mediaCols = mediaTableInfo[0].values.map(r => r[1] as string);
+    if (!mediaCols.includes('file_path')) {
+      db.run("ALTER TABLE adventure_media ADD COLUMN file_path TEXT");
+      markDirty();
+    }
+  }
 }
 
 function initializeDatabase() {
@@ -136,7 +146,8 @@ function initializeDatabase() {
     CREATE TABLE IF NOT EXISTS adventure_media (
       id TEXT PRIMARY KEY,
       adventure_id TEXT NOT NULL,
-      immich_asset_id TEXT NOT NULL,
+      immich_asset_id TEXT,
+      file_path TEXT,
       media_type TEXT DEFAULT 'photo',
       caption TEXT,
       order_index INTEGER DEFAULT 0,

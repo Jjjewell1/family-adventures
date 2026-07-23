@@ -25,6 +25,8 @@
   let newMediaCaption = $state('');
   let newMediaType = $state<'photo' | 'video' | 'audio'>('photo');
   let addingMedia = $state(false);
+  let uploadingFile = $state(false);
+  let uploadError = $state('');
 
   const templates = [
     { id: 'beach', label: 'Beach Trip', icon: '🏖️' },
@@ -173,6 +175,55 @@
     } catch (e) {
       error = 'An error occurred. Please try again.';
     }
+  }
+
+  async function handleFileUpload(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    uploadingFile = true;
+    uploadError = '';
+
+    try {
+      // Upload file
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json();
+        uploadError = err.error || 'Upload failed';
+        return;
+      }
+
+      const { filePath } = await uploadRes.json();
+
+      // Add media to adventure
+      const mediaRes = await fetch(`/api/adventures/${data.adventure.slug}/media`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adventureId: data.adventure.id,
+          filePath,
+          caption: newMediaCaption || null,
+          mediaType: file.type.startsWith('video') ? 'video' : file.type.startsWith('audio') ? 'audio' : 'photo'
+        })
+      });
+
+      if (mediaRes.ok) {
+        const result = await mediaRes.json();
+        media = [...media, result.media];
+        newMediaCaption = '';
+      } else {
+        const err = await mediaRes.json();
+        uploadError = err.message || 'Failed to add media';
+      }
+    } catch (e) {
+      uploadError = 'Upload failed. Please try again.';
+    }
+    uploadingFile = false;
+    input.value = '';
   }
 </script>
 
@@ -419,7 +470,7 @@
         {#each media as m}
           <div class="relative aspect-square rounded-2xl overflow-hidden group">
             <img
-              src={getImmichAssetUrl(m.immich_asset_id, true)}
+              src={m.file_path || getImmichAssetUrl(m.immich_asset_id, true)}
               alt={m.caption || 'Adventure photo'}
               class="w-full h-full object-cover"
               loading="lazy"
@@ -449,40 +500,71 @@
     <!-- Add media form -->
     <div class="border-t border-sand-200 pt-4">
       <h3 class="text-sm font-medium text-navy-600 mb-3">Add Media</h3>
-      <div class="space-y-3">
-        <div class="flex gap-3">
+      <div class="space-y-4">
+        <!-- File Upload -->
+        <div class="rounded-2xl border-2 border-dashed border-sand-300 p-6 text-center hover:border-ocean-300 transition-colors">
           <input
-            type="text"
-            bind:value={newAssetId}
-            placeholder="Paste Immich asset ID"
-            class="flex-1 rounded-xl border border-sand-200 bg-white px-4 py-2.5 text-sm text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
+            type="file"
+            accept="image/*,video/*,audio/*"
+            onchange={handleFileUpload}
+            id="file-upload"
+            class="hidden"
+            disabled={uploadingFile}
           />
-          <select
-            bind:value={newMediaType}
-            class="rounded-xl border border-sand-200 bg-white px-3 py-2.5 text-sm text-navy-600 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
-          >
-            <option value="photo">Photo</option>
-            <option value="video">Video</option>
-            <option value="audio">Audio</option>
-          </select>
+          <label for="file-upload" class="cursor-pointer">
+            <svg class="h-8 w-8 mx-auto text-navy-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {#if uploadingFile}
+              <p class="text-sm text-navy-400">Uploading...</p>
+            {:else}
+              <p class="text-sm text-navy-500 font-medium">Click to upload photos, videos, or audio</p>
+              <p class="text-xs text-navy-400 mt-1">Max 20MB per file</p>
+            {/if}
+          </label>
         </div>
+        {#if uploadError}
+          <p class="text-sm text-coral-500">{uploadError}</p>
+        {/if}
+
+        <!-- Caption -->
         <input
           type="text"
           bind:value={newMediaCaption}
-          placeholder="Caption (optional)"
+          placeholder="Caption for next upload (optional)"
           class="w-full rounded-xl border border-sand-200 bg-white px-4 py-2.5 text-sm text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
         />
-        <button
-          type="button"
-          onclick={addMedia}
-          disabled={!newAssetId.trim() || addingMedia}
-          class="inline-flex items-center gap-2 rounded-full border border-sand-300 bg-white px-4 py-2 text-sm font-medium text-navy-600 hover:bg-sand-50 disabled:opacity-50 transition-colors"
-        >
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          {addingMedia ? 'Adding...' : 'Add Media'}
-        </button>
+
+        <!-- Immich Asset ID (advanced) -->
+        <details class="group">
+          <summary class="text-xs text-navy-400 cursor-pointer hover:text-navy-500 transition-colors">
+            Or add from Immich (advanced)
+          </summary>
+          <div class="flex gap-3 mt-2">
+            <input
+              type="text"
+              bind:value={newAssetId}
+              placeholder="Paste Immich asset ID"
+              class="flex-1 rounded-xl border border-sand-200 bg-white px-4 py-2.5 text-sm text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
+            />
+            <select
+              bind:value={newMediaType}
+              class="rounded-xl border border-sand-200 bg-white px-3 py-2.5 text-sm text-navy-600 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
+            >
+              <option value="photo">Photo</option>
+              <option value="video">Video</option>
+              <option value="audio">Audio</option>
+            </select>
+            <button
+              type="button"
+              onclick={addMedia}
+              disabled={!newAssetId.trim() || addingMedia}
+              class="inline-flex items-center gap-2 rounded-full border border-sand-300 bg-white px-4 py-2 text-sm font-medium text-navy-600 hover:bg-sand-50 disabled:opacity-50 transition-colors"
+            >
+              {addingMedia ? 'Adding...' : 'Add'}
+            </button>
+          </div>
+        </details>
       </div>
     </div>
   </div>

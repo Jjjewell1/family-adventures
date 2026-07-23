@@ -32,7 +32,8 @@ export interface Adventure {
 export interface AdventureMedia {
   id: string;
   adventure_id: string;
-  immich_asset_id: string;
+  immich_asset_id: string | null;
+  file_path: string | null;
   media_type: 'photo' | 'video' | 'audio';
   caption: string | null;
   order_index: number;

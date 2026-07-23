@@ -170,7 +170,7 @@
         {#each data.adventure.media as media}
           <div class="relative aspect-square rounded-2xl overflow-hidden group">
             <img
-              src={getImmichAssetUrl(media.immich_asset_id, true)}
+              src={media.file_path || getImmichAssetUrl(media.immich_asset_id, true)}
               alt={media.caption || 'Adventure photo'}
               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               loading="lazy"
