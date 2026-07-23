@@ -2,6 +2,7 @@ import initSqlJs, { type Database } from 'sql.js';
 import { env } from '$env/dynamic/private';
 import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import { dirname } from 'path';
+import { createHmac, randomBytes } from 'crypto';
 
 const DB_PATH = env.DATABASE_PATH || './data/family-adventures.db';
 
@@ -20,6 +21,8 @@ async function getDb(): Promise<Database> {
   } else {
     const buffer = readFileSync(DB_PATH);
     db = new SQL.Database(new Uint8Array(buffer));
+    migrateDatabase();
+    saveDb();
   }
 
   return db;
@@ -45,15 +48,60 @@ function markDirty() {
   dirty = true;
 }
 
+function migrateDatabase() {
+  if (!db) return;
+
+  const columns = db.exec("PRAGMA table_info(users)");
+  if (columns.length > 0) {
+    const userCols = columns[0].values.map(r => r[1] as string);
+
+    if (!userCols.includes('password_hash')) {
+      db.run("ALTER TABLE users ADD COLUMN password_hash TEXT");
+      markDirty();
+    }
+
+    if (!userCols.includes('username')) {
+      db.run("ALTER TABLE users ADD COLUMN username TEXT");
+      markDirty();
+    }
+
+    // Recreate users table if immich_user_id has NOT NULL constraint
+    // SQLite can't ALTER COLUMN, so we rebuild
+    const immichCol = columns[0].values.find(r => r[1] === 'immich_user_id');
+    if (immichCol && immichCol[5] === 1) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS users_new (
+          id TEXT PRIMARY KEY,
+          username TEXT UNIQUE,
+          email TEXT NOT NULL,
+          name TEXT NOT NULL,
+          password_hash TEXT,
+          avatar_url TEXT,
+          role TEXT DEFAULT 'member',
+          created_at TEXT DEFAULT (datetime('now'))
+        )
+      `);
+      db.run(`
+        INSERT INTO users_new (id, username, email, name, password_hash, avatar_url, role, created_at)
+        SELECT id, username, email, name, password_hash, avatar_url, role, created_at FROM users
+      `);
+      db.run("DROP TABLE users");
+      db.run("ALTER TABLE users_new RENAME TO users");
+      markDirty();
+    }
+  }
+}
+
 function initializeDatabase() {
   if (!db) return;
 
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
-      immich_user_id TEXT UNIQUE NOT NULL,
-      name TEXT NOT NULL,
+      username TEXT UNIQUE,
       email TEXT NOT NULL,
+      name TEXT NOT NULL,
+      password_hash TEXT,
       avatar_url TEXT,
       role TEXT DEFAULT 'member',
       created_at TEXT DEFAULT (datetime('now'))
@@ -205,7 +253,7 @@ export function dbAll<T = any>(sql: string, ...params: any[]): T[] {
     columns.forEach((col, i) => {
       row[col] = values[i];
     });
-    rows.push(row as T);
+    rows.push(row);
   }
   stmt.free();
   return rows;
@@ -216,4 +264,26 @@ export { getDb, saveDb };
 // Initialize on import
 getDb().then(() => {
   console.log('Database initialized');
+  seedDefaultAdmin();
 }).catch(console.error);
+
+function seedDefaultAdmin() {
+  if (!db) return;
+  const existing = dbGet('SELECT id FROM users LIMIT 1');
+  if (existing) return;
+
+  const SESSION_SECRET = env.SESSION_SECRET || 'change-this-to-a-random-string';
+
+  const userId = randomBytes(16).toString('hex');
+  const salt = randomBytes(16).toString('hex');
+  const hash = createHmac('sha256', SESSION_SECRET).update('admin123' + salt).digest('hex');
+  const passwordHash = `${salt}:${hash}`;
+
+  db.run(
+    'INSERT INTO users (id, username, email, name, password_hash, role) VALUES (?, ?, ?, ?, ?, ?)',
+    [userId, 'admin', 'admin@family.local', 'Admin', passwordHash, 'admin']
+  );
+  markDirty();
+  saveDb();
+  console.log('Default admin created — login with admin@family.local / admin123');
+}

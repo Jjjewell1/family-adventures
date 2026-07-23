@@ -2,7 +2,6 @@ import { env } from '$env/dynamic/private';
 import { dbRun, dbGet } from './db';
 import type { User } from '$lib/shared/types';
 import { generateToken } from '$lib/shared/utils';
-import { getImmichCurrentUser } from './immich';
 import { createHmac, randomBytes } from 'crypto';
 
 const SESSION_SECRET = env.SESSION_SECRET || 'change-this-to-a-random-string';
@@ -76,24 +75,30 @@ export function getSessionUser(cookies: any): User | null {
   return user || null;
 }
 
-export async function loginWithImmichApiKey(apiKey: string): Promise<User | null> {
-  const immichUser = await getImmichCurrentUser(apiKey);
-  
-  if (!immichUser) return null;
-
-  let user = dbGet('SELECT * FROM users WHERE immich_user_id = ?', immichUser.id) as User | undefined;
-
-  if (!user) {
-    const userId = generateToken();
-    dbRun(`
-      INSERT INTO users (id, immich_user_id, name, email, avatar_url, role)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `, userId, immichUser.id, immichUser.name, immichUser.email, immichUser.profileImagePath || null, 'member');
-    
-    user = dbGet('SELECT * FROM users WHERE id = ?', userId) as User;
-  }
-
+export function loginWithPassword(email: string, password: string): User | null {
+  const user = dbGet('SELECT * FROM users WHERE email = ?', email) as User | undefined;
+  if (!user) return null;
+  if (!user.password_hash) return null;
+  if (!verifyPassword(password, user.password_hash)) return null;
   return user;
+}
+
+export function createUser(email: string, name: string, password: string, role: string = 'member'): User {
+  const userId = generateToken();
+  const passwordHash = hashPassword(password);
+  const username = email.split('@')[0];
+
+  dbRun(`
+    INSERT INTO users (id, username, email, name, password_hash, role)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `, userId, username, email, name, passwordHash, role);
+
+  return dbGet('SELECT * FROM users WHERE id = ?', userId) as User;
+}
+
+export function hasUsers(): boolean {
+  const result = dbGet('SELECT COUNT(*) as count FROM users') as { count: number } | undefined;
+  return (result?.count ?? 0) > 0;
 }
 
 export function logout(cookies: any) {

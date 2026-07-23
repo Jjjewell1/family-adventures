@@ -1,13 +1,15 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   
-  let apiKey = $state('');
+  let email = $state('');
+  let password = $state('');
   let loading = $state(false);
   let error = $state('');
+  let showPassword = $state(false);
 
   async function handleSubmit() {
-    if (!apiKey.trim()) {
-      error = 'Please enter your API key';
+    if (!email.trim() || !password.trim()) {
+      error = 'Please enter your email and password';
       return;
     }
 
@@ -18,15 +20,14 @@
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: apiKey.trim() })
+        body: JSON.stringify({ email: email.trim(), password })
       });
 
       if (response.ok) {
-        goto('/');
-        window.location.reload();
+        window.location.href = '/adventures';
       } else {
         const err = await response.json();
-        error = err.message || 'Invalid API key';
+        error = err.message || 'Invalid email or password';
       }
     } catch (e) {
       error = 'An error occurred. Please try again.';
@@ -48,7 +49,7 @@
         </svg>
       </div>
       <h1 class="text-2xl font-display font-semibold text-navy-600">Welcome Back</h1>
-      <p class="text-navy-400 mt-2">Sign in with your Immich API key</p>
+      <p class="text-navy-400 mt-2">Sign in to your Family Adventures account</p>
     </div>
 
     {#if error}
@@ -59,20 +60,49 @@
 
     <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-6">
       <div>
-        <label for="apiKey" class="block text-sm font-medium text-navy-600 mb-2">
-          Immich API Key
+        <label for="email" class="block text-sm font-medium text-navy-600 mb-2">
+          Email
         </label>
         <input
-          type="password"
-          id="apiKey"
-          bind:value={apiKey}
-          placeholder="Enter your API key"
+          type="email"
+          id="email"
+          bind:value={email}
+          placeholder="you@example.com"
           class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
           required
         />
-        <p class="mt-2 text-xs text-navy-400">
-          Find your API key in Immich under Account Settings → API Keys
-        </p>
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium text-navy-600 mb-2">
+          Password
+        </label>
+        <div class="relative">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            id="password"
+            bind:value={password}
+            placeholder="Enter your password"
+            class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 pr-12 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
+            required
+          />
+          <button
+            type="button"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-navy-400 hover:text-navy-600"
+            onclick={() => showPassword = !showPassword}
+          >
+            {#if showPassword}
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+              </svg>
+            {:else}
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            {/if}
+          </button>
+        </div>
       </div>
 
       <button
@@ -86,11 +116,5 @@
         </svg>
       </button>
     </form>
-
-    <div class="mt-6 text-center">
-      <p class="text-xs text-navy-400">
-        Don't have an API key? Ask your family admin to create one for you.
-      </p>
-    </div>
   </div>
 </div>

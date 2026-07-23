@@ -1,19 +1,19 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { setSessionCookie, loginWithImmichApiKey } from '$lib/server/auth';
+import { setSessionCookie, loginWithPassword } from '$lib/server/auth';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
   const body = await request.json();
-  const { apiKey } = body;
+  const { email, password } = body;
 
-  if (!apiKey?.trim()) {
-    return json({ message: 'API key is required' }, { status: 400 });
+  if (!email?.trim() || !password?.trim()) {
+    return json({ message: 'Email and password are required' }, { status: 400 });
   }
 
-  const user = await loginWithImmichApiKey(apiKey.trim());
+  const user = loginWithPassword(email.trim(), password);
   
   if (!user) {
-    return json({ message: 'Invalid API key or Immich server unreachable' }, { status: 401 });
+    return json({ message: 'Invalid email or password' }, { status: 401 });
   }
 
   setSessionCookie(cookies, user.id);
