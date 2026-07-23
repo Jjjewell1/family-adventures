@@ -4,7 +4,7 @@ WORKDIR /app
 
 FROM base AS deps
 COPY package.json package-lock.json ./
-RUN npm ci --omit=optional
+RUN npm ci
 
 FROM base AS builder
 COPY . .
