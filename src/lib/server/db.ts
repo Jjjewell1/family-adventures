@@ -68,7 +68,7 @@ function migrateDatabase() {
     // Recreate users table if immich_user_id has NOT NULL constraint
     // SQLite can't ALTER COLUMN, so we rebuild
     const immichCol = columns[0].values.find(r => r[1] === 'immich_user_id');
-    if (immichCol && immichCol[5] === 1) {
+    if (immichCol && immichCol[3] === 1) {
       db.run(`
         CREATE TABLE IF NOT EXISTS users_new (
           id TEXT PRIMARY KEY,
