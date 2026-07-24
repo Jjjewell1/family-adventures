@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { getImmichAssetUrl } from '$lib/shared/immich';
 
   let { data } = $props();
 
@@ -10,6 +11,7 @@
 
   function imageUrl(img: { file_path: string | null; immich_asset_id: string | null }) {
     if (img.file_path) return `/uploads/${img.file_path}`;
+    if (img.immich_asset_id) return getImmichAssetUrl(img.immich_asset_id, true);
     return '';
   }
 
