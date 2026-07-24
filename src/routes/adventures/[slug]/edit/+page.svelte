@@ -210,29 +210,31 @@
     const files = input.files;
     if (!files || files.length === 0) return;
 
+    const fileList = Array.from(files);
+    const total = fileList.length;
     uploadingFile = true;
     uploadError = '';
-    uploadProgress = `Uploading ${files.length} file${files.length > 1 ? 's' : ''}...`;
+    uploadProgress = `Uploading 1 of ${total}...`;
 
     try {
-      const formData = new FormData();
-      for (const file of Array.from(files)) {
-        formData.append('files', file);
-      }
-
-      const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
-      if (!uploadRes.ok) {
-        const err = await uploadRes.json();
-        uploadError = err.error || 'Upload failed';
-        return;
-      }
-
-      const { files: results } = await uploadRes.json();
-
       let successCount = 0;
       let errorCount = 0;
 
-      for (const result of results) {
+      for (let i = 0; i < fileList.length; i++) {
+        uploadProgress = `Uploading ${i + 1} of ${total}...`;
+
+        const formData = new FormData();
+        formData.append('files', fileList[i]);
+
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!uploadRes.ok) {
+          errorCount++;
+          continue;
+        }
+
+        const { files: results } = await uploadRes.json();
+        const result = results[0];
+
         if (result.error) {
           errorCount++;
           continue;
@@ -257,8 +259,10 @@
         }
       }
 
-      if (errorCount > 0) {
+      if (errorCount > 0 && successCount > 0) {
         uploadError = `${successCount} uploaded, ${errorCount} failed`;
+      } else if (errorCount > 0) {
+        uploadError = `All ${errorCount} file${errorCount > 1 ? 's' : ''} failed to upload`;
       } else {
         uploadProgress = `${successCount} file${successCount > 1 ? 's' : ''} uploaded!`;
         setTimeout(() => { uploadProgress = ''; }, 2000);
@@ -588,12 +592,18 @@
             disabled={uploadingFile}
           />
           <label for="file-upload" class="cursor-pointer">
-            <svg class="h-8 w-8 mx-auto text-navy-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
             {#if uploadingFile}
-              <p class="text-sm text-navy-400">{uploadProgress || 'Uploading...'}</p>
+              <div class="flex items-center justify-center gap-2 mb-2">
+                <svg class="h-5 w-5 text-ocean-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-sm font-medium text-ocean-600">{uploadProgress || 'Uploading...'}</p>
+              </div>
             {:else}
+              <svg class="h-8 w-8 mx-auto text-navy-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
               <p class="text-sm text-navy-500 font-medium">Click to upload or drag & drop photos, videos, or audio</p>
               <p class="text-xs text-navy-400 mt-1">Select multiple files or an entire folder</p>
             {/if}
