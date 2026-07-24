@@ -153,6 +153,89 @@ function migrateDatabase() {
       markDirty();
     }
   }
+
+  // Create missing tables (added after initial DB creation)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS bucket_list (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT,
+      location_name TEXT,
+      lat REAL,
+      lng REAL,
+      category TEXT DEFAULT 'destination',
+      status TEXT DEFAULT 'wishlist',
+      cover_image TEXT,
+      created_by TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS bucket_list_votes (
+      bucket_item_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      vote INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (bucket_item_id, user_id),
+      FOREIGN KEY (bucket_item_id) REFERENCES bucket_list(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS bucket_list_comments (
+      id TEXT PRIMARY KEY,
+      bucket_item_id TEXT NOT NULL,
+      author_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (bucket_item_id) REFERENCES bucket_list(id) ON DELETE CASCADE,
+      FOREIGN KEY (author_id) REFERENCES users(id)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS ratings (
+      id TEXT PRIMARY KEY,
+      adventure_id TEXT NOT NULL,
+      author_id TEXT NOT NULL,
+      score INTEGER NOT NULL CHECK(score >= 1 AND score <= 5),
+      label TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(adventure_id, author_id),
+      FOREIGN KEY (adventure_id) REFERENCES adventures(id) ON DELETE CASCADE,
+      FOREIGN KEY (author_id) REFERENCES users(id)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS adventure_stories (
+      id TEXT PRIMARY KEY,
+      adventure_id TEXT NOT NULL,
+      author_id TEXT NOT NULL,
+      title TEXT,
+      content TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (adventure_id) REFERENCES adventures(id) ON DELETE CASCADE,
+      FOREIGN KEY (author_id) REFERENCES users(id)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS story_comments (
+      id TEXT PRIMARY KEY,
+      story_id TEXT NOT NULL,
+      author_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (story_id) REFERENCES adventure_stories(id) ON DELETE CASCADE,
+      FOREIGN KEY (author_id) REFERENCES users(id)
+    )
+  `);
 }
 
 function initializeDatabase() {
