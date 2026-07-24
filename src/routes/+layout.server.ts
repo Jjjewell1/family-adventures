@@ -2,7 +2,7 @@ import type { LayoutServerLoad } from './$types';
 import { getSessionUser } from '$lib/server/auth';
 
 export const load: LayoutServerLoad = async ({ cookies }) => {
-  const user = getSessionUser(cookies);
+  const user = await getSessionUser(cookies);
   
   return {
     user: user ? {

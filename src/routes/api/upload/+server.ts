@@ -14,7 +14,7 @@ const ALLOWED_TYPES = [
 ];
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
-  const user = getSessionUser(cookies);
+  const user = await getSessionUser(cookies);
   if (!user) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }

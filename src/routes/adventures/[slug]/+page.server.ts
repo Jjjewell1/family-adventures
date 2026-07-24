@@ -1,15 +1,29 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import { dbGet, dbAll } from '$lib/server/db';
+import { getSessionUser } from '$lib/server/auth';
 import type { Adventure, Comment, Tag, Reaction } from '$lib/shared/types';
 
-export const load: PageServerLoad = async ({ params, url }) => {
-  const adventure = await dbGet(`
-    SELECT a.*, u.name as author_name, u.avatar_url as author_avatar
-    FROM adventures a
-    JOIN users u ON a.author_id = u.id
-    WHERE a.slug = ? AND a.is_draft = 0
-  `, params.slug) as (Adventure & { author_name: string; author_avatar: string | null }) | undefined;
+export const load: PageServerLoad = async ({ params, url, cookies }) => {
+  const user = await getSessionUser(cookies);
+
+  let adventure;
+  if (user) {
+    // logged-in users can see drafts they own, plus all non-drafts
+    adventure = await dbGet(`
+      SELECT a.*, u.name as author_name, u.avatar_url as author_avatar
+      FROM adventures a
+      JOIN users u ON a.author_id = u.id
+      WHERE a.slug = ? AND (a.is_draft = 0 OR a.author_id = ?)
+    `, params.slug, user.id) as (Adventure & { author_name: string; author_avatar: string | null }) | undefined;
+  } else {
+    adventure = await dbGet(`
+      SELECT a.*, u.name as author_name, u.avatar_url as author_avatar
+      FROM adventures a
+      JOIN users u ON a.author_id = u.id
+      WHERE a.slug = ? AND a.is_draft = 0
+    `, params.slug) as (Adventure & { author_name: string; author_avatar: string | null }) | undefined;
+  }
 
   if (!adventure) {
     error(404, 'Adventure not found');

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import { goto } from '$app/navigation';
   import { formatDate, timeAgo } from '$lib/shared/utils';
   import { getImmichAssetUrl } from '$lib/shared/immich';
 
@@ -121,9 +122,12 @@
   {:else}
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {#each filteredAdventures as adventure}
-        <a 
-          href="/adventures/{adventure.slug}"
-          class="group glass rounded-3xl overflow-hidden card-hover"
+        <div 
+          role="link"
+          tabindex="0"
+          onclick={() => goto(`/adventures/${adventure.slug}`)}
+          onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') goto(`/adventures/${adventure.slug}`); }}
+          class="group glass rounded-3xl overflow-hidden card-hover cursor-pointer"
         >
           <!-- Cover Image -->
           <div class="relative h-48 bg-gradient-to-br from-ocean-100 to-ocean-200 overflow-hidden">
@@ -215,7 +219,7 @@
               {/if}
             </div>
           </div>
-        </a>
+        </div>
       {/each}
     </div>
   {/if}
