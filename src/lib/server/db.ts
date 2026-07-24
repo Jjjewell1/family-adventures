@@ -521,5 +521,5 @@ async function seedDefaultAdmin() {
   );
   markDirty();
   saveDb();
-  console.log('Default admin created — login with admin@family.local / admin123');
+  console.log('Default admin created — login with admin@family.local');
 }

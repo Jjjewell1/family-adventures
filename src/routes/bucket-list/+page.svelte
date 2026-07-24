@@ -63,6 +63,7 @@
 
   async function vote(itemId: string, vote: number) {
     votingId = itemId;
+    error = '';
     try {
       const res = await fetch('/api/bucket-list/vote', {
         method: 'POST',
@@ -70,12 +71,14 @@
         body: JSON.stringify({ bucketItemId: itemId, vote })
       });
       if (res.ok) window.location.reload();
-    } catch {}
+      else error = 'Failed to vote';
+    } catch { error = 'Network error'; }
     votingId = null;
   }
 
   async function addComment(itemId: string) {
     if (!commentText.trim()) return;
+    error = '';
     try {
       const res = await fetch('/api/bucket-list/comments', {
         method: 'POST',
@@ -83,10 +86,12 @@
         body: JSON.stringify({ bucketItemId: itemId, content: commentText.trim() })
       });
       if (res.ok) window.location.reload();
-    } catch {}
+      else error = 'Failed to add comment';
+    } catch { error = 'Network error'; }
   }
 
   async function updateStatus(itemId: string, status: string) {
+    error = '';
     try {
       const res = await fetch(`/api/bucket-list/${itemId}`, {
         method: 'PUT',
@@ -94,14 +99,17 @@
         body: JSON.stringify({ status })
       });
       if (res.ok) window.location.reload();
-    } catch {}
+      else error = 'Failed to update status';
+    } catch { error = 'Network error'; }
   }
 
   async function deleteItem(itemId: string) {
+    error = '';
     try {
       const res = await fetch(`/api/bucket-list/${itemId}`, { method: 'DELETE' });
       if (res.ok) window.location.reload();
-    } catch {}
+      else error = 'Failed to delete item';
+    } catch { error = 'Network error'; }
   }
 </script>
 

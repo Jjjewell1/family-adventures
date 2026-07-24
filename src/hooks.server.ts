@@ -1,8 +1,8 @@
 import type { Handle } from '@sveltejs/kit';
 import { readFileSync, existsSync } from 'fs';
-import { join, extname } from 'path';
+import { join, extname, normalize, resolve } from 'path';
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || './build/client/uploads';
+const UPLOAD_DIR = resolve(process.env.UPLOAD_DIR || './build/client/uploads');
 
 const MIME_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg',
@@ -24,7 +24,11 @@ const MIME_TYPES: Record<string, string> = {
 export const handle: Handle = async ({ event, resolve }) => {
   if (event.url.pathname.startsWith('/uploads/')) {
     const filename = event.url.pathname.replace('/uploads/', '');
-    const filepath = join(UPLOAD_DIR, filename);
+    const filepath = join(UPLOAD_DIR, normalize(filename));
+
+    if (!filepath.startsWith(UPLOAD_DIR)) {
+      return new Response('Forbidden', { status: 403 });
+    }
 
     if (existsSync(filepath)) {
       const ext = extname(filepath).toLowerCase();

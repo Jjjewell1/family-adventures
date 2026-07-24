@@ -9,6 +9,11 @@
   let map: any;
   let L: any;
 
+  function escapeHtml(str: string): string {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+
   onMount(async () => {
     if (typeof window === 'undefined') return;
 
@@ -50,20 +55,20 @@
         const popupContent = `
           <div class="p-2 min-w-[200px]">
             ${adventure.cover_file_path ? `
-              <img src="${adventure.cover_file_path}" 
-                   alt="${adventure.title}" 
+              <img src="${escapeHtml(adventure.cover_file_path)}" 
+                   alt="${escapeHtml(adventure.title)}" 
                    class="w-full h-24 object-cover rounded-lg mb-2" />
             ` : adventure.cover_asset_id ? `
-              <img src="${getImmichAssetUrl(adventure.cover_asset_id, true)}" 
-                   alt="${adventure.title}" 
+              <img src="${escapeHtml(getImmichAssetUrl(adventure.cover_asset_id, true))}" 
+                   alt="${escapeHtml(adventure.title)}" 
                    class="w-full h-24 object-cover rounded-lg mb-2" />
             ` : ''}
-            <h3 class="font-semibold text-navy-600">${adventure.title}</h3>
+            <h3 class="font-semibold text-navy-600">${escapeHtml(adventure.title)}</h3>
             <p class="text-xs text-navy-400 mt-1">
               ${adventure.start_date ? formatDate(adventure.start_date) : ''}
-              ${adventure.location_name ? ` • ${adventure.location_name}` : ''}
+              ${adventure.location_name ? ` • ${escapeHtml(adventure.location_name)}` : ''}
             </p>
-            <a href="/adventures/${adventure.slug}" 
+            <a href="/adventures/${escapeHtml(adventure.slug)}" 
                class="inline-block mt-2 text-xs text-ocean-500 hover:text-ocean-600">
               View Adventure →
             </a>

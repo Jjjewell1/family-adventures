@@ -7,8 +7,16 @@ import { generateToken } from '$lib/shared/utils';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
   const code = url.searchParams.get('code');
+  const state = url.searchParams.get('state');
   if (!code) {
     throw redirect(302, '/auth/login?error=no_code');
+  }
+
+  // Verify state parameter to prevent CSRF
+  const storedState = cookies.get('google_oauth_state');
+  cookies.delete('google_oauth_state', { path: '/' });
+  if (!state || !storedState || state !== storedState) {
+    throw redirect(302, '/auth/login?error=auth_failed');
   }
 
   const clientId = env.GOOGLE_CLIENT_ID;
@@ -69,7 +77,13 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
       } else {
         // Create new user from Google
         const userId = generateToken();
-        const username = googleUser.email.split('@')[0];
+        let username = googleUser.email.split('@')[0];
+
+        const existingUsername = await dbGet('SELECT id FROM users WHERE username = ?', username);
+        if (existingUsername) {
+          username = username + '_' + generateToken(4);
+        }
+
         await dbRun(
           `INSERT INTO users (id, username, email, name, avatar_url, provider, provider_id, approved)
            VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,

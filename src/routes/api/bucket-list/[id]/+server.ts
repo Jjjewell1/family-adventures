@@ -20,7 +20,7 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
   if (status) {
     await dbRun('UPDATE bucket_list SET status = ?, updated_at = datetime(\'now\') WHERE id = ?', status, params.id);
   }
-  if (title !== undefined) {
+  if (title !== undefined && title !== null) {
     await dbRun('UPDATE bucket_list SET title = ?, updated_at = datetime(\'now\') WHERE id = ?', title.trim(), params.id);
   }
   if (description !== undefined) {

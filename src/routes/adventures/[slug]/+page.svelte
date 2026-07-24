@@ -296,13 +296,6 @@
               <span class="text-xs text-navy-400">{timeAgo(comment.created_at)}</span>
             </div>
             <p class="text-navy-500 text-sm">{comment.content}</p>
-            
-            <!-- Reply button -->
-            {#if data.user}
-              <button class="text-xs text-ocean-500 hover:text-ocean-600 mt-2">
-                Reply
-              </button>
-            {/if}
           </div>
         {/each}
       </div>

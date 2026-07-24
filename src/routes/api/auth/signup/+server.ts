@@ -23,7 +23,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
   const userId = generateToken();
   const passwordHash = hashPassword(password);
-  const username = email.trim().split('@')[0];
+  let username = email.trim().split('@')[0];
+
+  const existingUsername = await dbGet('SELECT id FROM users WHERE username = ?', username);
+  if (existingUsername) {
+    username = username + '_' + generateToken(4);
+  }
 
   await dbRun(
     `INSERT INTO users (id, username, email, name, password_hash, provider, approved)

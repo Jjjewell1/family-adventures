@@ -10,7 +10,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     return json({ message: 'Email and password are required' }, { status: 400 });
   }
 
-  const user = loginWithPassword(email.trim(), password);
+  const user = await loginWithPassword(email.trim(), password);
   
   if (!user) {
     return json({ message: 'Invalid email or password' }, { status: 401 });

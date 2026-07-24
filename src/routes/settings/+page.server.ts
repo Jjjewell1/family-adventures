@@ -83,7 +83,12 @@ export const actions: Actions = {
 
     const userId = generateToken();
     const passwordHash = hashPassword(password);
-    const username = email.split('@')[0];
+    let username = email.split('@')[0];
+
+    const existingUsername = await dbGet('SELECT id FROM users WHERE username = ?', username);
+    if (existingUsername) {
+      username = username + '_' + generateToken(4);
+    }
 
     await dbRun(
       'INSERT INTO users (id, username, email, name, password_hash, role) VALUES (?, ?, ?, ?, ?, ?)',
@@ -108,7 +113,13 @@ export const actions: Actions = {
 
     await dbRun('DELETE FROM comments WHERE author_id = ?', targetId);
     await dbRun('DELETE FROM reactions WHERE author_id = ?', targetId);
+    await dbRun('DELETE FROM bucket_list_votes WHERE user_id = ?', targetId);
+    await dbRun('DELETE FROM bucket_list_comments WHERE author_id = ?', targetId);
+    await dbRun('DELETE FROM ratings WHERE author_id = ?', targetId);
+    await dbRun('DELETE FROM adventure_stories WHERE author_id = ?', targetId);
+    await dbRun('DELETE FROM activity_feed WHERE user_id = ?', targetId);
     await dbRun('UPDATE adventures SET author_id = ? WHERE author_id = ?', user.id, targetId);
+    await dbRun('UPDATE bucket_list SET created_by = ? WHERE created_by = ?', user.id, targetId);
     await dbRun('DELETE FROM users WHERE id = ?', targetId);
 
     return { success: true, message: 'Member deleted' };
