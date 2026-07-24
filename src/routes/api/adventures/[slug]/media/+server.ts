@@ -16,10 +16,6 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
     return json({ error: 'Adventure not found' }, { status: 404 });
   }
 
-  if (adventure.author_id !== user.id) {
-    return json({ error: 'You can only manage media on your own adventures' }, { status: 403 });
-  }
-
   const body = await request.json();
   const { adventureId, immichAssetId, filePath, caption, mediaType } = body;
 

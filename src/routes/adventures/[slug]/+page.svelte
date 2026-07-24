@@ -27,6 +27,14 @@
   let submittingSQ = $state(false);
   let deletingSQId = $state<string | null>(null);
 
+  // Upload state
+  let uploadingMedia = $state(false);
+  let uploadProgress = $state('');
+  let uploadErrors = $state<string[]>([]);
+  let sqUploadProgress = $state<Record<string, string>>({});
+  let sqUploading = $state<Record<string, boolean>>({});
+  let sqUploadErrors = $state<Record<string, string[]>>({});
+
   const reactionEmojis = ['❤️', '🔥', '😊', '👏', '🌊', '✈️'];
 
   const subAdventures = $derived(data.subAdventures || []);
@@ -192,6 +200,128 @@
     if (media.immich_asset_id) return getImmichAssetUrl(media.immich_asset_id, true);
     return '';
   }
+
+  async function handleAdventureMediaUpload(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files || files.length === 0) return;
+
+    const fileList = Array.from(files);
+    const total = fileList.length;
+    uploadingMedia = true;
+    uploadErrors = [];
+    uploadProgress = `Uploading 1 of ${total}...`;
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (let i = 0; i < fileList.length; i++) {
+      uploadProgress = `Uploading ${i + 1} of ${total}...`;
+      const formData = new FormData();
+      formData.append('files', fileList[i]);
+
+      try {
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!uploadRes.ok) { uploadErrors.push(`${fileList[i].name}: upload failed`); errorCount++; continue; }
+        const { files: results } = await uploadRes.json();
+        const result = results[0];
+        if (result.error) { uploadErrors.push(`${fileList[i].name}: ${result.error}`); errorCount++; continue; }
+
+        const mediaRes = await fetch(`/api/adventures/${data.adventure.slug}/media`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            adventureId: data.adventure.id,
+            filePath: result.filePath,
+            mediaType: result.filePath.match(/\.(mp4|webm|mov)$/i) ? 'video' : 'photo'
+          })
+        });
+        if (mediaRes.ok) {
+          const { media: newMedia } = await mediaRes.json();
+          data.adventure.media = [...(data.adventure.media || []), newMedia];
+          successCount++;
+        } else {
+          const err = await mediaRes.json().catch(() => ({ error: 'Failed' }));
+          uploadErrors.push(`${fileList[i].name}: ${err.error}`);
+          errorCount++;
+        }
+      } catch {
+        uploadErrors.push(`${fileList[i].name}: network error`);
+        errorCount++;
+      }
+    }
+
+    if (errorCount > 0 && successCount > 0) {
+      uploadProgress = `${successCount} uploaded, ${errorCount} failed`;
+    } else if (errorCount > 0) {
+      uploadProgress = `All ${errorCount} file${errorCount > 1 ? 's' : ''} failed`;
+    } else {
+      uploadProgress = `${successCount} file${successCount > 1 ? 's' : ''} uploaded!`;
+      setTimeout(() => { uploadProgress = ''; }, 2000);
+    }
+    uploadingMedia = false;
+    input.value = '';
+  }
+
+  async function handleSQMediaUpload(sqId: string, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files || files.length === 0) return;
+
+    const fileList = Array.from(files);
+    const total = fileList.length;
+    sqUploading = { ...sqUploading, [sqId]: true };
+    sqUploadErrors = { ...sqUploadErrors, [sqId]: [] };
+    sqUploadProgress = { ...sqUploadProgress, [sqId]: `Uploading 1 of ${total}...` };
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (let i = 0; i < fileList.length; i++) {
+      sqUploadProgress = { ...sqUploadProgress, [sqId]: `Uploading ${i + 1} of ${total}...` };
+      const formData = new FormData();
+      formData.append('files', fileList[i]);
+
+      try {
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!uploadRes.ok) { errorCount++; continue; }
+        const { files: results } = await uploadRes.json();
+        const result = results[0];
+        if (result.error) {
+          sqUploadErrors = { ...sqUploadErrors, [sqId]: [...(sqUploadErrors[sqId] || []), `${fileList[i].name}: ${result.error}`] };
+          errorCount++;
+          continue;
+        }
+
+        const mediaRes = await fetch(`/api/sub-adventures/${sqId}/media`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filePath: result.filePath })
+        });
+        if (mediaRes.ok) {
+          const newMedia = await mediaRes.json();
+          const sq = subAdventures.find((s: any) => s.id === sqId);
+          if (sq) sq.media = [...(sq.media || []), newMedia];
+          successCount++;
+        } else {
+          errorCount++;
+        }
+      } catch {
+        errorCount++;
+      }
+    }
+
+    if (errorCount > 0 && successCount > 0) {
+      sqUploadProgress = { ...sqUploadProgress, [sqId]: `${successCount} uploaded, ${errorCount} failed` };
+    } else if (errorCount > 0) {
+      sqUploadProgress = { ...sqUploadProgress, [sqId]: `Failed` };
+    } else {
+      sqUploadProgress = { ...sqUploadProgress, [sqId]: `${successCount} uploaded!` };
+      setTimeout(() => { sqUploadProgress = { ...sqUploadProgress, [sqId]: '' }; }, 2000);
+    }
+    sqUploading = { ...sqUploading, [sqId]: false };
+    input.value = '';
+  }
 </script>
 
 <svelte:head>
@@ -337,10 +467,51 @@
           </div>
         {/each}
       </div>
+      {#if data.user}
+        <div
+          class="mt-4 rounded-2xl border-2 border-dashed border-sand-300 p-4 text-center hover:border-ocean-300 transition-colors {uploadingMedia ? 'pointer-events-none opacity-60' : ''}"
+          role="region"
+          ondragover={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-ocean-400', 'bg-ocean-50/50'); }}
+          ondragleave={(e) => { e.currentTarget.classList.remove('border-ocean-400', 'bg-ocean-50/50'); }}
+          ondrop={(e) => {
+            e.preventDefault();
+            e.currentTarget.classList.remove('border-ocean-400', 'bg-ocean-50/50');
+            const dt = e.dataTransfer;
+            if (dt?.files?.length) {
+              const input = document.getElementById('adventure-media-upload') as HTMLInputElement;
+              if (input) { input.files = dt.files; input.dispatchEvent(new Event('change', { bubbles: true })); }
+            }
+          }}
+        >
+          <input type="file" id="adventure-media-upload" accept="image/*,video/*" multiple class="hidden"
+            onchange={handleAdventureMediaUpload} disabled={uploadingMedia} />
+          <label for="adventure-media-upload" class="cursor-pointer">
+            {#if uploadingMedia}
+              <div class="flex items-center justify-center gap-2">
+                <div class="h-4 w-4 border-2 border-ocean-300 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-sm text-ocean-600">{uploadProgress}</p>
+              </div>
+            {:else}
+              <div class="flex items-center justify-center gap-2 text-navy-400 hover:text-ocean-500 transition-colors">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <p class="text-sm font-medium">Add photos to this adventure</p>
+              </div>
+            {/if}
+          </label>
+          {#if uploadProgress && !uploadingMedia}
+            <p class="text-xs text-ocean-500 mt-1">{uploadProgress}</p>
+          {/if}
+          {#if uploadErrors.length > 0}
+            <div class="text-xs text-coral-400 mt-1 space-y-0.5">
+              {#each uploadErrors as err}<p>{err}</p>{/each}
+            </div>
+          {/if}
+        </div>
+      {/if}
     </div>
   {/if}
-
-  <!-- Side Quests -->
   <div class="mb-8">
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-3">
@@ -441,7 +612,7 @@
                   <!-- Main row: thumbnail + content -->
                   <div class="flex">
                     <!-- Thumbnail -->
-                    <div class="w-28 h-28 sm:w-36 sm:h-32 shrink-0 overflow-hidden">
+                    <div class="relative w-28 h-28 sm:w-36 sm:h-32 shrink-0 overflow-hidden">
                       {#if sq.media && sq.media.length > 0}
                         {@const src = sqImageUrl(sq.media[0])}
                         {#if src}
@@ -451,6 +622,20 @@
                         {/if}
                       {:else}
                         <div class="w-full h-full bg-gradient-to-br from-ocean-100 to-ocean-200 flex items-center justify-center text-2xl">🗺️</div>
+                      {/if}
+                      {#if data.user}
+                        <input type="file" id="sq-upload-{sq.id}" accept="image/*,video/*" multiple class="hidden"
+                          onchange={(e) => handleSQMediaUpload(sq.id, e)} disabled={sqUploading[sq.id]} />
+                        <label for="sq-upload-{sq.id}"
+                          class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                          {#if sqUploading[sq.id]}
+                            <div class="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          {:else}
+                            <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                          {/if}
+                        </label>
                       {/if}
                     </div>
                     <!-- Content -->
@@ -512,7 +697,7 @@
               {#each subAdventuresByDay.undated as sq (sq.id)}
                 <div class="glass rounded-2xl overflow-hidden group hover:shadow-md transition-shadow">
                   <div class="flex">
-                    <div class="w-28 h-28 sm:w-36 sm:h-32 shrink-0 overflow-hidden">
+                    <div class="relative w-28 h-28 sm:w-36 sm:h-32 shrink-0 overflow-hidden">
                       {#if sq.media && sq.media.length > 0}
                         {@const src = sqImageUrl(sq.media[0])}
                         {#if src}
@@ -522,6 +707,20 @@
                         {/if}
                       {:else}
                         <div class="w-full h-full bg-gradient-to-br from-ocean-100 to-ocean-200 flex items-center justify-center text-2xl">🗺️</div>
+                      {/if}
+                      {#if data.user}
+                        <input type="file" id="sq-upload-{sq.id}" accept="image/*,video/*" multiple class="hidden"
+                          onchange={(e) => handleSQMediaUpload(sq.id, e)} disabled={sqUploading[sq.id]} />
+                        <label for="sq-upload-{sq.id}"
+                          class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                          {#if sqUploading[sq.id]}
+                            <div class="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          {:else}
+                            <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                          {/if}
+                        </label>
                       {/if}
                     </div>
                     <div class="flex-1 min-w-0 p-3 sm:p-4">
@@ -581,13 +780,43 @@
             {#if sq.media && sq.media.length > 0}
               {@const src = sqImageUrl(sq.media[0])}
               {#if src}
-                <div class="aspect-video overflow-hidden">
+                <div class="relative aspect-video overflow-hidden">
                   <img {src} alt={sq.media[0].caption || sq.title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                  {#if data.user}
+                    <input type="file" id="sq-card-upload-{sq.id}" accept="image/*,video/*" multiple class="hidden"
+                      onchange={(e) => handleSQMediaUpload(sq.id, e)} disabled={sqUploading[sq.id]} />
+                    <label for="sq-card-upload-{sq.id}"
+                      class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                      {#if sqUploading[sq.id]}
+                        <div class="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      {:else}
+                        <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                      {/if}
+                    </label>
+                  {/if}
                 </div>
               {/if}
             {:else}
-              <div class="aspect-video bg-gradient-to-br from-ocean-100 to-ocean-200 flex items-center justify-center">
-                <span class="text-3xl">🗺️</span>
+              <div class="relative aspect-video bg-gradient-to-br from-ocean-100 to-ocean-200 flex items-center justify-center">
+                {#if data.user}
+                  <input type="file" id="sq-card-upload-{sq.id}" accept="image/*,video/*" multiple class="hidden"
+                    onchange={(e) => handleSQMediaUpload(sq.id, e)} disabled={sqUploading[sq.id]} />
+                  <label for="sq-card-upload-{sq.id}" class="cursor-pointer flex flex-col items-center gap-1 text-ocean-400 hover:text-ocean-500 transition-colors">
+                    {#if sqUploading[sq.id]}
+                      <div class="h-5 w-5 border-2 border-ocean-300 border-t-transparent rounded-full animate-spin"></div>
+                      <span class="text-xs">{sqUploadProgress[sq.id]}</span>
+                    {:else}
+                      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                      <span class="text-xs font-medium">Add photos</span>
+                    {/if}
+                  </label>
+                {:else}
+                  <span class="text-3xl">🗺️</span>
+                {/if}
               </div>
             {/if}
             <div class="p-4">
