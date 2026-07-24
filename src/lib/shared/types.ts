@@ -39,6 +39,7 @@ export interface AdventureMedia {
   file_path: string | null;
   media_type: 'photo' | 'video' | 'audio';
   caption: string | null;
+  hero_image: boolean;
   order_index: number;
   created_at: string;
 }

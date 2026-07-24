@@ -10,7 +10,7 @@
   let fade = $state(true);
 
   function imageUrl(img: { file_path: string | null; immich_asset_id: string | null }) {
-    if (img.file_path) return `/uploads/${img.file_path}`;
+    if (img.file_path) return img.file_path;
     if (img.immich_asset_id) return getImmichAssetUrl(img.immich_asset_id, true);
     return '';
   }

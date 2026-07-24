@@ -188,7 +188,7 @@
   }
 
   function sqImageUrl(media: any) {
-    if (media.file_path) return `/uploads/${media.file_path}`;
+    if (media.file_path) return media.file_path;
     if (media.immich_asset_id) return getImmichAssetUrl(media.immich_asset_id, true);
     return '';
   }
