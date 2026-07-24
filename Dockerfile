@@ -13,7 +13,7 @@ RUN npm run build
 FROM base AS runner
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV BODY_SIZE_LIMIT=20971520
+ENV BODY_SIZE_LIMIT=0
 RUN mkdir -p /app/data /app/build/client/uploads
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/node_modules ./node_modules

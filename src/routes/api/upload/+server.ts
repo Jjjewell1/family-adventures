@@ -6,9 +6,8 @@ import { join } from 'path';
 import { randomBytes } from 'crypto';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || './build/client/uploads';
-const MAX_SIZE = 20 * 1024 * 1024; // 20MB
 const ALLOWED_TYPES = [
-  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic',
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif',
   'video/mp4', 'video/webm', 'video/quicktime',
   'audio/mpeg', 'audio/wav', 'audio/ogg'
 ];
@@ -20,37 +19,39 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 
   const formData = await request.formData();
-  const file = formData.get('file') as File | null;
+  const files = formData.getAll('files') as File[];
 
-  if (!file) {
-    return json({ error: 'No file provided' }, { status: 400 });
+  if (!files || files.length === 0) {
+    return json({ error: 'No files provided' }, { status: 400 });
   }
 
-  if (file.size > MAX_SIZE) {
-    return json({ error: 'File too large (max 20MB)' }, { status: 400 });
-  }
-
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    return json({ error: 'File type not allowed' }, { status: 400 });
-  }
-
-  // Ensure upload directory exists
   if (!existsSync(UPLOAD_DIR)) {
     mkdirSync(UPLOAD_DIR, { recursive: true });
   }
 
-  // Generate unique filename
-  const ext = file.name.split('.').pop() || 'bin';
-  const timestamp = Date.now();
-  const random = randomBytes(8).toString('hex');
-  const filename = `${timestamp}-${random}.${ext}`;
-  const filepath = join(UPLOAD_DIR, filename);
+  const results: { filePath: string; filename: string; error?: string }[] = [];
 
-  // Write file
-  const buffer = Buffer.from(await file.arrayBuffer());
-  writeFileSync(filepath, buffer);
+  for (const file of files) {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      results.push({ filePath: '', filename: file.name, error: `File type not allowed: ${file.type}` });
+      continue;
+    }
 
-  const filePath = `/uploads/${filename}`;
+    try {
+      const ext = file.name.split('.').pop() || 'bin';
+      const timestamp = Date.now();
+      const random = randomBytes(8).toString('hex');
+      const filename = `${timestamp}-${random}.${ext}`;
+      const filepath = join(UPLOAD_DIR, filename);
 
-  return json({ filePath, filename });
+      const buffer = Buffer.from(await file.arrayBuffer());
+      writeFileSync(filepath, buffer);
+
+      results.push({ filePath: `/uploads/${filename}`, filename });
+    } catch (e) {
+      results.push({ filePath: '', filename: file.name, error: 'Failed to write file' });
+    }
+  }
+
+  return json({ files: results });
 };

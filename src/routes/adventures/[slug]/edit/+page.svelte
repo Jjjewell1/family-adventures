@@ -30,6 +30,7 @@
   let addingMedia = $state(false);
   let uploadingFile = $state(false);
   let uploadError = $state('');
+  let uploadProgress = $state('');
 
   const templates = [
     { id: 'beach', label: 'Beach Trip', icon: '🏖️' },
@@ -206,16 +207,18 @@
 
   async function handleFileUpload(event: Event) {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
+    const files = input.files;
+    if (!files || files.length === 0) return;
 
     uploadingFile = true;
     uploadError = '';
+    uploadProgress = `Uploading ${files.length} file${files.length > 1 ? 's' : ''}...`;
 
     try {
-      // Upload file
       const formData = new FormData();
-      formData.append('file', file);
+      for (const file of Array.from(files)) {
+        formData.append('files', file);
+      }
 
       const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
       if (!uploadRes.ok) {
@@ -224,27 +227,41 @@
         return;
       }
 
-      const { filePath } = await uploadRes.json();
+      const { files: results } = await uploadRes.json();
 
-      // Add media to adventure
-      const mediaRes = await fetch(`/api/adventures/${data.adventure.slug}/media`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          adventureId: data.adventure.id,
-          filePath,
-          caption: newMediaCaption || null,
-          mediaType: file.type.startsWith('video') ? 'video' : file.type.startsWith('audio') ? 'audio' : 'photo'
-        })
-      });
+      let successCount = 0;
+      let errorCount = 0;
 
-      if (mediaRes.ok) {
-        const result = await mediaRes.json();
-        media = [...media, result.media];
-        newMediaCaption = '';
+      for (const result of results) {
+        if (result.error) {
+          errorCount++;
+          continue;
+        }
+
+        const mediaRes = await fetch(`/api/adventures/${data.adventure.slug}/media`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            adventureId: data.adventure.id,
+            filePath: result.filePath,
+            mediaType: result.filePath.match(/\.(mp4|webm|mov)$/i) ? 'video' : result.filePath.match(/\.(mp3|wav|ogg)$/i) ? 'audio' : 'photo'
+          })
+        });
+
+        if (mediaRes.ok) {
+          const { media: newMedia } = await mediaRes.json();
+          media = [...media, newMedia];
+          successCount++;
+        } else {
+          errorCount++;
+        }
+      }
+
+      if (errorCount > 0) {
+        uploadError = `${successCount} uploaded, ${errorCount} failed`;
       } else {
-        const err = await mediaRes.json();
-        uploadError = err.message || 'Failed to add media';
+        uploadProgress = `${successCount} file${successCount > 1 ? 's' : ''} uploaded!`;
+        setTimeout(() => { uploadProgress = ''; }, 2000);
       }
     } catch (e) {
       uploadError = 'Upload failed. Please try again.';
@@ -543,10 +560,28 @@
       <h3 class="text-sm font-medium text-navy-600 mb-3">Add Media</h3>
       <div class="space-y-4">
         <!-- File Upload -->
-        <div class="rounded-2xl border-2 border-dashed border-sand-300 p-6 text-center hover:border-ocean-300 transition-colors">
+        <div
+          class="rounded-2xl border-2 border-dashed border-sand-300 p-6 text-center hover:border-ocean-300 transition-colors"
+          role="region"
+          ondragover={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-ocean-400', 'bg-ocean-50/50'); }}
+          ondragleave={(e) => { e.currentTarget.classList.remove('border-ocean-400', 'bg-ocean-50/50'); }}
+          ondrop={(e) => {
+            e.preventDefault();
+            e.currentTarget.classList.remove('border-ocean-400', 'bg-ocean-50/50');
+            const dt = e.dataTransfer;
+            if (dt?.files?.length) {
+              const input = document.getElementById('file-upload') as HTMLInputElement;
+              if (input) {
+                input.files = dt.files;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+            }
+          }}
+        >
           <input
             type="file"
             accept="image/*,video/*,audio/*"
+            multiple
             onchange={handleFileUpload}
             id="file-upload"
             class="hidden"
@@ -557,13 +592,16 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             {#if uploadingFile}
-              <p class="text-sm text-navy-400">Uploading...</p>
+              <p class="text-sm text-navy-400">{uploadProgress || 'Uploading...'}</p>
             {:else}
-              <p class="text-sm text-navy-500 font-medium">Click to upload photos, videos, or audio</p>
-              <p class="text-xs text-navy-400 mt-1">Max 20MB per file</p>
+              <p class="text-sm text-navy-500 font-medium">Click to upload or drag & drop photos, videos, or audio</p>
+              <p class="text-xs text-navy-400 mt-1">Select multiple files or an entire folder</p>
             {/if}
           </label>
         </div>
+        {#if uploadProgress && !uploadingFile}
+          <p class="text-sm text-ocean-500">{uploadProgress}</p>
+        {/if}
         {#if uploadError}
           <p class="text-sm text-coral-500">{uploadError}</p>
         {/if}
