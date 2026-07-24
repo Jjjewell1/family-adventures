@@ -178,6 +178,15 @@
     deletingSQId = null;
   }
 
+  async function toggleHeroImage(mediaId: string, current: boolean) {
+    await fetch(`/api/media/${mediaId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hero_image: !current })
+    });
+    window.location.reload();
+  }
+
   function sqImageUrl(media: any) {
     if (media.file_path) return `/uploads/${media.file_path}`;
     if (media.immich_asset_id) return getImmichAssetUrl(media.immich_asset_id, true);
@@ -294,7 +303,12 @@
   <!-- Media Gallery -->
   {#if data.adventure.media && data.adventure.media.length > 0}
     <div class="mb-8">
-      <h2 class="text-xl font-semibold text-navy-600 mb-4">Photos & Videos</h2>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-navy-600">Photos & Videos</h2>
+        {#if data.user && data.user.id === data.adventure.author_id}
+          <p class="text-xs text-navy-400">Click the star to feature a photo on the homepage</p>
+        {/if}
+      </div>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
         {#each data.adventure.media as media}
           <div class="relative aspect-square rounded-2xl overflow-hidden group">
@@ -308,6 +322,17 @@
               <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                 <p class="absolute bottom-3 left-3 right-3 text-white text-sm">{media.caption}</p>
               </div>
+            {/if}
+            {#if data.user && data.user.id === data.adventure.author_id}
+              <button
+                class="absolute top-2 right-2 p-1.5 rounded-full backdrop-blur-sm transition-all {media.hero_image ? 'bg-sunset-400/90 text-white shadow-md' : 'bg-black/30 text-white/60 opacity-0 group-hover:opacity-100 hover:bg-black/50'}"
+                onclick={() => toggleHeroImage(media.id, !!media.hero_image)}
+                title={media.hero_image ? 'Remove from homepage hero' : 'Feature on homepage hero'}
+              >
+                <svg class="h-4 w-4" fill={media.hero_image ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+              </button>
             {/if}
           </div>
         {/each}

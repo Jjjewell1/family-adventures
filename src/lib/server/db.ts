@@ -136,6 +136,16 @@ function migrateDatabase() {
     }
   }
 
+  // Check if adventure_media has hero_image column
+  const mediaInfo2 = db.exec("PRAGMA table_info(adventure_media)");
+  if (mediaInfo2.length > 0) {
+    const mediaCols2 = mediaInfo2[0].values.map(r => r[1] as string);
+    if (!mediaCols2.includes('hero_image')) {
+      db.run("ALTER TABLE adventure_media ADD COLUMN hero_image INTEGER DEFAULT 0");
+      markDirty();
+    }
+  }
+
   // Add Google auth columns to users table
   const usersTableInfo = db.exec("PRAGMA table_info(users)");
   if (usersTableInfo.length > 0) {
@@ -336,6 +346,7 @@ function initializeDatabase() {
       file_path TEXT,
       media_type TEXT DEFAULT 'photo',
       caption TEXT,
+      hero_image INTEGER DEFAULT 0,
       order_index INTEGER DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (adventure_id) REFERENCES adventures(id) ON DELETE CASCADE
