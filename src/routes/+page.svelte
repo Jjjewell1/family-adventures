@@ -4,6 +4,7 @@
   let { data } = $props();
 
   const heroImages = $derived(data.heroImages || []);
+  const stats = $derived(data.stats || { total_adventures: 0, total_contributors: 0 });
   let heroIndex = $state(0);
   let fade = $state(true);
 
