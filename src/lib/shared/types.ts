@@ -43,6 +43,29 @@ export interface AdventureMedia {
   created_at: string;
 }
 
+export interface SubAdventure {
+  id: string;
+  adventure_id: string;
+  title: string;
+  day_number: number | null;
+  note: string | null;
+  rating: number | null;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+  media?: SubAdventureMedia[];
+}
+
+export interface SubAdventureMedia {
+  id: string;
+  sub_adventure_id: string;
+  file_path: string | null;
+  immich_asset_id: string | null;
+  caption: string | null;
+  order_index: number;
+  created_at: string;
+}
+
 export interface Comment {
   id: string;
   adventure_id: string;

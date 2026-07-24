@@ -236,6 +236,52 @@ function migrateDatabase() {
       FOREIGN KEY (author_id) REFERENCES users(id)
     )
   `);
+
+  // Sub-adventures (side quests within a main adventure)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS sub_adventures (
+      id TEXT PRIMARY KEY,
+      adventure_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      day_number INTEGER,
+      note TEXT,
+      rating INTEGER CHECK(rating >= 1 AND rating <= 5),
+      order_index INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (adventure_id) REFERENCES adventures(id) ON DELETE CASCADE
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS sub_adventure_media (
+      id TEXT PRIMARY KEY,
+      sub_adventure_id TEXT NOT NULL,
+      file_path TEXT,
+      immich_asset_id TEXT,
+      caption TEXT,
+      order_index INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (sub_adventure_id) REFERENCES sub_adventures(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Seed example sub-adventures for the first adventure (if none exist yet)
+  const sqCount = db.exec('SELECT COUNT(*) as cnt FROM sub_adventures');
+  const hasExisting = sqCount.length > 0 && (sqCount[0].values[0][0] as number) > 0;
+  if (!hasExisting) {
+    const firstAdventure = db.exec('SELECT id FROM adventures LIMIT 1');
+    if (firstAdventure.length > 0 && firstAdventure[0].values.length > 0) {
+      const advId = firstAdventure[0].values[0][0] as string;
+      const sid1 = randomBytes(16).toString('hex');
+      const sid2 = randomBytes(16).toString('hex');
+      const sid3 = randomBytes(16).toString('hex');
+      db.run('INSERT INTO sub_adventures (id, adventure_id, title, day_number, note, rating, order_index) VALUES (?, ?, ?, ?, ?, ?, ?)', [sid1, advId, 'Aquarium Visit', 2, 'The kids loved the shark tank and the jellyfish exhibit.', 5, 0]);
+      db.run('INSERT INTO sub_adventures (id, adventure_id, title, day_number, note, rating, order_index) VALUES (?, ?, ?, ?, ?, ?, ?)', [sid2, advId, 'Boardwalk Ice Cream', 1, 'Found the best waffle cones right by the pier.', 4, 1]);
+      db.run('INSERT INTO sub_adventures (id, adventure_id, title, day_number, note, rating, order_index) VALUES (?, ?, ?, ?, ?, ?, ?)', [sid3, advId, 'Sunrise Beach Walk', 3, 'Got up early and had the whole beach to ourselves.', 5, 2]);
+      markDirty();
+    }
+  }
 }
 
 function initializeDatabase() {
@@ -448,6 +494,35 @@ function initializeDatabase() {
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (story_id) REFERENCES adventure_stories(id) ON DELETE CASCADE,
       FOREIGN KEY (author_id) REFERENCES users(id)
+    )
+  `);
+
+  // Sub-adventures (side quests within a main adventure)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS sub_adventures (
+      id TEXT PRIMARY KEY,
+      adventure_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      day_number INTEGER,
+      note TEXT,
+      rating INTEGER CHECK(rating >= 1 AND rating <= 5),
+      order_index INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (adventure_id) REFERENCES adventures(id) ON DELETE CASCADE
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS sub_adventure_media (
+      id TEXT PRIMARY KEY,
+      sub_adventure_id TEXT NOT NULL,
+      file_path TEXT,
+      immich_asset_id TEXT,
+      caption TEXT,
+      order_index INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (sub_adventure_id) REFERENCES sub_adventures(id) ON DELETE CASCADE
     )
   `);
 }

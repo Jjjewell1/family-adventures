@@ -103,6 +103,20 @@ export const load: PageServerLoad = async ({ params, url, cookies }) => {
     ORDER BY s.created_at DESC
   `, adventure.id);
 
+  // Get sub-adventures (side quests) with their media
+  const subAdventures = await dbAll(`
+    SELECT * FROM sub_adventures
+    WHERE adventure_id = ?
+    ORDER BY day_number ASC NULLS LAST, order_index ASC
+  `, adventure.id);
+
+  for (const sub of subAdventures) {
+    sub.media = await dbAll(
+      'SELECT * FROM sub_adventure_media WHERE sub_adventure_id = ? ORDER BY order_index',
+      sub.id
+    );
+  }
+
   return {
     adventure: {
       ...adventure,
@@ -114,6 +128,7 @@ export const load: PageServerLoad = async ({ params, url, cookies }) => {
     ratings,
     avgRating: Math.round(avgRating * 10) / 10,
     stories,
+    subAdventures,
     siteUrl: url.origin
   };
 };

@@ -15,7 +15,34 @@
   let storyContent = $state('');
   let submittingStory = $state(false);
 
+  // Side Quests state
+  let sideQuestView = $state<'timeline' | 'cards'>('timeline');
+  let showSideQuestForm = $state(false);
+  let sqTitle = $state('');
+  let sqDay = $state('');
+  let sqNote = $state('');
+  let sqRating = $state(0);
+  let sqHoverRating = $state(0);
+  let submittingSQ = $state(false);
+  let deletingSQId = $state<string | null>(null);
+
   const reactionEmojis = ['❤️', '🔥', '😊', '👏', '🌊', '✈️'];
+
+  const subAdventures = $derived(data.subAdventures || []);
+
+  const subAdventuresByDay = $derived((() => {
+    const grouped: Record<number, any[]> = {};
+    const undated: any[] = [];
+    for (const sq of subAdventures) {
+      if (sq.day_number != null) {
+        if (!grouped[sq.day_number]) grouped[sq.day_number] = [];
+        grouped[sq.day_number].push(sq);
+      } else {
+        undated.push(sq);
+      }
+    }
+    return { grouped, undated };
+  })());
   
   async function addReaction(emoji: string) {
     const response = await fetch('/api/reactions', {
@@ -88,6 +115,40 @@
     });
     if (res.ok) window.location.reload();
     submittingStory = false;
+  }
+
+  async function submitSideQuest() {
+    if (!sqTitle.trim()) return;
+    submittingSQ = true;
+    const res = await fetch('/api/sub-adventures', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        adventureId: data.adventure.id,
+        title: sqTitle.trim(),
+        dayNumber: sqDay ? parseInt(sqDay) : null,
+        note: sqNote.trim() || null,
+        rating: sqRating || null
+      })
+    });
+    if (res.ok) window.location.reload();
+    submittingSQ = false;
+  }
+
+  async function deleteSideQuest(id: string) {
+    deletingSQId = id;
+  }
+
+  async function confirmDeleteSQ(id: string) {
+    const res = await fetch(`/api/sub-adventures/${id}`, { method: 'DELETE' });
+    if (res.ok) window.location.reload();
+    deletingSQId = null;
+  }
+
+  function sqImageUrl(media: any) {
+    if (media.file_path) return `/uploads/${media.file_path}`;
+    if (media.immich_asset_id) return getImmichAssetUrl(media.immich_asset_id, true);
+    return '';
   }
 </script>
 
@@ -220,6 +281,240 @@
       </div>
     </div>
   {/if}
+
+  <!-- Side Quests -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <h2 class="text-xl font-semibold text-navy-600">Side Quests</h2>
+        {#if subAdventures.length > 0}
+          <div class="flex rounded-lg border border-sand-200 overflow-hidden text-xs">
+            <button
+              class="px-3 py-1.5 font-medium transition-colors {sideQuestView === 'timeline' ? 'bg-ocean-500 text-white' : 'bg-white text-navy-500 hover:bg-sand-50'}"
+              onclick={() => sideQuestView = 'timeline'}
+            >
+              Timeline
+            </button>
+            <button
+              class="px-3 py-1.5 font-medium transition-colors {sideQuestView === 'cards' ? 'bg-ocean-500 text-white' : 'bg-white text-navy-500 hover:bg-sand-50'}"
+              onclick={() => sideQuestView = 'cards'}
+            >
+              Cards
+            </button>
+          </div>
+        {/if}
+      </div>
+      {#if data.user}
+        <button
+          onclick={() => showSideQuestForm = !showSideQuestForm}
+          class="text-sm text-ocean-500 hover:text-ocean-600 font-medium"
+        >
+          {showSideQuestForm ? 'Cancel' : '+ Add Side Quest'}
+        </button>
+      {/if}
+    </div>
+
+    {#if showSideQuestForm}
+      <form class="glass rounded-2xl p-5 mb-6 space-y-4" onsubmit={(e) => { e.preventDefault(); submitSideQuest(); }}>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="sqTitle" class="block text-sm font-medium text-navy-600 mb-1">Title</label>
+            <input id="sqTitle" type="text" bind:value={sqTitle} placeholder="e.g. Aquarium Visit" required
+              class="w-full rounded-xl border border-sand-200 bg-white px-4 py-2.5 text-sm text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100" />
+          </div>
+          <div>
+            <label for="sqDay" class="block text-sm font-medium text-navy-600 mb-1">Day (optional)</label>
+            <input id="sqDay" type="number" min="1" bind:value={sqDay} placeholder="e.g. 2"
+              class="w-full rounded-xl border border-sand-200 bg-white px-4 py-2.5 text-sm text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100" />
+          </div>
+        </div>
+        <div>
+          <label for="sqNote" class="block text-sm font-medium text-navy-600 mb-1">Note (optional)</label>
+          <textarea id="sqNote" bind:value={sqNote} placeholder="A short note about this side quest..." rows="2"
+            class="w-full rounded-xl border border-sand-200 bg-white px-4 py-2.5 text-sm text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100 resize-none"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-navy-600 mb-1">Rating (optional)</label>
+          <div class="flex gap-1">
+            {#each Array(5) as _, i}
+              <button type="button" class="text-xl transition-transform hover:scale-110"
+                onclick={() => sqRating = sqRating === i + 1 ? 0 : i + 1}
+                onmouseenter={() => sqHoverRating = i + 1}
+                onmouseleave={() => sqHoverRating = 0}>
+                {(sqHoverRating || sqRating) > i ? '🔥' : '⚪'}
+              </button>
+            {/each}
+            {#if sqRating > 0}
+              <span class="ml-2 text-sm text-navy-400 self-center">{sqRating}/5</span>
+            {/if}
+          </div>
+        </div>
+        <button type="submit" disabled={submittingSQ || !sqTitle.trim()}
+          class="rounded-full bg-ocean-500 px-5 py-2 text-sm font-medium text-white hover:bg-ocean-600 disabled:opacity-50 transition-colors">
+          {submittingSQ ? 'Adding...' : 'Add Side Quest'}
+        </button>
+      </form>
+    {/if}
+
+    {#if subAdventures.length === 0}
+      <div class="glass rounded-2xl p-8 text-center">
+        <div class="text-3xl mb-3">🗺️</div>
+        <p class="text-navy-400 text-sm">No side quests yet. Add stops, activities, and little detours from this trip!</p>
+      </div>
+    {:else if sideQuestView === 'timeline'}
+      <!-- Timeline View -->
+      <div class="relative">
+        <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-sand-200"></div>
+        {#each Object.entries(subAdventuresByDay.grouped).sort(([a], [b]) => Number(a) - Number(b)) as [day, items]}
+          <div class="relative pl-10 pb-6">
+            <div class="absolute left-2.5 top-1 h-4 w-4 rounded-full bg-ocean-500 border-2 border-white shadow-sm flex items-center justify-center">
+              <span class="text-[8px] text-white font-bold">{day}</span>
+            </div>
+            <p class="text-xs font-semibold text-ocean-600 uppercase tracking-wider mb-3">Day {day}</p>
+            <div class="space-y-3">
+              {#each items as sq (sq.id)}
+                <div class="glass rounded-2xl p-4 group hover:shadow-md transition-shadow">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <h3 class="font-semibold text-navy-600 text-sm">{sq.title}</h3>
+                        {#if sq.rating}
+                          <span class="text-xs">{Array(sq.rating).fill('🔥').join('')}</span>
+                        {/if}
+                      </div>
+                      {#if sq.note}
+                        <p class="text-xs text-navy-400 leading-relaxed">{sq.note}</p>
+                      {/if}
+                    </div>
+                    {#if data.user}
+                      {#if deletingSQId === sq.id}
+                        <div class="flex items-center gap-1.5 shrink-0">
+                          <button class="text-xs text-coral-500 hover:text-coral-700 font-medium" onclick={() => confirmDeleteSQ(sq.id)}>Yes</button>
+                          <button class="text-xs text-navy-400 hover:text-navy-600 font-medium" onclick={() => deletingSQId = null}>No</button>
+                        </div>
+                      {:else}
+                        <button class="text-navy-300 hover:text-coral-500 opacity-0 group-hover:opacity-100 transition-all shrink-0" onclick={() => deleteSideQuest(sq.id)} title="Remove">
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                      {/if}
+                    {/if}
+                  </div>
+                  {#if sq.media && sq.media.length > 0}
+                    <div class="flex gap-2 mt-3 overflow-x-auto pb-1">
+                      {#each sq.media as m}
+                        {@const src = sqImageUrl(m)}
+                        {#if src}
+                          <img {src} alt={m.caption || sq.title} class="h-20 w-20 rounded-xl object-cover shrink-0" loading="lazy" />
+                        {/if}
+                      {/each}
+                    </div>
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          </div>
+        {/each}
+
+        {#if subAdventuresByDay.undated.length > 0}
+          <div class="relative pl-10 pb-6">
+            <div class="absolute left-2.5 top-1 h-4 w-4 rounded-full bg-sand-400 border-2 border-white shadow-sm"></div>
+            <p class="text-xs font-semibold text-navy-400 uppercase tracking-wider mb-3">Other Stops</p>
+            <div class="space-y-3">
+              {#each subAdventuresByDay.undated as sq (sq.id)}
+                <div class="glass rounded-2xl p-4 group hover:shadow-md transition-shadow">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <h3 class="font-semibold text-navy-600 text-sm">{sq.title}</h3>
+                        {#if sq.rating}
+                          <span class="text-xs">{Array(sq.rating).fill('🔥').join('')}</span>
+                        {/if}
+                      </div>
+                      {#if sq.note}
+                        <p class="text-xs text-navy-400 leading-relaxed">{sq.note}</p>
+                      {/if}
+                    </div>
+                    {#if data.user}
+                      {#if deletingSQId === sq.id}
+                        <div class="flex items-center gap-1.5 shrink-0">
+                          <button class="text-xs text-coral-500 hover:text-coral-700 font-medium" onclick={() => confirmDeleteSQ(sq.id)}>Yes</button>
+                          <button class="text-xs text-navy-400 hover:text-navy-600 font-medium" onclick={() => deletingSQId = null}>No</button>
+                        </div>
+                      {:else}
+                        <button class="text-navy-300 hover:text-coral-500 opacity-0 group-hover:opacity-100 transition-all shrink-0" onclick={() => deleteSideQuest(sq.id)} title="Remove">
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                      {/if}
+                    {/if}
+                  </div>
+                  {#if sq.media && sq.media.length > 0}
+                    <div class="flex gap-2 mt-3 overflow-x-auto pb-1">
+                      {#each sq.media as m}
+                        {@const src = sqImageUrl(m)}
+                        {#if src}
+                          <img {src} alt={m.caption || sq.title} class="h-20 w-20 rounded-xl object-cover shrink-0" loading="lazy" />
+                        {/if}
+                      {/each}
+                    </div>
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          </div>
+        {/if}
+      </div>
+    {:else}
+      <!-- Cards View -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {#each subAdventures as sq (sq.id)}
+          <div class="glass rounded-2xl overflow-hidden group hover:shadow-md transition-shadow">
+            {#if sq.media && sq.media.length > 0}
+              {@const src = sqImageUrl(sq.media[0])}
+              {#if src}
+                <div class="aspect-video overflow-hidden">
+                  <img {src} alt={sq.media[0].caption || sq.title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                </div>
+              {/if}
+            {:else}
+              <div class="aspect-video bg-gradient-to-br from-ocean-100 to-ocean-200 flex items-center justify-center">
+                <span class="text-3xl">🗺️</span>
+              </div>
+            {/if}
+            <div class="p-4">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <h3 class="font-semibold text-navy-600 text-sm">{sq.title}</h3>
+                    {#if sq.rating}
+                      <span class="text-xs">{Array(sq.rating).fill('🔥').join('')}</span>
+                    {/if}
+                  </div>
+                  {#if sq.day_number}
+                    <span class="inline-block text-[10px] font-medium text-ocean-600 bg-ocean-50 rounded-full px-2 py-0.5 mb-1">Day {sq.day_number}</span>
+                  {/if}
+                  {#if sq.note}
+                    <p class="text-xs text-navy-400 leading-relaxed line-clamp-2">{sq.note}</p>
+                  {/if}
+                </div>
+                {#if data.user}
+                  {#if deletingSQId === sq.id}
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      <button class="text-xs text-coral-500 hover:text-coral-700 font-medium" onclick={() => confirmDeleteSQ(sq.id)}>Yes</button>
+                      <button class="text-xs text-navy-400 hover:text-navy-600 font-medium" onclick={() => deletingSQId = null}>No</button>
+                    </div>
+                  {:else}
+                    <button class="text-navy-300 hover:text-coral-500 opacity-0 group-hover:opacity-100 transition-all shrink-0" onclick={() => deleteSideQuest(sq.id)} title="Remove">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  {/if}
+                {/if}
+              </div>
+            </div>
+          </div>
+        {/each}
+      </div>
+    {/if}
+  </div>
 
   <!-- Reactions -->
   <div class="glass rounded-2xl p-6 mb-8">
