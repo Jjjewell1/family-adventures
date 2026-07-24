@@ -163,6 +163,29 @@
       if (res.ok) window.location.reload();
     } catch {}
   }
+
+  async function handleToggleRole(memberId: string, currentRole: string) {
+    const newRole = currentRole === 'admin' ? 'member' : 'admin';
+    const adminCount = data.users.filter((u: any) => u.approved && u.role === 'admin').length;
+    if (currentRole === 'admin' && adminCount <= 1) {
+      memberError = 'Cannot remove the last admin';
+      return;
+    }
+    try {
+      const res = await fetch(`/api/users/${memberId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole })
+      });
+      if (res.ok) window.location.reload();
+      else {
+        const data = await res.json();
+        memberError = data.error || 'Failed to update role';
+      }
+    } catch {
+      memberError = 'An error occurred';
+    }
+  }
 </script>
 
 <svelte:head>
@@ -513,15 +536,24 @@
                         </button>
                       </div>
                     {:else}
-                      <button
-                        class="text-sm text-navy-300 hover:text-coral-500 transition-colors"
-                        onclick={() => handleDeleteMember(member.id)}
-                        title="Remove member"
-                      >
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+                      <div class="flex items-center justify-end gap-1">
+                        <button
+                          class="text-xs px-2.5 py-1 rounded-full font-medium transition-colors {member.role === 'admin' ? 'bg-ocean-50 text-ocean-600 hover:bg-ocean-100' : 'bg-sand-200 text-navy-500 hover:bg-sand-300'}"
+                          onclick={() => handleToggleRole(member.id, member.role)}
+                          title={member.role === 'admin' ? 'Remove admin role' : 'Make admin'}
+                        >
+                          {member.role === 'admin' ? 'Demote' : 'Make Admin'}
+                        </button>
+                        <button
+                          class="text-sm text-navy-300 hover:text-coral-500 transition-colors ml-1"
+                          onclick={() => handleDeleteMember(member.id)}
+                          title="Remove member"
+                        >
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     {/if}
                   {/if}
                 </td>

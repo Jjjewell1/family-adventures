@@ -32,6 +32,12 @@ export const PUT: RequestHandler = async ({ request, cookies, params }) => {
   }
 
   if (role !== undefined && isAdmin) {
+    if (targetId === user.id && role !== 'admin') {
+      const adminCount = await dbGet('SELECT COUNT(*) as cnt FROM users WHERE role = ? AND approved = 1', 'admin') as { cnt: number };
+      if (adminCount.cnt <= 1) {
+        return json({ error: 'Cannot remove the last admin' }, { status: 400 });
+      }
+    }
     await dbRun('UPDATE users SET role = ? WHERE id = ?', role === 'admin' ? 'admin' : 'member', targetId);
   }
 

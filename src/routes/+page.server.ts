@@ -12,6 +12,15 @@ export const load: PageServerLoad = async () => {
     LIMIT 6
   `) as (Adventure & { author_name: string; author_avatar: string | null })[];
 
+  const heroImages = await dbAll(`
+    SELECT am.file_path, am.immich_asset_id, a.title as adventure_title, a.slug
+    FROM adventure_media am
+    JOIN adventures a ON am.adventure_id = a.id
+    WHERE a.is_draft = 0 AND a.visibility = 'family' AND am.media_type = 'photo'
+    ORDER BY RANDOM()
+    LIMIT 12
+  `) as { file_path: string | null; immich_asset_id: string | null; adventure_title: string; slug: string }[];
+
   const stats = await dbGet(`
     SELECT 
       COUNT(*) as total_adventures,
@@ -22,6 +31,7 @@ export const load: PageServerLoad = async () => {
 
   return {
     recentAdventures,
+    heroImages,
     stats
   };
 };
