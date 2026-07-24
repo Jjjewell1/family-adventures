@@ -453,16 +453,20 @@ function initializeDatabase() {
 }
 
 // Helper functions that mimic better-sqlite3 API
+function sanitizeParams(params: any[]): any[] {
+  return params.map(p => p === undefined ? null : p);
+}
+
 export async function dbRun(sql: string, ...params: any[]): Promise<void> {
   await getDb();
-  db!.run(sql, params);
+  db!.run(sql, sanitizeParams(params));
   markDirty();
 }
 
 export async function dbGet<T = any>(sql: string, ...params: any[]): Promise<T | undefined> {
   await getDb();
   const stmt = db!.prepare(sql);
-  stmt.bind(params);
+  stmt.bind(sanitizeParams(params));
   if (stmt.step()) {
     const columns = stmt.getColumnNames();
     const values = stmt.get();
@@ -480,7 +484,7 @@ export async function dbGet<T = any>(sql: string, ...params: any[]): Promise<T |
 export async function dbAll<T = any>(sql: string, ...params: any[]): Promise<T[]> {
   await getDb();
   const stmt = db!.prepare(sql);
-  stmt.bind(params);
+  stmt.bind(sanitizeParams(params));
   const rows: T[] = [];
   while (stmt.step()) {
     const columns = stmt.getColumnNames();
