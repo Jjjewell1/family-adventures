@@ -425,14 +425,16 @@
 
   <!-- Content -->
   {#if data.adventure.content}
-    <div class="prose prose-lg max-w-none mb-8">
-      {@html data.adventure.content}
+    <div class="glass rounded-2xl p-6 mb-8">
+      <div class="prose prose-lg max-w-none">
+        {@html data.adventure.content}
+      </div>
     </div>
   {/if}
 
   <!-- Media Gallery -->
   {#if data.adventure.media && data.adventure.media.length > 0}
-    <div class="mb-8">
+    <div class="glass rounded-2xl p-6 mb-8">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold text-navy-600">Photos & Videos</h2>
         {#if data.user && data.user.id === data.adventure.author_id}
@@ -512,7 +514,8 @@
       {/if}
     </div>
   {/if}
-  <div class="mb-8">
+  <!-- Side Quests -->
+  <div class="glass rounded-2xl p-6 mb-8">
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-3">
         <h2 class="text-xl font-semibold text-navy-600">Side Quests</h2>
@@ -1041,7 +1044,8 @@
 
   <!-- Actions -->
   {#if data.user && data.user.id === data.adventure.author_id}
-    <div class="flex flex-wrap gap-3">
+    <div class="glass rounded-2xl p-6 mb-8">
+      <div class="flex flex-wrap gap-3">
       <a
         href="/adventures/{data.adventure.slug}/edit"
         class="inline-flex items-center gap-2 rounded-full border border-sand-300 bg-white px-4 py-2 text-sm font-medium text-navy-600 hover:bg-sand-50 transition-colors"
@@ -1060,6 +1064,7 @@
         </svg>
         Share
       </button>
+      </div>
     </div>
   {/if}
 </article>
