@@ -6,11 +6,29 @@ import { join } from 'path';
 import { randomBytes } from 'crypto';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || './build/client/uploads';
-const ALLOWED_TYPES = [
-  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif',
-  'video/mp4', 'video/webm', 'video/quicktime',
-  'audio/mpeg', 'audio/wav', 'audio/ogg'
-];
+const ALLOWED_EXTENSIONS: Record<string, string[]> = {
+  'jpg': ['image/jpeg'], 'jpeg': ['image/jpeg'], 'png': ['image/png'],
+  'gif': ['image/gif'], 'webp': ['image/webp'],
+  'heic': ['image/heic', 'image/heif', 'application/octet-stream', ''],
+  'heif': ['image/heic', 'image/heif', 'application/octet-stream', ''],
+  'mp4': ['video/mp4', 'video/quicktime', 'application/octet-stream'],
+  'webm': ['video/webm', 'application/octet-stream'],
+  'mov': ['video/quicktime', 'video/mp4', 'application/octet-stream'],
+  'mp3': ['audio/mpeg', 'audio/mp3', 'application/octet-stream'],
+  'wav': ['audio/wav', 'audio/wave', 'application/octet-stream'],
+  'ogg': ['audio/ogg', 'application/octet-stream'],
+  'avi': ['video/avi', 'video/msvideo', 'application/octet-stream'],
+  'hevc': ['video/hevc', 'application/octet-stream']
+};
+
+function isAllowedFile(file: File): { ok: boolean; reason?: string } {
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  const allowedExts = ALLOWED_EXTENSIONS[ext];
+  if (!allowedExts) return { ok: false, reason: `File type not allowed: .${ext}` };
+  if (allowedExts.includes(file.type)) return { ok: true };
+  if (file.type === '' || file.type === 'application/octet-stream') return { ok: true };
+  return { ok: false, reason: `File type not allowed: ${file.type}` };
+}
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
   const user = await getSessionUser(cookies);
@@ -32,8 +50,9 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   const results: { filePath: string; filename: string; error?: string }[] = [];
 
   for (const file of files) {
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      results.push({ filePath: '', filename: file.name, error: `File type not allowed: ${file.type}` });
+    const check = isAllowedFile(file);
+    if (!check.ok) {
+      results.push({ filePath: '', filename: file.name, error: check.reason });
       continue;
     }
 

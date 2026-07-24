@@ -31,6 +31,7 @@
   let uploadingFile = $state(false);
   let uploadError = $state('');
   let uploadProgress = $state('');
+  let uploadErrors = $state<string[]>([]);
 
   const templates = [
     { id: 'beach', label: 'Beach Trip', icon: '🏖️' },
@@ -214,6 +215,7 @@
     const total = fileList.length;
     uploadingFile = true;
     uploadError = '';
+    uploadErrors = [];
     uploadProgress = `Uploading 1 of ${total}...`;
 
     try {
@@ -228,6 +230,7 @@
 
         const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
         if (!uploadRes.ok) {
+          uploadErrors.push(`${fileList[i].name}: upload failed (HTTP ${uploadRes.status})`);
           errorCount++;
           continue;
         }
@@ -236,6 +239,7 @@
         const result = results[0];
 
         if (result.error) {
+          uploadErrors.push(`${fileList[i].name}: ${result.error}`);
           errorCount++;
           continue;
         }
@@ -255,6 +259,8 @@
           media = [...media, newMedia];
           successCount++;
         } else {
+          const errBody = await mediaRes.json().catch(() => ({ error: 'Unknown error' }));
+          uploadErrors.push(`${fileList[i].name}: ${errBody.error || 'failed to save to adventure'}`);
           errorCount++;
         }
       }
@@ -614,6 +620,13 @@
         {/if}
         {#if uploadError}
           <p class="text-sm text-coral-500">{uploadError}</p>
+        {/if}
+        {#if uploadErrors.length > 0}
+          <div class="text-xs text-coral-400 space-y-0.5 mt-1">
+            {#each uploadErrors as err}
+              <p>{err}</p>
+            {/each}
+          </div>
         {/if}
 
         <!-- Caption -->
