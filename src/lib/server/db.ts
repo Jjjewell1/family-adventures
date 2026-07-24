@@ -99,6 +99,31 @@ function migrateDatabase() {
       db.run("ALTER TABLE adventure_media ADD COLUMN file_path TEXT");
       markDirty();
     }
+
+    // Check if immich_asset_id has NOT NULL constraint — rebuild table if so
+    const immichCol = mediaTableInfo[0].values.find(r => r[1] === 'immich_asset_id');
+    if (immichCol && immichCol[3] === 1) {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS adventure_media_new (
+          id TEXT PRIMARY KEY,
+          adventure_id TEXT NOT NULL,
+          immich_asset_id TEXT,
+          file_path TEXT,
+          media_type TEXT DEFAULT 'photo',
+          caption TEXT,
+          order_index INTEGER DEFAULT 0,
+          created_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (adventure_id) REFERENCES adventures(id) ON DELETE CASCADE
+        )
+      `);
+      db.run(`
+        INSERT INTO adventure_media_new (id, adventure_id, immich_asset_id, file_path, media_type, caption, order_index, created_at)
+        SELECT id, adventure_id, immich_asset_id, file_path, media_type, caption, order_index, created_at FROM adventure_media
+      `);
+      db.run("DROP TABLE adventure_media");
+      db.run("ALTER TABLE adventure_media_new RENAME TO adventure_media");
+      markDirty();
+    }
   }
 }
 
