@@ -5,6 +5,9 @@ export interface User {
   email: string;
   avatar_url: string | null;
   role: 'admin' | 'member';
+  provider: string;
+  provider_id: string | null;
+  approved: number;
   created_at: string;
 }
 

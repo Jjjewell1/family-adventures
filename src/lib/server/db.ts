@@ -135,6 +135,24 @@ function migrateDatabase() {
       markDirty();
     }
   }
+
+  // Add Google auth columns to users table
+  const usersTableInfo = db.exec("PRAGMA table_info(users)");
+  if (usersTableInfo.length > 0) {
+    const userCols = usersTableInfo[0].values.map(r => r[1] as string);
+    if (!userCols.includes('provider')) {
+      db.run("ALTER TABLE users ADD COLUMN provider TEXT DEFAULT 'local'");
+      markDirty();
+    }
+    if (!userCols.includes('provider_id')) {
+      db.run("ALTER TABLE users ADD COLUMN provider_id TEXT");
+      markDirty();
+    }
+    if (!userCols.includes('approved')) {
+      db.run("ALTER TABLE users ADD COLUMN approved INTEGER DEFAULT 1");
+      markDirty();
+    }
+  }
 }
 
 function initializeDatabase() {
@@ -149,6 +167,9 @@ function initializeDatabase() {
       password_hash TEXT,
       avatar_url TEXT,
       role TEXT DEFAULT 'member',
+      provider TEXT DEFAULT 'local',
+      provider_id TEXT,
+      approved INTEGER DEFAULT 1,
       created_at TEXT DEFAULT (datetime('now'))
     )
   `);

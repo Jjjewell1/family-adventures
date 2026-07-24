@@ -19,7 +19,7 @@ export const PUT: RequestHandler = async ({ request, cookies, params }) => {
   if (!target) return json({ error: 'User not found' }, { status: 404 });
 
   const body = await request.json();
-  const { name, email, role } = body;
+  const { name, email, role, approved } = body;
 
   if (name !== undefined && name.trim()) {
     await dbRun('UPDATE users SET name = ? WHERE id = ?', name.trim(), targetId);
@@ -35,6 +35,10 @@ export const PUT: RequestHandler = async ({ request, cookies, params }) => {
     await dbRun('UPDATE users SET role = ? WHERE id = ?', role === 'admin' ? 'admin' : 'member', targetId);
   }
 
-  const updated = await dbGet('SELECT id, username, email, name, role, created_at FROM users WHERE id = ?', targetId);
+  if (approved !== undefined && isAdmin) {
+    await dbRun('UPDATE users SET approved = ? WHERE id = ?', approved ? 1 : 0, targetId);
+  }
+
+  const updated = await dbGet('SELECT id, username, email, name, role, approved, provider, avatar_url, created_at FROM users WHERE id = ?', targetId);
   return json(updated);
 };

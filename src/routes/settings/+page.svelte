@@ -36,6 +36,8 @@
   let deletingId = $state<string | null>(null);
 
   const isAdmin = $derived(data.user.role === 'admin');
+  const pendingUsers = $derived(data.users.filter((u: any) => !u.approved));
+  const activeUsers = $derived(data.users.filter((u: any) => u.approved));
   const tabs = $derived(isAdmin
     ? [{ id: 'profile', label: 'Profile' }, { id: 'immich', label: 'Immich' }, { id: 'members', label: 'Family Members' }]
     : [{ id: 'profile', label: 'Profile' }, { id: 'immich', label: 'Immich' }]
@@ -150,6 +152,17 @@
     }
     deletingId = null;
   }
+
+  async function approveUser(userId: string) {
+    try {
+      const res = await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approved: true })
+      });
+      if (res.ok) window.location.reload();
+    } catch {}
+  }
 </script>
 
 <svelte:head>
@@ -192,6 +205,25 @@
       {/if}
 
       <form onsubmit={handleProfileSubmit} class="space-y-6">
+        <div class="flex items-center gap-4">
+          {#if data.user.avatar_url}
+            <img src={data.user.avatar_url} alt={data.user.name} class="h-16 w-16 rounded-full object-cover" />
+          {:else}
+            <div class="h-16 w-16 rounded-full bg-gradient-to-br from-coral-400 to-sunset-400 flex items-center justify-center text-white text-xl font-medium">
+              {data.user.name?.charAt(0).toUpperCase() || '?'}
+            </div>
+          {/if}
+          <div>
+            <p class="text-sm font-medium text-navy-600">{data.user.name}</p>
+            <p class="text-xs text-navy-400">
+              {#if data.user.provider === 'google'}
+                Signed in with Google
+              {:else}
+                Local account
+              {/if}
+            </p>
+          </div>
+        </div>
         <div>
           <label for="name" class="block text-sm font-medium text-navy-600 mb-2">Name</label>
           <input
@@ -371,6 +403,50 @@
         <p class="text-sm text-navy-400">Manage user accounts for your family</p>
       </div>
 
+      <!-- Pending Approvals -->
+      {#if pendingUsers.length > 0}
+        <div class="p-4 rounded-xl bg-sunset-50 border border-sunset-200">
+          <h3 class="text-sm font-semibold text-sunset-600 mb-3">Pending Approval ({pendingUsers.length})</h3>
+          <div class="space-y-3">
+            {#each pendingUsers as pending}
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="h-8 w-8 rounded-full bg-gradient-to-br from-sunset-300 to-sunset-400 flex items-center justify-center text-white text-xs font-medium">
+                    {pending.name?.charAt(0).toUpperCase() || '?'}
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-navy-600">{pending.name}</p>
+                    <p class="text-xs text-navy-400">{pending.email} &middot; {pending.provider || 'local'}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button
+                    onclick={() => approveUser(pending.id)}
+                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-ocean-500 text-white text-xs font-medium hover:bg-ocean-600 transition-colors"
+                  >
+                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Approve
+                  </button>
+                  {#if pending.id !== data.user.id}
+                    <button
+                      class="text-xs text-navy-300 hover:text-coral-500 transition-colors"
+                      onclick={() => handleDeleteMember(pending.id)}
+                      title="Reject"
+                    >
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  {/if}
+                </div>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
       <!-- Members Table -->
       <div class="overflow-x-auto">
         <table class="w-full">
@@ -379,18 +455,23 @@
               <th class="text-left text-xs font-semibold text-navy-400 uppercase tracking-wider pb-3 pr-4">Name</th>
               <th class="text-left text-xs font-semibold text-navy-400 uppercase tracking-wider pb-3 pr-4">Email</th>
               <th class="text-left text-xs font-semibold text-navy-400 uppercase tracking-wider pb-3 pr-4">Role</th>
+              <th class="text-left text-xs font-semibold text-navy-400 uppercase tracking-wider pb-3 pr-4">Provider</th>
               <th class="text-left text-xs font-semibold text-navy-400 uppercase tracking-wider pb-3 pr-4">Created</th>
               <th class="text-right text-xs font-semibold text-navy-400 uppercase tracking-wider pb-3"></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-sand-200/50">
-            {#each data.users as member (member.id)}
+            {#each activeUsers as member (member.id)}
               <tr class="group">
                 <td class="py-3.5 pr-4">
                   <div class="flex items-center gap-3">
-                    <div class="h-8 w-8 rounded-full bg-gradient-to-br from-coral-400 to-sunset-400 flex items-center justify-center text-white text-xs font-medium shrink-0">
-                      {member.name?.charAt(0).toUpperCase() || '?'}
-                    </div>
+                    {#if member.avatar_url}
+                      <img src={member.avatar_url} alt={member.name} class="h-8 w-8 rounded-full object-cover shrink-0" />
+                    {:else}
+                      <div class="h-8 w-8 rounded-full bg-gradient-to-br from-coral-400 to-sunset-400 flex items-center justify-center text-white text-xs font-medium shrink-0">
+                        {member.name?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                    {/if}
                     <span class="text-sm font-medium text-navy-600">
                       {member.name}
                       {#if member.id === data.user.id}
@@ -406,6 +487,9 @@
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {member.role === 'admin' ? 'bg-ocean-50 text-ocean-600' : 'bg-sand-200 text-navy-500'}">
                     {member.role}
                   </span>
+                </td>
+                <td class="py-3.5 pr-4">
+                  <span class="text-xs text-navy-400">{member.provider || 'local'}</span>
                 </td>
                 <td class="py-3.5 pr-4">
                   <span class="text-sm text-navy-400">{new Date(member.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>

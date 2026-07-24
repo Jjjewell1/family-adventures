@@ -56,8 +56,12 @@
             >
               Sign Out
             </button>
-            <a href="/settings" class="group relative h-8 w-8 rounded-full bg-gradient-to-br from-coral-400 to-sunset-400 flex items-center justify-center text-white text-sm font-medium transition-all hover:ring-2 hover:ring-ocean-300 hover:ring-offset-2" title="Settings - {data.user.name}">
-              {data.user.name?.charAt(0).toUpperCase() || '?'}
+            <a href="/settings" class="group relative h-8 w-8 rounded-full overflow-hidden bg-gradient-to-br from-coral-400 to-sunset-400 flex items-center justify-center text-white text-sm font-medium transition-all hover:ring-2 hover:ring-ocean-300 hover:ring-offset-2" title="Settings - {data.user.name}">
+              {#if data.user.avatar_url}
+                <img src={data.user.avatar_url} alt={data.user.name} class="h-full w-full object-cover" />
+              {:else}
+                {data.user.name?.charAt(0).toUpperCase() || '?'}
+              {/if}
               <span class="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-sand-50 border border-sand-200 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <svg class="h-2 w-2 text-navy-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />

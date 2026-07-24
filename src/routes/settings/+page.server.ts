@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
   const user = await getSessionUser(cookies);
   if (!user) throw redirect(302, '/auth/login');
 
-  const users = await dbAll('SELECT id, username, email, name, role, created_at FROM users ORDER BY created_at ASC');
+  const users = await dbAll('SELECT id, username, email, name, role, approved, provider, avatar_url, created_at FROM users ORDER BY approved ASC, created_at ASC');
 
   return {
     user,
