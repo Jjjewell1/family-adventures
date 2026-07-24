@@ -42,6 +42,9 @@
           <a href="/bucket-list" class="px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:text-navy-600 hover:bg-sand-100 transition-colors">
             Bucket List
           </a>
+          <a href="/stats" class="px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:text-navy-600 hover:bg-sand-100 transition-colors">
+            Stats
+          </a>
         </div>
 
         <!-- Right side -->
@@ -102,6 +105,7 @@
           <a href="/map" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Map</a>
           <a href="/memories" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Memories</a>
           <a href="/bucket-list" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Bucket List</a>
+          <a href="/stats" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Stats</a>
           {#if data.user}
             <a href="/adventures/create" class="block px-3 py-2 rounded-lg text-sm font-medium text-ocean-500 hover:bg-sand-100">New Adventure</a>
             <a href="/settings" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Settings</a>

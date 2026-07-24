@@ -8,6 +8,12 @@
   let shareLink = $state('');
   let newComment = $state('');
   let submittingComment = $state(false);
+  let myRating = $state(data.ratings?.find((r: any) => r.author_id === data.user?.id)?.score || 0);
+  let hoverRating = $state(0);
+  let showStoryForm = $state(false);
+  let storyTitle = $state('');
+  let storyContent = $state('');
+  let submittingStory = $state(false);
 
   const reactionEmojis = ['❤️', '🔥', '😊', '👏', '🌊', '✈️'];
   
@@ -60,6 +66,28 @@
 
   function copyShareLink() {
     navigator.clipboard.writeText(shareLink);
+  }
+
+  async function setRating(score: number) {
+    if (!data.user) return;
+    myRating = score;
+    await fetch('/api/ratings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adventureId: data.adventure.id, score })
+    });
+  }
+
+  async function submitStory() {
+    if (!storyContent.trim()) return;
+    submittingStory = true;
+    const res = await fetch('/api/stories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adventureId: data.adventure.id, title: storyTitle.trim() || null, content: storyContent.trim() })
+    });
+    if (res.ok) window.location.reload();
+    submittingStory = false;
   }
 </script>
 
@@ -275,6 +303,104 @@
                 Reply
               </button>
             {/if}
+          </div>
+        {/each}
+      </div>
+    {/if}
+  </div>
+
+  <!-- Marshmallow Rating -->
+  <div class="glass rounded-2xl p-6 mb-8">
+    <h2 class="text-lg font-semibold text-navy-600 mb-3">Rating</h2>
+    {#if data.ratings.length > 0}
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-3xl">{data.avgRating >= 1 ? '🔥' : '🏕️'}</span>
+        <div>
+          <p class="text-2xl font-bold text-navy-600">{data.avgRating}</p>
+          <p class="text-xs text-navy-400">{data.ratings.length} rating{data.ratings.length > 1 ? 's' : ''}</p>
+        </div>
+        <div class="flex gap-0.5 ml-2">
+          {#each Array(5) as _, i}
+            <span class="text-lg">{i < Math.round(data.avgRating) ? '🔥' : '⚪'}</span>
+          {/each}
+        </div>
+      </div>
+    {/if}
+    {#if data.user}
+      <div>
+        <p class="text-sm text-navy-500 mb-2">Your rating:</p>
+        <div class="flex gap-1">
+          {#each Array(5) as _, i}
+            <button
+              type="button"
+              class="text-2xl transition-transform hover:scale-110"
+              onclick={() => setRating(i + 1)}
+              onmouseenter={() => hoverRating = i + 1}
+              onmouseleave={() => hoverRating = 0}
+            >
+              {(hoverRating || myRating) > i ? '🔥' : '⚪'}
+            </button>
+          {/each}
+          {#if myRating > 0}
+            <span class="ml-2 text-sm text-navy-400 self-center">{myRating}/5 fires</span>
+          {/if}
+        </div>
+      </div>
+    {:else}
+      <p class="text-sm text-navy-400">
+        <a href="/auth/login" class="text-ocean-500 hover:text-ocean-600">Sign in</a> to rate this adventure.
+      </p>
+    {/if}
+  </div>
+
+  <!-- Stories / Blog -->
+  <div class="glass rounded-2xl p-6 mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-navy-600">Stories & Memories</h2>
+      {#if data.user}
+        <button
+          onclick={() => showStoryForm = !showStoryForm}
+          class="text-sm text-ocean-500 hover:text-ocean-600 font-medium"
+        >
+          {showStoryForm ? 'Cancel' : '+ Share a Story'}
+        </button>
+      {/if}
+    </div>
+
+    {#if showStoryForm}
+      <form class="mb-6 space-y-3" onsubmit={(e) => { e.preventDefault(); submitStory(); }}>
+        <input type="text" bind:value={storyTitle} placeholder="Story title (optional)"
+          class="w-full rounded-xl border border-sand-200 bg-white px-4 py-2.5 text-sm text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100" />
+        <textarea bind:value={storyContent} placeholder="Share your memory of this adventure..." rows="4"
+          class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100 resize-y"></textarea>
+        <button type="submit" disabled={submittingStory || !storyContent.trim()}
+          class="rounded-full bg-ocean-500 px-5 py-2 text-sm font-medium text-white hover:bg-ocean-600 disabled:opacity-50 transition-colors">
+          {submittingStory ? 'Posting...' : 'Post Story'}
+        </button>
+      </form>
+    {/if}
+
+    {#if data.stories.length === 0}
+      <p class="text-sm text-navy-400 italic">No stories yet. Be the first to share a memory!</p>
+    {:else}
+      <div class="space-y-4">
+        {#each data.stories as story}
+          <div class="p-4 rounded-xl bg-sand-50 border border-sand-200/50">
+            <div class="flex items-center gap-2 mb-2">
+              {#if story.author_avatar}
+                <img src={story.author_avatar} alt="" class="h-6 w-6 rounded-full object-cover" />
+              {:else}
+                <div class="h-6 w-6 rounded-full bg-gradient-to-br from-coral-400 to-sunset-400 flex items-center justify-center text-white text-[9px] font-medium">
+                  {story.author_name?.charAt(0).toUpperCase()}
+                </div>
+              {/if}
+              <span class="text-sm font-medium text-navy-600">{story.author_name}</span>
+              <span class="text-xs text-navy-400">{new Date(story.created_at).toLocaleDateString()}</span>
+            </div>
+            {#if story.title}
+              <h3 class="font-semibold text-navy-600 mb-1">{story.title}</h3>
+            {/if}
+            <p class="text-sm text-navy-500 whitespace-pre-wrap">{story.content}</p>
           </div>
         {/each}
       </div>

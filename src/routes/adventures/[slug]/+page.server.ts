@@ -81,6 +81,28 @@ export const load: PageServerLoad = async ({ params, url, cookies }) => {
     WHERE r.adventure_id = ?
   `, adventure.id) as (Reaction & { author_name: string })[];
 
+  // Get ratings
+  const ratings = await dbAll(`
+    SELECT rat.*, u.name as author_name, u.avatar_url as author_avatar
+    FROM ratings rat
+    JOIN users u ON rat.author_id = u.id
+    WHERE rat.adventure_id = ?
+  `, adventure.id);
+
+  const avgRating = ratings.length > 0
+    ? (ratings.reduce((sum: number, r: any) => sum + r.score, 0) / ratings.length)
+    : 0;
+
+  // Get stories
+  const stories = await dbAll(`
+    SELECT s.*, u.name as author_name, u.avatar_url as author_avatar,
+      (SELECT COUNT(*) FROM story_comments sc WHERE sc.story_id = s.id) as comment_count
+    FROM adventure_stories s
+    JOIN users u ON s.author_id = u.id
+    WHERE s.adventure_id = ?
+    ORDER BY s.created_at DESC
+  `, adventure.id);
+
   return {
     adventure: {
       ...adventure,
@@ -89,6 +111,9 @@ export const load: PageServerLoad = async ({ params, url, cookies }) => {
     },
     comments: commentsWithReplies,
     reactions,
+    ratings,
+    avgRating: Math.round(avgRating * 10) / 10,
+    stories,
     siteUrl: url.origin
   };
 };
