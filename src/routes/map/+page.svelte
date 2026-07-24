@@ -33,11 +33,23 @@
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Custom icon
+    // Custom icon — been there (ocean blue)
     const beachIcon = L.divIcon({
       html: `<div class="h-8 w-8 rounded-full bg-ocean-500 flex items-center justify-center text-white shadow-lg">
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+        </svg>
+      </div>`,
+      className: 'custom-marker',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32]
+    });
+
+    // Custom icon — bucket list (coral star)
+    const bucketIcon = L.divIcon({
+      html: `<div class="h-8 w-8 rounded-full bg-coral-500/90 border-2 border-white flex items-center justify-center text-white shadow-lg">
+        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
         </svg>
       </div>`,
       className: 'custom-marker',
@@ -79,13 +91,41 @@
       }
     });
 
+    // Add bucket list markers
+    data.bucketList.forEach((item: any) => {
+      if (item.lat && item.lng) {
+        const marker = L.marker([item.lat, item.lng], { icon: bucketIcon })
+          .addTo(map);
+
+        const popupContent = `
+          <div class="p-2 min-w-[200px]">
+            <div class="flex items-center gap-1.5 mb-1">
+              <span class="text-xs font-medium text-coral-500 bg-coral-50 rounded-full px-2 py-0.5">
+                ${escapeHtml(item.status === 'completed' ? '✓ Done' : item.status === 'in_progress' ? 'In Progress' : 'Wishlist')}
+              </span>
+              ${item.category ? `<span class="text-xs text-navy-400">${escapeHtml(item.category)}</span>` : ''}
+            </div>
+            <h3 class="font-semibold text-navy-600">${escapeHtml(item.title)}</h3>
+            ${item.description ? `<p class="text-xs text-navy-400 mt-1 line-clamp-2">${escapeHtml(item.description)}</p>` : ''}
+            ${item.location_name ? `<p class="text-xs text-navy-400 mt-1">📍 ${escapeHtml(item.location_name)}</p>` : ''}
+            <a href="/bucket-list" class="inline-block mt-2 text-xs text-coral-500 hover:text-coral-600">
+              View Bucket List →
+            </a>
+          </div>
+        `;
+
+        marker.bindPopup(popupContent);
+      }
+    });
+
     // Fit bounds if we have markers
-    const markers = data.adventures
-      .filter((a: any) => a.lat && a.lng)
-      .map((a: any) => [a.lat, a.lng]);
+    const allMarkers = [
+      ...data.adventures.filter((a: any) => a.lat && a.lng).map((a: any) => [a.lat, a.lng]),
+      ...data.bucketList.filter((b: any) => b.lat && b.lng).map((b: any) => [b.lat, b.lng])
+    ];
     
-    if (markers.length > 0) {
-      map.fitBounds(markers, { padding: [50, 50] });
+    if (allMarkers.length > 0) {
+      map.fitBounds(allMarkers, { padding: [50, 50] });
     }
   });
 </script>
@@ -108,6 +148,16 @@
 
   <!-- Map Container -->
   <div class="glass rounded-3xl overflow-hidden">
+    <div class="flex items-center gap-4 px-4 py-2 border-b border-sand-200/50 text-xs">
+      <span class="flex items-center gap-1.5">
+        <span class="h-3 w-3 rounded-full bg-ocean-500"></span>
+        <span class="text-navy-500">Been There</span>
+      </span>
+      <span class="flex items-center gap-1.5">
+        <span class="h-3 w-3 rounded-full bg-coral-500"></span>
+        <span class="text-navy-500">Bucket List</span>
+      </span>
+    </div>
     <div bind:this={mapContainer} class="h-[500px] md:h-[600px]"></div>
   </div>
 

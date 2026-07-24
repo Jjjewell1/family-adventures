@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import { getImmichAssetUrl } from '$lib/shared/immich';
+  import LocationInput from '$lib/components/LocationInput.svelte';
 
   let { data } = $props();
 
@@ -8,6 +9,8 @@
   let newTitle = $state('');
   let newDescription = $state('');
   let newLocation = $state('');
+  let newLat = $state<number | null>(null);
+  let newLng = $state<number | null>(null);
   let newCategory = $state('destination');
   let newStatus = $state('wishlist');
   let submitting = $state(false);
@@ -44,6 +47,8 @@
           title: newTitle.trim(),
           description: newDescription.trim() || null,
           locationName: newLocation.trim() || null,
+          lat: newLat,
+          lng: newLng,
           category: newCategory,
           status: newStatus
         })
@@ -154,21 +159,18 @@
           <textarea id="bl-desc" bind:value={newDescription} placeholder="Why is this on the list?" rows="2"
             class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100 resize-none"></textarea>
         </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label for="bl-loc" class="block text-sm font-medium text-navy-600 mb-1">Location</label>
-            <input type="text" id="bl-loc" bind:value={newLocation} placeholder="Optional"
-              class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100" />
-          </div>
-          <div>
-            <label for="bl-cat" class="block text-sm font-medium text-navy-600 mb-1">Category</label>
-            <select id="bl-cat" bind:value={newCategory}
-              class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100">
-              {#each categories as cat}
-                <option value={cat.id}>{cat.icon} {cat.label}</option>
-              {/each}
-            </select>
-          </div>
+        <div>
+          <label for="bl-loc" class="block text-sm font-medium text-navy-600 mb-1">Location</label>
+          <LocationInput bind:value={newLocation} bind:lat={newLat} bind:lng={newLng} placeholder="Search for a location..." />
+        </div>
+        <div>
+          <label for="bl-cat" class="block text-sm font-medium text-navy-600 mb-1">Category</label>
+          <select id="bl-cat" bind:value={newCategory}
+            class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100">
+            {#each categories as cat}
+              <option value={cat.id}>{cat.icon} {cat.label}</option>
+            {/each}
+          </select>
         </div>
         <div class="flex gap-3">
           <button type="submit" disabled={submitting}

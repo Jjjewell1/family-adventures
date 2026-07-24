@@ -14,8 +14,18 @@ export const load: PageServerLoad = async () => {
   const adventuresWithCoords = adventures.filter(a => a.lat && a.lng);
   const adventuresWithoutCoords = adventures.filter(a => !a.lat || !a.lng);
 
+  const bucketList = await dbAll(`
+    SELECT bl.*, u.name as created_by_name
+    FROM bucket_list bl
+    JOIN users u ON bl.created_by = u.id
+    ORDER BY bl.created_at DESC
+  `) as any[];
+
+  const bucketListWithCoords = bucketList.filter((b: any) => b.lat && b.lng);
+
   return {
     adventures: adventuresWithCoords,
-    adventuresWithoutCoords
+    adventuresWithoutCoords,
+    bucketList: bucketListWithCoords
   };
 };
