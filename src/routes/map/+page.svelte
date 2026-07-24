@@ -15,8 +15,13 @@
     // Dynamic import for Leaflet
     L = await import('leaflet');
     
-    // Initialize map
-    map = L.map(mapContainer).setView([20, 0], 2);
+    // Initialize map centered on USA
+    map = L.map(mapContainer, {
+      maxBounds: [[-5, -170], [75, -50]],
+      maxBoundsViscosity: 1.0,
+      minZoom: 3,
+      maxZoom: 18
+    }).setView([39.8, -98.5], 4);
 
     // Add tile layer (OpenStreetMap)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -44,7 +49,11 @@
         // Create popup content
         const popupContent = `
           <div class="p-2 min-w-[200px]">
-            ${adventure.cover_asset_id ? `
+            ${adventure.cover_file_path ? `
+              <img src="${adventure.cover_file_path}" 
+                   alt="${adventure.title}" 
+                   class="w-full h-24 object-cover rounded-lg mb-2" />
+            ` : adventure.cover_asset_id ? `
               <img src="${getImmichAssetUrl(adventure.cover_asset_id, true)}" 
                    alt="${adventure.title}" 
                    class="w-full h-24 object-cover rounded-lg mb-2" />

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { getImmichAssetUrl } from '$lib/shared/immich';
+  import LocationInput from '$lib/components/LocationInput.svelte';
 
   let { data } = $props();
 
@@ -374,13 +375,7 @@
         <label for="location" class="block text-sm font-medium text-navy-600 mb-2">
           Location
         </label>
-        <input
-          type="text"
-          id="location"
-          bind:value={locationName}
-          placeholder="Maui, Hawaii"
-          class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
-        />
+        <LocationInput bind:value={locationName} bind:lat bind:lng />
       </div>
 
       <!-- Mood -->
