@@ -1,9 +1,14 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, HandleServerError } from '@sveltejs/kit';
 import { readFileSync, existsSync } from 'fs';
 import { join, extname, normalize } from 'path';
 import { resolve as pathResolve } from 'path';
 
 const UPLOAD_DIR = pathResolve(process.env.UPLOAD_DIR || './build/client/uploads');
+
+export const handleError: HandleServerError = ({ error, event }) => {
+  console.error(`[ERROR] ${event.method} ${event.url.pathname}:`, error);
+  return { message: 'Internal Error' };
+};
 
 const MIME_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg',
