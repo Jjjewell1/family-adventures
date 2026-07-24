@@ -125,6 +125,16 @@ function migrateDatabase() {
       markDirty();
     }
   }
+
+  // Check if adventures has cover_file_path column
+  const adventuresTableInfo = db.exec("PRAGMA table_info(adventures)");
+  if (adventuresTableInfo.length > 0) {
+    const advCols = adventuresTableInfo[0].values.map(r => r[1] as string);
+    if (!advCols.includes('cover_file_path')) {
+      db.run("ALTER TABLE adventures ADD COLUMN cover_file_path TEXT");
+      markDirty();
+    }
+  }
 }
 
 function initializeDatabase() {
@@ -152,6 +162,7 @@ function initializeDatabase() {
       description TEXT,
       content TEXT,
       cover_asset_id TEXT,
+      cover_file_path TEXT,
       location_name TEXT,
       lat REAL,
       lng REAL,

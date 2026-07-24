@@ -87,7 +87,14 @@
 
   <!-- Hero -->
   <div class="relative rounded-3xl overflow-hidden mb-8">
-    {#if data.adventure.cover_asset_id}
+    {#if data.adventure.cover_file_path}
+      <img
+        src={data.adventure.cover_file_path}
+        alt={data.adventure.title}
+        class="w-full h-64 md:h-96 object-cover"
+      />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+    {:else if data.adventure.cover_asset_id}
       <img
         src={getImmichAssetUrl(data.adventure.cover_asset_id)}
         alt={data.adventure.title}

@@ -131,7 +131,14 @@
         >
           <!-- Cover Image -->
           <div class="relative h-48 bg-gradient-to-br from-ocean-100 to-ocean-200 overflow-hidden">
-            {#if adventure.cover_asset_id}
+            {#if adventure.cover_file_path}
+              <img
+                src={adventure.cover_file_path}
+                alt={adventure.title}
+                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                loading="lazy"
+              />
+            {:else if adventure.cover_asset_id}
               <img
                 src={getImmichAssetUrl(adventure.cover_asset_id, true)}
                 alt={adventure.title}

@@ -34,7 +34,9 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
     templateType,
     visibility,
     isDraft,
-    tags
+    tags,
+    coverAssetId,
+    coverFilePath
   } = body;
 
   if (!title?.trim()) {
@@ -54,7 +56,9 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
     UPDATE adventures
     SET title = ?, slug = ?, description = ?, content = ?, location_name = ?,
         lat = ?, lng = ?, start_date = ?, end_date = ?, mood = ?,
-        template_type = ?, visibility = ?, is_draft = ?, updated_at = datetime('now')
+        template_type = ?, visibility = ?, is_draft = ?, 
+        cover_asset_id = ?, cover_file_path = ?,
+        updated_at = datetime('now')
     WHERE id = ?
   `,
     title.trim(),
@@ -70,6 +74,8 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
     templateType || null,
     visibility || 'family',
     isDraft ? 1 : 0,
+    coverAssetId ?? adventure.cover_asset_id ?? null,
+    coverFilePath ?? adventure.cover_file_path ?? null,
     adventure.id
   );
 

@@ -18,6 +18,8 @@
   let isDraft = $state(!!data.adventure.is_draft);
   let selectedTags = $state<string[]>(data.adventure.selectedTags || []);
   let media = $state([...(data.adventure.media || [])]);
+  let coverAssetId = $state<string | null>(data.adventure.cover_asset_id ?? null);
+  let coverFilePath = $state<string | null>(data.adventure.cover_file_path ?? null);
   let submitting = $state(false);
   let error = $state('');
   let showDeleteConfirm = $state(false);
@@ -56,6 +58,22 @@
     }
   }
 
+  function setThumbnail(m: any) {
+    if (m.file_path) {
+      coverFilePath = m.file_path;
+      coverAssetId = null;
+    } else if (m.immich_asset_id) {
+      coverAssetId = m.immich_asset_id;
+      coverFilePath = null;
+    }
+  }
+
+  function isThumbnail(m: any) {
+    if (m.file_path && coverFilePath) return m.file_path === coverFilePath;
+    if (m.immich_asset_id && coverAssetId) return m.immich_asset_id === coverAssetId;
+    return false;
+  }
+
   async function handleSave() {
     if (!title.trim()) {
       error = 'Please enter a title';
@@ -82,7 +100,9 @@
           templateType,
           visibility,
           isDraft,
-          tags: selectedTags
+          tags: selectedTags,
+          coverAssetId,
+          coverFilePath
         })
       });
 
@@ -168,6 +188,11 @@
       });
 
       if (response.ok) {
+        const removedItem = media.find(m => m.id === mediaId);
+        if (removedItem && isThumbnail(removedItem)) {
+          coverAssetId = null;
+          coverFilePath = null;
+        }
         media = media.filter(m => m.id !== mediaId);
       } else {
         const err = await response.json();
@@ -480,6 +505,26 @@
               <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
                 <p class="text-white text-xs">{m.caption}</p>
               </div>
+            {/if}
+            {#if isThumbnail(m)}
+              <div class="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-ocean-500/90 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Thumbnail
+              </div>
+            {:else}
+              <button
+                type="button"
+                onclick={() => setThumbnail(m)}
+                class="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-0.5 text-xs font-medium text-navy-600 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                title="Set as thumbnail"
+              >
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Set as thumbnail
+              </button>
             {/if}
             <button
               type="button"
