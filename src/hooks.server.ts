@@ -1,8 +1,9 @@
 import type { Handle } from '@sveltejs/kit';
 import { readFileSync, existsSync } from 'fs';
-import { join, extname, normalize, resolve } from 'path';
+import { join, extname, normalize } from 'path';
+import { resolve as pathResolve } from 'path';
 
-const UPLOAD_DIR = resolve(process.env.UPLOAD_DIR || './build/client/uploads');
+const UPLOAD_DIR = pathResolve(process.env.UPLOAD_DIR || './build/client/uploads');
 
 const MIME_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg',
