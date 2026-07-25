@@ -127,7 +127,7 @@
           tabindex="0"
           onclick={() => goto(`/adventures/${adventure.slug}`)}
           onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') goto(`/adventures/${adventure.slug}`); }}
-          class="group glass rounded-3xl overflow-hidden card-hover cursor-pointer"
+          class="group glass rounded-3xl overflow-hidden card-hover cursor-pointer shadow-md hover:shadow-xl transition-all duration-300 border-t-3 border-ocean-300 hover:border-ocean-500"
         >
           <!-- Cover Image -->
           <div class="relative h-48 bg-gradient-to-br from-ocean-100 to-ocean-200 overflow-hidden">
@@ -183,7 +183,7 @@
               {/if}
             </div>
             
-            <h2 class="text-lg font-semibold text-navy-600 group-hover:text-ocean-600 transition-colors line-clamp-2">
+            <h2 class="text-lg font-bold text-navy-700 group-hover:text-ocean-600 transition-colors line-clamp-2">
               {adventure.title}
             </h2>
             

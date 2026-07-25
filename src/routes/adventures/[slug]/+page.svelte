@@ -418,14 +418,14 @@
 
   <!-- Description -->
   {#if data.adventure.description}
-    <div class="glass rounded-2xl p-6 mb-8">
+    <div class="glass rounded-2xl p-6 mb-8 border-t-4 border-coral-400">
       <p class="text-lg text-navy-500 leading-relaxed">{data.adventure.description}</p>
     </div>
   {/if}
 
   <!-- Content -->
   {#if data.adventure.content}
-    <div class="band-sand rounded-2xl p-6 mb-8">
+    <div class="band-sand rounded-2xl p-6 mb-8 border-l-4 border-coral-300">
       <div class="prose prose-lg max-w-none">
         {@html data.adventure.content}
       </div>
@@ -434,7 +434,7 @@
 
   <!-- Media Gallery -->
   {#if data.adventure.media && data.adventure.media.length > 0}
-    <div class="glass rounded-2xl p-6 mb-8">
+    <div class="glass rounded-2xl p-6 mb-8 border-t-4 border-ocean-400">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <span class="text-2xl">📸</span>
@@ -521,7 +521,7 @@
     </div>
   {/if}
   <!-- Side Quests -->
-  <div class="band-sand rounded-2xl p-6 mb-8">
+  <div class="band-sand rounded-2xl p-6 mb-8 border-l-4 border-ocean-300">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <span class="text-2xl">🗺️</span>
@@ -874,7 +874,7 @@
   </div>
 
   <!-- Reactions -->
-  <div class="glass rounded-2xl p-6 mb-8">
+  <div class="glass rounded-2xl p-6 mb-8 border-t-4 border-coral-400">
     <div class="flex items-center gap-3 mb-4">
       <span class="text-2xl">❤️</span>
       <div>
@@ -912,7 +912,7 @@
   </div>
 
   <!-- Comments -->
-  <div class="band-sand rounded-2xl p-6 mb-8">
+  <div class="band-sand rounded-2xl p-6 mb-8 border-l-4 border-sunset-300">
     <div class="flex items-center gap-3 mb-6">
       <span class="text-2xl">💬</span>
       <div>
@@ -967,7 +967,7 @@
   </div>
 
   <!-- Marshmallow Rating -->
-  <div class="glass rounded-2xl p-6 mb-8">
+  <div class="glass rounded-2xl p-6 mb-8 border-t-4 border-sunset-400">
     <div class="flex items-center gap-3 mb-3">
       <span class="text-2xl">🔥</span>
       <div>
@@ -1017,7 +1017,7 @@
   </div>
 
   <!-- Stories / Blog -->
-  <div class="band-sand rounded-2xl p-6 mb-8">
+  <div class="band-sand rounded-2xl p-6 mb-8 border-l-4 border-coral-300">
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-3">
         <span class="text-2xl">📖</span>
@@ -1078,7 +1078,7 @@
 
   <!-- Actions -->
   {#if data.user && data.user.id === data.adventure.author_id}
-    <div class="glass rounded-2xl p-6 mb-8">
+    <div class="glass rounded-2xl p-6 mb-8 border-t-4 border-ocean-400">
       <div class="flex flex-wrap gap-3">
       <a
         href="/adventures/{data.adventure.slug}/edit"

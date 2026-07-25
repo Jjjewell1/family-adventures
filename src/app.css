@@ -117,9 +117,10 @@ a {
 
 /* Beachy glass effect */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 1px 3px rgba(26, 43, 60, 0.06), 0 4px 12px rgba(26, 43, 60, 0.04);
 }
 
 /* Tide line decoration */
@@ -134,23 +135,28 @@ a {
   height: 2px;
 }
 
-/* Section banding — alternating full-width backgrounds */
+/* Section banding — alternating backgrounds with accent borders */
 .band-white {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 1px 3px rgba(26, 43, 60, 0.06), 0 4px 12px rgba(26, 43, 60, 0.04);
 }
 
 .band-sand {
-  background: rgba(253, 246, 236, 0.6);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(245, 230, 211, 0.4);
+  background: linear-gradient(135deg, rgba(253, 246, 236, 0.95) 0%, rgba(245, 230, 211, 0.7) 100%);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(232, 212, 184, 0.5);
+  box-shadow: 0 1px 3px rgba(26, 43, 60, 0.06), 0 4px 12px rgba(26, 43, 60, 0.04);
+  border-top: 3px solid var(--color-ocean-300);
 }
 
 .band-ocean {
-  background: rgba(230, 245, 245, 0.5);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(179, 224, 224, 0.3);
+  background: linear-gradient(135deg, rgba(230, 245, 245, 0.95) 0%, rgba(179, 224, 224, 0.5) 100%);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(128, 204, 204, 0.4);
+  box-shadow: 0 1px 3px rgba(26, 43, 60, 0.06), 0 4px 12px rgba(26, 43, 60, 0.04);
+  border-top: 3px solid var(--color-ocean-400);
 }
 
 /* Custom scrollbar */

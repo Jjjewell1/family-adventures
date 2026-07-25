@@ -99,22 +99,34 @@
   <!-- Stats Bar -->
   <div class="bg-sand-50">
     <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-6 relative z-20">
-      <div class="glass rounded-2xl p-6 grid grid-cols-2 md:grid-cols-4 gap-6 shadow-lg">
+      <div class="band-white rounded-2xl p-6 grid grid-cols-2 md:grid-cols-4 gap-6 shadow-lg">
         <div class="text-center">
-          <p class="text-2xl font-display font-bold text-ocean-500">{stats.total_adventures}</p>
-          <p class="text-xs text-navy-400 mt-1">Adventures</p>
+          <div class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-ocean-100 mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-ocean-500"></span>
+          </div>
+          <p class="text-3xl font-display font-bold text-ocean-600">{stats.total_adventures}</p>
+          <p class="text-xs font-medium text-navy-500 mt-1 uppercase tracking-wider">Adventures</p>
         </div>
         <div class="text-center">
-          <p class="text-2xl font-display font-bold text-coral-500">{stats.total_contributors}</p>
-          <p class="text-xs text-navy-400 mt-1">Contributors</p>
+          <div class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-coral-100 mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-coral-500"></span>
+          </div>
+          <p class="text-3xl font-display font-bold text-coral-600">{stats.total_contributors}</p>
+          <p class="text-xs font-medium text-navy-500 mt-1 uppercase tracking-wider">Contributors</p>
         </div>
         <div class="text-center">
-          <p class="text-2xl font-display font-bold text-sunset-500">{heroImages.length}</p>
-          <p class="text-xs text-navy-400 mt-1">Photos</p>
+          <div class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-sunset-100 mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-sunset-500"></span>
+          </div>
+          <p class="text-3xl font-display font-bold text-sunset-600">{heroImages.length}</p>
+          <p class="text-xs font-medium text-navy-500 mt-1 uppercase tracking-wider">Photos</p>
         </div>
         <div class="text-center">
-          <p class="text-2xl font-display font-bold text-navy-500">&infin;</p>
-          <p class="text-xs text-navy-400 mt-1">Memories</p>
+          <div class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-navy-100 mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-navy-500"></span>
+          </div>
+          <p class="text-3xl font-display font-bold text-navy-600">&infin;</p>
+          <p class="text-xs font-medium text-navy-500 mt-1 uppercase tracking-wider">Memories</p>
         </div>
       </div>
     </div>
@@ -156,48 +168,48 @@
     <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <!-- Card 1 -->
-        <a href="/adventures" class="glass rounded-3xl p-6 card-hover group">
-          <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-ocean-400 to-ocean-500 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="/adventures" class="glass rounded-3xl p-6 card-hover group border-t-4 border-ocean-400">
+          <div class="h-14 w-14 rounded-2xl bg-gradient-to-br from-ocean-400 to-ocean-600 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-ocean-200">
+            <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <h3 class="font-semibold text-navy-600">Photos & Videos</h3>
-          <p class="text-sm text-navy-400 mt-2">Store your memories securely</p>
+          <h3 class="font-bold text-navy-700 text-lg">Photos & Videos</h3>
+          <p class="text-sm text-navy-400 mt-1">Store your memories securely</p>
         </a>
 
         <!-- Card 2 -->
-        <a href="/bucket-list" class="glass rounded-3xl p-6 card-hover group">
-          <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-coral-400 to-coral-500 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="/bucket-list" class="glass rounded-3xl p-6 card-hover group border-t-4 border-coral-400">
+          <div class="h-14 w-14 rounded-2xl bg-gradient-to-br from-coral-400 to-coral-600 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-coral-200">
+            <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
           </div>
-          <h3 class="font-semibold text-navy-600">Bucket List</h3>
-          <p class="text-sm text-navy-400 mt-2">Dream up your next adventure</p>
+          <h3 class="font-bold text-navy-700 text-lg">Bucket List</h3>
+          <p class="text-sm text-navy-400 mt-1">Dream up your next adventure</p>
         </a>
 
         <!-- Card 3 -->
-        <a href="/map" class="glass rounded-3xl p-6 card-hover group">
-          <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-sunset-400 to-sunset-500 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="/map" class="glass rounded-3xl p-6 card-hover group border-t-4 border-sunset-400">
+          <div class="h-14 w-14 rounded-2xl bg-gradient-to-br from-sunset-400 to-sunset-600 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-sunset-200">
+            <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </div>
-          <h3 class="font-semibold text-navy-600">Map</h3>
-          <p class="text-sm text-navy-400 mt-2">See where you've been</p>
+          <h3 class="font-bold text-navy-700 text-lg">Map</h3>
+          <p class="text-sm text-navy-400 mt-1">See where you've been</p>
         </a>
 
         <!-- Card 4 -->
-        <a href="/on-this-day" class="glass rounded-3xl p-6 card-hover group">
-          <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-ocean-300 to-ocean-400 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="/on-this-day" class="glass rounded-3xl p-6 card-hover group border-t-4 border-navy-400">
+          <div class="h-14 w-14 rounded-2xl bg-gradient-to-br from-navy-400 to-navy-600 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-navy-200">
+            <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 class="font-semibold text-navy-600">Memories</h3>
-          <p class="text-sm text-navy-400 mt-2">Relive past adventures</p>
+          <h3 class="font-bold text-navy-700 text-lg">Memories</h3>
+          <p class="text-sm text-navy-400 mt-1">Relive past adventures</p>
         </a>
       </div>
     </div>
