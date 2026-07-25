@@ -218,7 +218,7 @@
         </a>
 
         <!-- Card 4 -->
-        <a href="/on-this-day" class="glass rounded-3xl p-6 card-hover group border-t-4 border-navy-400">
+        <a href="/memories" class="glass rounded-3xl p-6 card-hover group border-t-4 border-navy-400">
           <div class="h-14 w-14 rounded-2xl bg-gradient-to-br from-navy-400 to-navy-600 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-navy-200">
             <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
