@@ -418,23 +418,31 @@
 
   <!-- Description -->
   {#if data.adventure.description}
-    <div class="glass rounded-2xl p-6 mb-8 border-t-4 border-coral-400">
+    <div class="glass rounded-2xl p-6 mb-4 border-t-4 border-coral-400">
       <p class="text-lg text-navy-500 leading-relaxed">{data.adventure.description}</p>
     </div>
   {/if}
 
   <!-- Content -->
   {#if data.adventure.content}
-    <div class="band-sand rounded-2xl p-6 mb-8 border-l-4 border-coral-300">
+    <div class="band-sand rounded-2xl p-6 mb-4">
       <div class="prose prose-lg max-w-none">
         {@html data.adventure.content}
       </div>
     </div>
   {/if}
 
+  <!-- Wave: Story -> Gallery -->
+  <div class="wave-divider my-2">
+    <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
+      <path d="M0 24 C200 48 400 0 600 24 C800 48 1000 0 1200 24 L1200 48 L0 48Z" fill="rgba(230,245,245,0.35)" />
+      <path d="M0 32 C300 48 500 12 700 32 C900 48 1100 12 1200 32 L1200 48 L0 48Z" fill="rgba(179,224,224,0.25)" />
+    </svg>
+  </div>
+
   <!-- Media Gallery -->
   {#if data.adventure.media && data.adventure.media.length > 0}
-    <div class="glass rounded-2xl p-6 mb-8 border-t-4 border-ocean-400">
+    <div class="band-ocean rounded-2xl p-6 mb-4">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <span class="text-2xl">📸</span>
@@ -520,8 +528,17 @@
       {/if}
     </div>
   {/if}
+
+  <!-- Wave: Gallery -> Side Quests -->
+  <div class="wave-divider my-2">
+    <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
+      <path d="M0 16 C150 48 350 0 500 20 C650 40 850 4 1050 24 C1150 34 1180 20 1200 16 L1200 48 L0 48Z" fill="rgba(254,243,226,0.4)" />
+      <path d="M0 28 C200 44 400 8 600 28 C800 44 1000 8 1200 28 L1200 48 L0 48Z" fill="rgba(252,224,179,0.3)" />
+    </svg>
+  </div>
+
   <!-- Side Quests -->
-  <div class="band-sand rounded-2xl p-6 mb-8 border-l-4 border-ocean-300">
+  <div class="band-sunset rounded-2xl p-6 mb-4">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <span class="text-2xl">🗺️</span>
@@ -873,8 +890,16 @@
     {/if}
   </div>
 
+  <!-- Wave: Side Quests -> Social -->
+  <div class="wave-divider my-2">
+    <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
+      <path d="M0 20 C180 44 380 4 580 24 C780 44 980 4 1200 20 L1200 48 L0 48Z" fill="rgba(253,232,234,0.35)" />
+      <path d="M0 30 C250 48 450 8 650 28 C850 44 1050 12 1200 30 L1200 48 L0 48Z" fill="rgba(249,194,199,0.25)" />
+    </svg>
+  </div>
+
   <!-- Reactions -->
-  <div class="glass rounded-2xl p-6 mb-8 border-t-4 border-coral-400">
+  <div class="band-coral rounded-2xl p-6 mb-4">
     <div class="flex items-center gap-3 mb-4">
       <span class="text-2xl">❤️</span>
       <div>
@@ -912,7 +937,7 @@
   </div>
 
   <!-- Comments -->
-  <div class="band-sand rounded-2xl p-6 mb-8 border-l-4 border-sunset-300">
+  <div class="band-sand rounded-2xl p-6 mb-4">
     <div class="flex items-center gap-3 mb-6">
       <span class="text-2xl">💬</span>
       <div>
@@ -967,7 +992,7 @@
   </div>
 
   <!-- Marshmallow Rating -->
-  <div class="glass rounded-2xl p-6 mb-8 border-t-4 border-sunset-400">
+  <div class="band-white rounded-2xl p-6 mb-4 border-t-4 border-sunset-400">
     <div class="flex items-center gap-3 mb-3">
       <span class="text-2xl">🔥</span>
       <div>
@@ -1016,8 +1041,16 @@
     {/if}
   </div>
 
+  <!-- Wave: Rating -> Stories -->
+  <div class="wave-divider my-2">
+    <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
+      <path d="M0 24 C200 4 400 44 600 24 C800 4 1000 44 1200 24 L1200 48 L0 48Z" fill="rgba(230,245,245,0.35)" />
+      <path d="M0 32 C300 12 500 44 700 24 C900 8 1100 36 1200 32 L1200 48 L0 48Z" fill="rgba(179,224,224,0.25)" />
+    </svg>
+  </div>
+
   <!-- Stories / Blog -->
-  <div class="band-sand rounded-2xl p-6 mb-8 border-l-4 border-coral-300">
+  <div class="band-ocean rounded-2xl p-6 mb-4">
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-3">
         <span class="text-2xl">📖</span>
@@ -1078,7 +1111,7 @@
 
   <!-- Actions -->
   {#if data.user && data.user.id === data.adventure.author_id}
-    <div class="glass rounded-2xl p-6 mb-8 border-t-4 border-ocean-400">
+    <div class="glass rounded-2xl p-6 mb-4 border-t-4 border-ocean-400">
       <div class="flex flex-wrap gap-3">
       <a
         href="/adventures/{data.adventure.slug}/edit"

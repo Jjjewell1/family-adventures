@@ -71,9 +71,26 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(180deg, var(--color-sand-100) 0%, var(--color-sand-50) 50%, #FFFFFF 100%);
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(179, 224, 224, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(253, 246, 236, 0.4) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 60%, rgba(249, 186, 85, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 90%, rgba(239, 118, 129, 0.06) 0%, transparent 40%),
+    linear-gradient(180deg, var(--color-sand-100) 0%, var(--color-sand-50) 40%, #FFFFFF 100%);
+  background-attachment: fixed;
   color: var(--color-navy-500);
   font-family: var(--font-sans);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, var(--color-sand-300) 0.7px, transparent 0.7px);
+  background-size: 24px 24px;
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 0;
 }
 
 * {
@@ -117,10 +134,12 @@ a {
 
 /* Beachy glass effect */
 .glass {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow: 0 1px 3px rgba(26, 43, 60, 0.06), 0 4px 12px rgba(26, 43, 60, 0.04);
+  position: relative;
+  z-index: 1;
 }
 
 /* Tide line decoration */
@@ -135,28 +154,69 @@ a {
   height: 2px;
 }
 
+/* Wave section divider */
+.wave-divider {
+  position: relative;
+  height: 48px;
+  margin: -4px 0;
+  overflow: hidden;
+  z-index: 1;
+}
+.wave-divider svg {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+}
+
 /* Section banding — alternating backgrounds with accent borders */
 .band-white {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 1px 3px rgba(26, 43, 60, 0.06), 0 4px 12px rgba(26, 43, 60, 0.04);
+  position: relative;
+  z-index: 1;
 }
 
 .band-sand {
-  background: linear-gradient(135deg, rgba(253, 246, 236, 0.95) 0%, rgba(245, 230, 211, 0.7) 100%);
+  background: linear-gradient(135deg, rgba(253, 246, 236, 0.92) 0%, rgba(245, 230, 211, 0.75) 100%);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(232, 212, 184, 0.5);
-  box-shadow: 0 1px 3px rgba(26, 43, 60, 0.06), 0 4px 12px rgba(26, 43, 60, 0.04);
+  box-shadow: 0 2px 8px rgba(26, 43, 60, 0.05), 0 4px 16px rgba(26, 43, 60, 0.03);
   border-top: 3px solid var(--color-ocean-300);
+  position: relative;
+  z-index: 1;
 }
 
 .band-ocean {
-  background: linear-gradient(135deg, rgba(230, 245, 245, 0.95) 0%, rgba(179, 224, 224, 0.5) 100%);
+  background: linear-gradient(135deg, rgba(230, 245, 245, 0.92) 0%, rgba(179, 224, 224, 0.6) 100%);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(128, 204, 204, 0.4);
-  box-shadow: 0 1px 3px rgba(26, 43, 60, 0.06), 0 4px 12px rgba(26, 43, 60, 0.04);
+  box-shadow: 0 2px 8px rgba(14, 124, 123, 0.06), 0 4px 16px rgba(14, 124, 123, 0.03);
   border-top: 3px solid var(--color-ocean-400);
+  position: relative;
+  z-index: 1;
+}
+
+.band-coral {
+  background: linear-gradient(135deg, rgba(253, 232, 234, 0.92) 0%, rgba(249, 194, 199, 0.55) 100%);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(239, 118, 129, 0.3);
+  box-shadow: 0 2px 8px rgba(232, 80, 91, 0.06), 0 4px 16px rgba(232, 80, 91, 0.03);
+  border-top: 3px solid var(--color-coral-400);
+  position: relative;
+  z-index: 1;
+}
+
+.band-sunset {
+  background: linear-gradient(135deg, rgba(254, 243, 226, 0.92) 0%, rgba(252, 224, 179, 0.55) 100%);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(249, 186, 85, 0.35);
+  box-shadow: 0 2px 8px rgba(224, 143, 13, 0.06), 0 4px 16px rgba(224, 143, 13, 0.03);
+  border-top: 3px solid var(--color-sunset-400);
+  position: relative;
+  z-index: 1;
 }
 
 /* Custom scrollbar */
