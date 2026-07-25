@@ -135,8 +135,8 @@
   <!-- Wave: Stats -> Mosaic -->
   <div class="wave-divider relative z-10">
     <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
-      <path d="M0 16 C200 40 400 0 600 20 C800 40 1000 4 1200 24 L1200 48 L0 48Z" fill="rgba(253,246,236,0.5)" />
-      <path d="M0 32 C300 48 500 8 700 28 C900 44 1100 12 1200 32 L1200 48 L0 48Z" fill="rgba(245,230,211,0.35)" />
+      <path d="M0 16 C200 40 400 0 600 20 C800 40 1000 4 1200 24 L1200 48 L0,48Z" fill="rgba(14,124,123,0.1)" />
+      <path d="M0 32 C300 48 500 8 700 28 C900 44 1100 12 1200 32 L1200 48 L0 48Z" fill="rgba(26,166,166,0.07)" />
     </svg>
   </div>
 
@@ -174,8 +174,8 @@
   <!-- Wave: Mosaic -> Features -->
   <div class="wave-divider relative z-10">
     <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
-      <path d="M0 20 C150 44 350 0 550 24 C750 44 950 4 1200 20 L1200 48 L0 48Z" fill="rgba(230,245,245,0.3)" />
-      <path d="M0 28 C250 48 450 8 650 28 C850 44 1050 12 1200 28 L1200 48 L0 48Z" fill="rgba(179,224,224,0.2)" />
+      <path d="M0 20 C150 44 350 0 550 24 C750 44 950 4 1200 20 L1200 48 L0 48Z" fill="rgba(14,124,123,0.1)" />
+      <path d="M0 28 C250 48 450 8 650 28 C850 44 1050 12 1200 28 L1200 48 L0 48Z" fill="rgba(26,166,166,0.07)" />
     </svg>
   </div>
 

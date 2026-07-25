@@ -148,12 +148,12 @@
   </footer>
 
   <!-- Decorative sun -->
-  <div class="fixed top-20 right-8 pointer-events-none z-0 opacity-40 hidden lg:block" aria-hidden="true">
+  <div class="fixed top-20 right-8 pointer-events-none z-0 opacity-50 hidden lg:block" aria-hidden="true">
     <div class="relative">
-      <div class="h-24 w-24 rounded-full bg-gradient-to-br from-sunset-200 via-sunset-300 to-coral-300 blur-sm"></div>
-      <div class="absolute inset-2 rounded-full bg-gradient-to-br from-sunset-100 via-sunset-200 to-sunset-300 opacity-80"></div>
+      <div class="h-28 w-28 rounded-full bg-gradient-to-br from-sunset-300 via-sunset-400 to-coral-400 blur-sm"></div>
+      <div class="absolute inset-2 rounded-full bg-gradient-to-br from-sunset-200 via-sunset-300 to-coral-300 opacity-90"></div>
       <div class="absolute inset-0 rounded-full animate-pulse" style="animation-duration: 4s;">
-        <div class="absolute -inset-6 rounded-full bg-sunset-200/20 blur-xl"></div>
+        <div class="absolute -inset-8 rounded-full bg-sunset-300/30 blur-2xl"></div>
       </div>
     </div>
   </div>
@@ -161,9 +161,9 @@
   <!-- Decorative fixed waves -->
   <div class="fixed bottom-0 left-0 right-0 pointer-events-none z-0" aria-hidden="true">
     <svg class="w-full" viewBox="0 0 1440 180" preserveAspectRatio="none" style="height: 120px;">
-      <path class="fixed-wave-1" d="M0,120 C240,160 480,60 720,100 C960,140 1200,80 1440,120 L1440,180 L0,180Z" fill="rgba(14,124,123,0.08)" />
-      <path class="fixed-wave-2" d="M0,140 C360,180 600,80 840,120 C1080,160 1320,100 1440,140 L1440,180 L0,180Z" fill="rgba(26,166,166,0.06)" />
-      <path class="fixed-wave-3" d="M0,155 C180,170 420,130 660,150 C900,170 1140,135 1440,155 L1440,180 L0,180Z" fill="rgba(77,184,184,0.05)" />
+      <path class="fixed-wave-1" d="M0,120 C240,160 480,60 720,100 C960,140 1200,80 1440,120 L1440,180 L0,180Z" fill="rgba(14,124,123,0.12)" />
+      <path class="fixed-wave-2" d="M0,140 C360,180 600,80 840,120 C1080,160 1320,100 1440,140 L1440,180 L0,180Z" fill="rgba(26,166,166,0.08)" />
+      <path class="fixed-wave-3" d="M0,155 C180,170 420,130 660,150 C900,170 1140,135 1440,155 L1440,180 L0,180Z" fill="rgba(77,184,184,0.06)" />
     </svg>
   </div>
 </div>

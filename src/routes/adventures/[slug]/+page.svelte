@@ -435,8 +435,8 @@
   <!-- Wave: Story -> Gallery -->
   <div class="wave-divider my-2">
     <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
-      <path d="M0 24 C200 48 400 0 600 24 C800 48 1000 0 1200 24 L1200 48 L0 48Z" fill="rgba(230,245,245,0.35)" />
-      <path d="M0 32 C300 48 500 12 700 32 C900 48 1100 12 1200 32 L1200 48 L0 48Z" fill="rgba(179,224,224,0.25)" />
+      <path d="M0 24 C200 48 400 0 600 24 C800 48 1000 0 1200 24 L1200 48 L0 48Z" fill="rgba(14,124,123,0.12)" />
+      <path d="M0 32 C300 48 500 12 700 32 C900 48 1100 12 1200 32 L1200 48 L0 48Z" fill="rgba(26,166,166,0.08)" />
     </svg>
   </div>
 
@@ -532,8 +532,8 @@
   <!-- Wave: Gallery -> Side Quests -->
   <div class="wave-divider my-2">
     <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
-      <path d="M0 16 C150 48 350 0 500 20 C650 40 850 4 1050 24 C1150 34 1180 20 1200 16 L1200 48 L0 48Z" fill="rgba(254,243,226,0.4)" />
-      <path d="M0 28 C200 44 400 8 600 28 C800 44 1000 8 1200 28 L1200 48 L0 48Z" fill="rgba(252,224,179,0.3)" />
+      <path d="M0 16 C150 48 350 0 500 20 C650 40 850 4 1050 24 C1150 34 1180 20 1200 16 L1200 48 L0 48Z" fill="rgba(224,143,13,0.1)" />
+      <path d="M0 28 C200 44 400 8 600 28 C800 44 1000 8 1200 28 L1200 48 L0 48Z" fill="rgba(249,186,85,0.07)" />
     </svg>
   </div>
 
@@ -893,8 +893,8 @@
   <!-- Wave: Side Quests -> Social -->
   <div class="wave-divider my-2">
     <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
-      <path d="M0 20 C180 44 380 4 580 24 C780 44 980 4 1200 20 L1200 48 L0 48Z" fill="rgba(253,232,234,0.35)" />
-      <path d="M0 30 C250 48 450 8 650 28 C850 44 1050 12 1200 30 L1200 48 L0 48Z" fill="rgba(249,194,199,0.25)" />
+      <path d="M0 20 C180 44 380 4 580 24 C780 44 980 4 1200 20 L1200 48 L0 48Z" fill="rgba(232,80,91,0.1)" />
+      <path d="M0 30 C250 48 450 8 650 28 C850 44 1050 12 1200 30 L1200 48 L0 48Z" fill="rgba(239,118,129,0.07)" />
     </svg>
   </div>
 
@@ -1044,8 +1044,8 @@
   <!-- Wave: Rating -> Stories -->
   <div class="wave-divider my-2">
     <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
-      <path d="M0 24 C200 4 400 44 600 24 C800 4 1000 44 1200 24 L1200 48 L0 48Z" fill="rgba(230,245,245,0.35)" />
-      <path d="M0 32 C300 12 500 44 700 24 C900 8 1100 36 1200 32 L1200 48 L0 48Z" fill="rgba(179,224,224,0.25)" />
+      <path d="M0 24 C200 4 400 44 600 24 C800 4 1000 44 1200 24 L1200 48 L0 48Z" fill="rgba(14,124,123,0.1)" />
+      <path d="M0 32 C300 12 500 44 700 24 C900 8 1100 36 1200 32 L1200 48 L0 48Z" fill="rgba(26,166,166,0.07)" />
     </svg>
   </div>
 

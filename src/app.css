@@ -61,7 +61,7 @@
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html {
@@ -72,13 +72,13 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(179, 224, 224, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(253, 246, 236, 0.4) 0%, transparent 40%),
-    radial-gradient(ellipse at 50% 60%, rgba(249, 186, 85, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 30% 90%, rgba(239, 118, 129, 0.06) 0%, transparent 40%),
-    linear-gradient(180deg, var(--color-sand-100) 0%, var(--color-sand-50) 40%, #FFFFFF 100%);
+    radial-gradient(ellipse at 20% 0%, rgba(77, 184, 184, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 15%, rgba(196, 166, 122, 0.1) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 50%, rgba(14, 124, 123, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 85%, rgba(232, 80, 91, 0.04) 0%, transparent 40%),
+    linear-gradient(180deg, #060A10 0%, #0B1018 30%, #101924 60%, #0B1018 100%);
   background-attachment: fixed;
-  color: var(--color-navy-500);
+  color: var(--color-sand-200);
   font-family: var(--font-sans);
 }
 
@@ -86,9 +86,9 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: radial-gradient(circle, var(--color-sand-300) 0.7px, transparent 0.7px);
-  background-size: 24px 24px;
-  opacity: 0.25;
+  background-image: radial-gradient(circle, rgba(77, 184, 184, 0.12) 0.5px, transparent 0.5px);
+  background-size: 32px 32px;
+  opacity: 0.6;
   pointer-events: none;
   z-index: 0;
 }
@@ -133,7 +133,7 @@ a {
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, var(--color-ocean-500) 0%, var(--color-coral-500) 100%);
+  background: linear-gradient(135deg, var(--color-ocean-300) 0%, var(--color-coral-400) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -146,15 +146,15 @@ a {
 
 .card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(26, 43, 60, 0.12);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
-/* Beachy glass effect */
+/* Beachy glass effect — dark mode */
 .glass {
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(11, 16, 24, 0.7);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 1px 3px rgba(26, 43, 60, 0.06), 0 4px 12px rgba(26, 43, 60, 0.04);
+  border: 1px solid rgba(77, 184, 184, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
   position: relative;
   z-index: 1;
 }
@@ -163,9 +163,9 @@ a {
 .tide-line {
   background: linear-gradient(90deg, 
     transparent 0%, 
-    var(--color-ocean-200) 20%, 
-    var(--color-ocean-300) 50%, 
-    var(--color-ocean-200) 80%, 
+    var(--color-ocean-700) 20%, 
+    var(--color-ocean-600) 50%, 
+    var(--color-ocean-700) 80%, 
     transparent 100%
   );
   height: 2px;
@@ -186,70 +186,147 @@ a {
   height: 100%;
 }
 
-/* Section banding — alternating backgrounds with accent borders */
+/* Section banding — dark mode */
 .band-white {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(16, 25, 36, 0.75);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 1px 3px rgba(26, 43, 60, 0.06), 0 4px 12px rgba(26, 43, 60, 0.04);
+  border: 1px solid rgba(77, 184, 184, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.12);
   position: relative;
   z-index: 1;
 }
 
 .band-sand {
-  background: linear-gradient(135deg, rgba(253, 246, 236, 0.92) 0%, rgba(245, 230, 211, 0.75) 100%);
+  background: linear-gradient(135deg, rgba(74, 61, 40, 0.35) 0%, rgba(107, 87, 56, 0.2) 100%);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(232, 212, 184, 0.5);
-  box-shadow: 0 2px 8px rgba(26, 43, 60, 0.05), 0 4px 16px rgba(26, 43, 60, 0.03);
-  border-top: 3px solid var(--color-ocean-300);
+  border: 1px solid rgba(196, 166, 122, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-top: 3px solid var(--color-ocean-500);
   position: relative;
   z-index: 1;
 }
 
 .band-ocean {
-  background: linear-gradient(135deg, rgba(230, 245, 245, 0.92) 0%, rgba(179, 224, 224, 0.6) 100%);
+  background: linear-gradient(135deg, rgba(5, 49, 48, 0.45) 0%, rgba(14, 124, 123, 0.15) 100%);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(128, 204, 204, 0.4);
-  box-shadow: 0 2px 8px rgba(14, 124, 123, 0.06), 0 4px 16px rgba(14, 124, 123, 0.03);
+  border: 1px solid rgba(77, 184, 184, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1);
   border-top: 3px solid var(--color-ocean-400);
   position: relative;
   z-index: 1;
 }
 
 .band-coral {
-  background: linear-gradient(135deg, rgba(253, 232, 234, 0.92) 0%, rgba(249, 194, 199, 0.55) 100%);
+  background: linear-gradient(135deg, rgba(123, 32, 37, 0.35) 0%, rgba(232, 80, 91, 0.1) 100%);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(239, 118, 129, 0.3);
-  box-shadow: 0 2px 8px rgba(232, 80, 91, 0.06), 0 4px 16px rgba(232, 80, 91, 0.03);
-  border-top: 3px solid var(--color-coral-400);
+  border: 1px solid rgba(239, 118, 129, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-top: 3px solid var(--color-coral-500);
   position: relative;
   z-index: 1;
 }
 
 .band-sunset {
-  background: linear-gradient(135deg, rgba(254, 243, 226, 0.92) 0%, rgba(252, 224, 179, 0.55) 100%);
+  background: linear-gradient(135deg, rgba(89, 56, 5, 0.35) 0%, rgba(224, 143, 13, 0.1) 100%);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(249, 186, 85, 0.35);
-  box-shadow: 0 2px 8px rgba(224, 143, 13, 0.06), 0 4px 16px rgba(224, 143, 13, 0.03);
+  border: 1px solid rgba(249, 186, 85, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1);
   border-top: 3px solid var(--color-sunset-400);
   position: relative;
   z-index: 1;
 }
 
-/* Custom scrollbar */
+/* Dark theme text overrides — remap navy text to light, sand bg/border to dark */
+main .text-navy-300 { color: var(--color-sand-500); }
+main .text-navy-400 { color: var(--color-sand-300); }
+main .text-navy-500 { color: var(--color-sand-200); }
+main .text-navy-600 { color: var(--color-sand-100); }
+main .text-navy-700 { color: #FFFFFF; }
+
+main .bg-sand-50 { background-color: rgba(16, 25, 36, 0.6); }
+main .bg-sand-100 { background-color: rgba(21, 34, 48, 0.7); }
+main .bg-sand-200 { background-color: rgba(26, 43, 60, 0.7); }
+main .bg-sand-300 { background-color: rgba(90, 125, 148, 0.5); }
+
+main .bg-white { background-color: rgba(16, 25, 36, 0.85) !important; }
+main .bg-coral-50 { background-color: rgba(123, 32, 37, 0.4) !important; }
+main .bg-green-50 { background-color: rgba(20, 83, 45, 0.4) !important; }
+
+main .border-sand-100 { border-color: rgba(90, 125, 148, 0.2); }
+main .border-sand-200 { border-color: rgba(90, 125, 148, 0.3); }
+main .border-sand-200\/50 { border-color: rgba(90, 125, 148, 0.15); }
+main .border-sand-300 { border-color: rgba(90, 125, 148, 0.4); }
+
+main .text-ocean-300 { color: var(--color-ocean-100); }
+main .text-ocean-400 { color: var(--color-ocean-200); }
+main .text-ocean-500 { color: var(--color-ocean-300); }
+main .text-ocean-600 { color: var(--color-ocean-200); }
+
+main .text-coral-400 { color: var(--color-coral-300); }
+main .text-coral-500 { color: var(--color-coral-400); }
+main .text-coral-600 { color: var(--color-coral-300); }
+
+main .text-sunset-300 { color: var(--color-sunset-200); }
+main .text-sunset-500 { color: var(--color-sunset-300); }
+main .text-sunset-600 { color: var(--color-sunset-200); }
+
+main .bg-ocean-50\/50 { background-color: rgba(14, 124, 123, 0.15); }
+
+main .prose { color: var(--color-sand-200); }
+main .prose h1, main .prose h2, main .prose h3 { color: var(--color-sand-50); }
+main .prose a { color: var(--color-ocean-300); }
+main .prose strong { color: var(--color-sand-100); }
+
+/* Nav & footer text overrides for dark theme */
+nav .text-navy-400,
+nav .text-navy-500,
+nav .text-navy-600,
+footer .text-navy-400 {
+  color: var(--color-sand-200);
+}
+nav .text-navy-500 { color: var(--color-sand-300); }
+nav .text-navy-600 { color: var(--color-sand-100); }
+nav .hover\:text-navy-600:hover { color: var(--color-sand-50); }
+nav .hover\:bg-sand-100:hover { background-color: rgba(16, 25, 36, 0.6); }
+footer a:hover { color: var(--color-sand-50); }
+footer { border-color: rgba(90, 125, 148, 0.15); background-color: rgba(11, 16, 24, 0.5); }
+
+/* Dark theme input/form styling */
+main input[type="text"],
+main input[type="email"],
+main input[type="password"],
+main input[type="number"],
+main input[type="date"],
+main textarea,
+main select {
+  background-color: rgba(16, 25, 36, 0.8);
+  border-color: rgba(90, 125, 148, 0.3);
+  color: var(--color-sand-100);
+}
+main input::placeholder,
+main textarea::placeholder {
+  color: var(--color-sand-500);
+}
+main input:focus, main textarea:focus, main select:focus {
+  border-color: var(--color-ocean-400);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(26, 166, 166, 0.2);
+}
+
+/* Custom scrollbar — dark */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-sand-100);
+  background: var(--color-navy-800);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-ocean-300);
+  background: var(--color-ocean-700);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-ocean-400);
+  background: var(--color-ocean-600);
 }
