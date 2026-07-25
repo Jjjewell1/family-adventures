@@ -35,6 +35,7 @@
       }
     })();
   </script>
+  <link rel="icon" type="image/png" href="/favicon.png" />
   <title>Family Adventures</title>
   <meta name="description" content="Our family's collection of adventures, memories, and shared moments" />
   <meta property="og:title" content="Family Adventures" />
@@ -47,11 +48,7 @@
     <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
       <div class="flex h-16 items-center justify-between">
         <a href="/" class="flex items-center gap-2">
-          <div class="h-8 w-8 rounded-full bg-gradient-to-br from-ocean-400 to-ocean-600 flex items-center justify-center text-white">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
+          <img src="/logo.png" alt="Family Adventures" class="h-8 w-8 rounded-full object-cover" />
           <span class="text-lg font-display font-semibold text-navy-600 hidden sm:block">Family Adventures</span>
         </a>
 
@@ -187,11 +184,7 @@
     <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6">
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-navy-400">
         <div class="flex items-center gap-2">
-          <div class="h-5 w-5 rounded-full bg-gradient-to-br from-ocean-400 to-ocean-600 flex items-center justify-center text-white">
-            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
+          <img src="/logo.png" alt="Family Adventures" class="h-5 w-5 rounded-full object-cover" />
           <span>Family Adventures</span>
         </div>
         <div class="flex items-center gap-4">
