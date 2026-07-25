@@ -555,7 +555,6 @@
           {(showSideQuestForm || editingSQId) ? 'Cancel' : '+ Add Side Quest'}
         </button>
       {/if}
-    </div>
 
     {#if showSideQuestForm || editingSQId}
       <form class="glass rounded-2xl p-5 mb-6 space-y-4" onsubmit={(e) => { e.preventDefault(); submitSideQuest(); }}>
