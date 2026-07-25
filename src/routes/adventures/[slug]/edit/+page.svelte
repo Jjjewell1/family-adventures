@@ -539,7 +539,7 @@
               <button
                 type="button"
                 onclick={() => setThumbnail(m)}
-                class="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-0.5 text-xs font-medium text-navy-600 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                class="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-navy-800/80 px-2 py-0.5 text-xs font-medium text-sand-100 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-navy-700"
                 title="Set as thumbnail"
               >
                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
