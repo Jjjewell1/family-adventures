@@ -114,6 +114,23 @@ a {
   animation: wave 8s ease-in-out infinite;
 }
 
+/* Fixed bottom wave animation */
+@keyframes fixedWave1 {
+  0%, 100% { d: path("M0,120 C240,160 480,60 720,100 C960,140 1200,80 1440,120 L1440,180 L0,180Z"); }
+  50% { d: path("M0,100 C240,80 480,140 720,120 C960,80 1200,140 1440,100 L1440,180 L0,180Z"); }
+}
+@keyframes fixedWave2 {
+  0%, 100% { d: path("M0,140 C360,180 600,80 840,120 C1080,160 1320,100 1440,140 L1440,180 L0,180Z"); }
+  50% { d: path("M0,130 C360,100 600,160 840,140 C1080,100 1320,160 1440,130 L1440,180 L0,180Z"); }
+}
+@keyframes fixedWave3 {
+  0%, 100% { d: path("M0,155 C180,170 420,130 660,150 C900,170 1140,135 1440,155 L1440,180 L0,180Z"); }
+  50% { d: path("M0,150 C180,135 420,165 660,155 C900,140 1140,165 1440,150 L1440,180 L0,180Z"); }
+}
+.fixed-wave-1 { animation: fixedWave1 12s ease-in-out infinite; }
+.fixed-wave-2 { animation: fixedWave2 10s ease-in-out infinite 0.5s; }
+.fixed-wave-3 { animation: fixedWave3 14s ease-in-out infinite 1s; }
+
 /* Gradient text */
 .gradient-text {
   background: linear-gradient(135deg, var(--color-ocean-500) 0%, var(--color-coral-500) 100%);
