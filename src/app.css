@@ -330,3 +330,164 @@ main input:focus, main textarea:focus, main select:focus {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-ocean-600);
 }
+
+/* ==============================
+   LIGHT THEME
+   ============================== */
+.light {
+  color-scheme: light;
+}
+
+.light body,
+.light {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(179, 224, 224, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(253, 246, 236, 0.4) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 60%, rgba(249, 186, 85, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 90%, rgba(239, 118, 129, 0.06) 0%, transparent 40%),
+    linear-gradient(180deg, var(--color-sand-100) 0%, var(--color-sand-50) 40%, #FFFFFF 100%) !important;
+  color: var(--color-navy-500) !important;
+}
+
+.light body::before {
+  background-image: radial-gradient(circle, var(--color-sand-300) 0.7px, transparent 0.7px) !important;
+  background-size: 24px 24px !important;
+  opacity: 0.25 !important;
+}
+
+.light .glass {
+  background: rgba(255, 255, 255, 0.82) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 1px 3px rgba(26, 43, 60, 0.06), 0 4px 12px rgba(26, 43, 60, 0.04) !important;
+}
+
+.light .band-white {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 1px 3px rgba(26, 43, 60, 0.06), 0 4px 12px rgba(26, 43, 60, 0.04) !important;
+}
+
+.light .band-sand {
+  background: linear-gradient(135deg, rgba(253, 246, 236, 0.92) 0%, rgba(245, 230, 211, 0.75) 100%) !important;
+  border-color: rgba(232, 212, 184, 0.5) !important;
+  box-shadow: 0 2px 8px rgba(26, 43, 60, 0.05), 0 4px 16px rgba(26, 43, 60, 0.03) !important;
+  border-top: 3px solid var(--color-ocean-300) !important;
+}
+
+.light .band-ocean {
+  background: linear-gradient(135deg, rgba(230, 245, 245, 0.92) 0%, rgba(179, 224, 224, 0.6) 100%) !important;
+  border-color: rgba(128, 204, 204, 0.4) !important;
+  box-shadow: 0 2px 8px rgba(14, 124, 123, 0.06), 0 4px 16px rgba(14, 124, 123, 0.03) !important;
+  border-top: 3px solid var(--color-ocean-400) !important;
+}
+
+.light .band-coral {
+  background: linear-gradient(135deg, rgba(253, 232, 234, 0.92) 0%, rgba(249, 194, 199, 0.55) 100%) !important;
+  border-color: rgba(239, 118, 129, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(232, 80, 91, 0.06), 0 4px 16px rgba(232, 80, 91, 0.03) !important;
+  border-top: 3px solid var(--color-coral-400) !important;
+}
+
+.light .band-sunset {
+  background: linear-gradient(135deg, rgba(254, 243, 226, 0.92) 0%, rgba(252, 224, 179, 0.55) 100%) !important;
+  border-color: rgba(249, 186, 85, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(224, 143, 13, 0.06), 0 4px 16px rgba(224, 143, 13, 0.03) !important;
+  border-top: 3px solid var(--color-sunset-400) !important;
+}
+
+/* Light theme text — restore original dark-on-light colors */
+.light main .text-navy-300 { color: var(--color-navy-300); }
+.light main .text-navy-400 { color: var(--color-navy-400); }
+.light main .text-navy-500 { color: var(--color-navy-500); }
+.light main .text-navy-600 { color: var(--color-navy-600); }
+.light main .text-navy-700 { color: var(--color-navy-700); }
+
+.light main .text-ocean-300 { color: var(--color-ocean-300); }
+.light main .text-ocean-400 { color: var(--color-ocean-400); }
+.light main .text-ocean-500 { color: var(--color-ocean-500); }
+.light main .text-ocean-600 { color: var(--color-ocean-600); }
+
+.light main .text-coral-400 { color: var(--color-coral-400); }
+.light main .text-coral-500 { color: var(--color-coral-500); }
+.light main .text-coral-600 { color: var(--color-coral-600); }
+
+.light main .text-sunset-300 { color: var(--color-sunset-300); }
+.light main .text-sunset-500 { color: var(--color-sunset-500); }
+.light main .text-sunset-600 { color: var(--color-sunset-600); }
+
+/* Light theme backgrounds — restore original */
+.light main .bg-sand-50 { background-color: var(--color-sand-50); }
+.light main .bg-sand-100 { background-color: var(--color-sand-100); }
+.light main .bg-sand-200 { background-color: var(--color-sand-200); }
+.light main .bg-sand-300 { background-color: var(--color-sand-300); }
+.light main .bg-white { background-color: #FFFFFF !important; }
+.light main .bg-coral-50 { background-color: var(--color-coral-50) !important; }
+.light main .bg-green-50 { background-color: #ECFDF5 !important; }
+.light main .bg-ocean-50\/50 { background-color: rgba(14, 124, 123, 0.1); }
+
+/* Light theme borders — restore original */
+.light main .border-sand-100 { border-color: var(--color-sand-100); }
+.light main .border-sand-200 { border-color: var(--color-sand-200); }
+.light main .border-sand-200\/50 { border-color: rgba(245, 230, 211, 0.5); }
+.light main .border-sand-300 { border-color: var(--color-sand-300); }
+
+/* Light theme prose */
+.light main .prose { color: var(--color-navy-500); }
+.light main .prose h1, .light main .prose h2, .light main .prose h3 { color: var(--color-navy-600); }
+.light main .prose a { color: var(--color-ocean-500); }
+.light main .prose strong { color: var(--color-navy-600); }
+
+/* Light theme card hover */
+.light .card-hover:hover {
+  box-shadow: 0 20px 40px rgba(26, 43, 60, 0.12) !important;
+}
+
+/* Light theme nav & footer */
+.light nav .text-navy-400,
+.light nav .text-navy-500,
+.light nav .text-navy-600,
+.light footer .text-navy-400 {
+  color: var(--color-navy-500) !important;
+}
+.light nav .text-navy-500 { color: var(--color-navy-500) !important; }
+.light nav .text-navy-600 { color: var(--color-navy-600) !important; }
+.light nav .hover\:text-navy-600:hover { color: var(--color-navy-600) !important; }
+.light nav .hover\:bg-sand-100:hover { background-color: var(--color-sand-100) !important; }
+.light footer a:hover { color: var(--color-navy-600) !important; }
+.light footer { border-color: rgba(245, 230, 211, 0.5) !important; background-color: rgba(253, 246, 236, 0.5) !important; }
+
+/* Light theme inputs */
+.light main input[type="text"],
+.light main input[type="email"],
+.light main input[type="password"],
+.light main input[type="number"],
+.light main input[type="date"],
+.light main textarea,
+.light main select {
+  background-color: #FFFFFF !important;
+  border-color: var(--color-sand-200) !important;
+  color: var(--color-navy-600) !important;
+}
+.light main input::placeholder,
+.light main textarea::placeholder {
+  color: var(--color-navy-300) !important;
+}
+.light main input:focus, .light main textarea:focus, .light main select:focus {
+  border-color: var(--color-ocean-300) !important;
+  box-shadow: 0 0 0 2px rgba(77, 184, 184, 0.2) !important;
+}
+
+/* Light theme scrollbar */
+.light ::-webkit-scrollbar-track { background: var(--color-sand-100); }
+.light ::-webkit-scrollbar-thumb { background: var(--color-ocean-300); }
+.light ::-webkit-scrollbar-thumb:hover { background: var(--color-ocean-400); }
+
+/* Light theme gradient text */
+.light .gradient-text {
+  background: linear-gradient(135deg, var(--color-ocean-500) 0%, var(--color-coral-500) 100%) !important;
+}
+
+/* Light theme tide line */
+.light .tide-line {
+  background: linear-gradient(90deg, transparent 0%, var(--color-ocean-200) 20%, var(--color-ocean-300) 50%, var(--color-ocean-200) 80%, transparent 100%) !important;
+}

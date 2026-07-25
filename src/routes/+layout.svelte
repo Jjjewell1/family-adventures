@@ -1,10 +1,40 @@
 <script lang="ts">
   import '../app.css';
+  import { onMount } from 'svelte';
   let { children, data } = $props();
   let mobileMenuOpen = $state(false);
+  let isDark = $state(true);
+
+  function toggleTheme() {
+    isDark = !isDark;
+    document.documentElement.classList.toggle('light', !isDark);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }
+
+  onMount(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light') {
+      isDark = false;
+      document.documentElement.classList.add('light');
+    } else if (!saved) {
+      const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+      if (prefersLight) {
+        isDark = false;
+        document.documentElement.classList.add('light');
+      }
+    }
+  });
 </script>
 
 <svelte:head>
+  <script>
+    (function() {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'light' || (!saved && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+        document.documentElement.classList.add('light');
+      }
+    })();
+  </script>
   <title>Family Adventures</title>
   <meta name="description" content="Our family's collection of adventures, memories, and shared moments" />
   <meta property="og:title" content="Family Adventures" />
@@ -81,6 +111,23 @@
             </a>
           {/if}
 
+          <!-- Theme toggle -->
+          <button
+            onclick={toggleTheme}
+            class="p-2 rounded-lg text-sand-300 hover:text-sand-100 hover:bg-navy-700/50 transition-colors"
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {#if isDark}
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            {:else}
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            {/if}
+          </button>
+
           <!-- Mobile menu button -->
           <button
             class="md:hidden p-2 rounded-lg text-navy-500 hover:bg-sand-100"
@@ -106,6 +153,15 @@
           <a href="/memories" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Memories</a>
           <a href="/bucket-list" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Bucket List</a>
           <a href="/stats" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Stats</a>
+          <button onclick={toggleTheme} class="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">
+            {#if isDark}
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+              Light Mode
+            {:else}
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+              Dark Mode
+            {/if}
+          </button>
           {#if data.user}
             <a href="/adventures/create" class="block px-3 py-2 rounded-lg text-sm font-medium text-ocean-500 hover:bg-sand-100">New Adventure</a>
             <a href="/settings" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Settings</a>
