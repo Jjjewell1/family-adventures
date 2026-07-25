@@ -425,7 +425,7 @@
 
   <!-- Content -->
   {#if data.adventure.content}
-    <div class="glass rounded-2xl p-6 mb-8">
+    <div class="band-sand rounded-2xl p-6 mb-8">
       <div class="prose prose-lg max-w-none">
         {@html data.adventure.content}
       </div>
@@ -521,7 +521,7 @@
     </div>
   {/if}
   <!-- Side Quests -->
-  <div class="glass rounded-2xl p-6 mb-8">
+  <div class="band-sand rounded-2xl p-6 mb-8">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <span class="text-2xl">🗺️</span>
@@ -912,7 +912,7 @@
   </div>
 
   <!-- Comments -->
-  <div class="glass rounded-2xl p-6 mb-8">
+  <div class="band-sand rounded-2xl p-6 mb-8">
     <div class="flex items-center gap-3 mb-6">
       <span class="text-2xl">💬</span>
       <div>
@@ -1017,7 +1017,7 @@
   </div>
 
   <!-- Stories / Blog -->
-  <div class="glass rounded-2xl p-6 mb-8">
+  <div class="band-sand rounded-2xl p-6 mb-8">
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-3">
         <span class="text-2xl">📖</span>

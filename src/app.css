@@ -134,6 +134,25 @@ a {
   height: 2px;
 }
 
+/* Section banding — alternating full-width backgrounds */
+.band-white {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.band-sand {
+  background: rgba(253, 246, 236, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(245, 230, 211, 0.4);
+}
+
+.band-ocean {
+  background: rgba(230, 245, 245, 0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(179, 224, 224, 0.3);
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
