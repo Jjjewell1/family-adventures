@@ -436,7 +436,13 @@
   {#if data.adventure.media && data.adventure.media.length > 0}
     <div class="glass rounded-2xl p-6 mb-8">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold text-navy-600">Photos & Videos</h2>
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">📸</span>
+          <div>
+            <h2 class="text-lg font-semibold text-navy-600">Photos & Videos</h2>
+            <p class="text-xs text-navy-400">Moments captured along the way</p>
+          </div>
+        </div>
         {#if data.user && data.user.id === data.adventure.author_id}
           <p class="text-xs text-navy-400">Click the star to feature a photo on the homepage</p>
         {/if}
@@ -516,9 +522,14 @@
   {/if}
   <!-- Side Quests -->
   <div class="glass rounded-2xl p-6 mb-8">
-    <div class="flex items-center justify-between mb-4">
-      <div class="flex items-center gap-3">
-        <h2 class="text-xl font-semibold text-navy-600">Side Quests</h2>
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🗺️</span>
+          <div>
+            <h2 class="text-lg font-semibold text-navy-600">Side Quests</h2>
+            <p class="text-xs text-navy-400">Detours, stops, and little adventures along the way</p>
+          </div>
+        </div>
         {#if subAdventures.length > 0}
           <div class="flex rounded-lg border border-sand-200 overflow-hidden text-xs">
             <button
@@ -865,7 +876,13 @@
 
   <!-- Reactions -->
   <div class="glass rounded-2xl p-6 mb-8">
-    <h2 class="text-lg font-semibold text-navy-600 mb-4">Reactions</h2>
+    <div class="flex items-center gap-3 mb-4">
+      <span class="text-2xl">❤️</span>
+      <div>
+        <h2 class="text-lg font-semibold text-navy-600">Reactions</h2>
+        <p class="text-xs text-navy-400">Show how this adventure made you feel</p>
+      </div>
+    </div>
     
     <div class="flex flex-wrap gap-2 mb-4">
       {#each reactionEmojis as emoji}
@@ -897,7 +914,13 @@
 
   <!-- Comments -->
   <div class="glass rounded-2xl p-6 mb-8">
-    <h2 class="text-lg font-semibold text-navy-600 mb-6">Comments</h2>
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-2xl">💬</span>
+      <div>
+        <h2 class="text-lg font-semibold text-navy-600">Comments</h2>
+        <p class="text-xs text-navy-400">Share your thoughts and memories</p>
+      </div>
+    </div>
 
     {#if data.user}
       <form class="mb-6" onsubmit={(e) => { e.preventDefault(); submitComment(); }}>
@@ -946,7 +969,13 @@
 
   <!-- Marshmallow Rating -->
   <div class="glass rounded-2xl p-6 mb-8">
-    <h2 class="text-lg font-semibold text-navy-600 mb-3">Rating</h2>
+    <div class="flex items-center gap-3 mb-3">
+      <span class="text-2xl">🔥</span>
+      <div>
+        <h2 class="text-lg font-semibold text-navy-600">Rating</h2>
+        <p class="text-xs text-navy-400">How fire was this adventure?</p>
+      </div>
+    </div>
     {#if data.ratings.length > 0}
       <div class="flex items-center gap-3 mb-4">
         <span class="text-3xl">{data.avgRating >= 1 ? '🔥' : '🏕️'}</span>
@@ -991,7 +1020,13 @@
   <!-- Stories / Blog -->
   <div class="glass rounded-2xl p-6 mb-8">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-lg font-semibold text-navy-600">Stories & Memories</h2>
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">📖</span>
+        <div>
+          <h2 class="text-lg font-semibold text-navy-600">Stories & Memories</h2>
+          <p class="text-xs text-navy-400">Longer tales and favorite moments</p>
+        </div>
+      </div>
       {#if data.user}
         <button
           onclick={() => showStoryForm = !showStoryForm}
