@@ -336,7 +336,7 @@
   {#if data.adventure.cover_file_path}
     <meta property="og:image" content="{data.siteUrl}{data.adventure.cover_file_path}" />
   {:else}
-    <meta property="og:image" content="{data.siteUrl}/og-image.png" />
+    <meta property="og:image" content="{data.siteUrl}{data.site?.ogImageUrl || '/og-image.png'}" />
   {/if}
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -355,7 +355,7 @@
   {#if data.adventure.cover_file_path}
     <meta name="twitter:image" content="{data.siteUrl}{data.adventure.cover_file_path}" />
   {:else}
-    <meta name="twitter:image" content="{data.siteUrl}/og-image.png" />
+    <meta name="twitter:image" content="{data.siteUrl}{data.site?.ogImageUrl || '/og-image.png'}" />
   {/if}
 </svelte:head>
 

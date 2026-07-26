@@ -35,14 +35,14 @@
       }
     })();
   </script>
-  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="icon" type="image/png" href={data.site?.faviconUrl || '/favicon.png'} />
   <title>{data.site?.title || 'Family Adventures'}</title>
   <meta name="description" content={data.site?.description || "Our family's collection of adventures, memories, and shared moments"} />
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content={data.site?.title || 'Family Adventures'} />
   <meta property="og:description" content={data.site?.description || "Our family's collection of adventures, memories, and shared moments"} />
-  <meta property="og:image" content="{data.siteUrl || 'https://adventures.jewellcore.com'}{data.site?.ogImageUrl || '/og-image.png'}" />
+  <meta property="og:image" content="{data.siteUrl}{data.site?.ogImageUrl || '/og-image.png'}" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:site_name" content={data.site?.title || 'Family Adventures'} />
@@ -50,7 +50,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={data.site?.title || 'Family Adventures'} />
   <meta name="twitter:description" content={data.site?.description || "Our family's collection of adventures, memories, and shared moments"} />
-  <meta name="twitter:image" content="{data.siteUrl || 'https://adventures.jewellcore.com'}{data.site?.ogImageUrl || '/og-image.png'}" />
+  <meta name="twitter:image" content="{data.siteUrl}{data.site?.ogImageUrl || '/og-image.png'}" />
 </svelte:head>
 
 <div class="min-h-screen flex flex-col">
@@ -59,7 +59,7 @@
     <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
       <div class="flex h-16 items-center justify-between">
         <a href="/" class="flex items-center gap-2">
-          <img src="/logo.png" alt="Family Adventures" class="h-8 w-8 rounded-full object-cover" />
+          <img src={data.site?.logoUrl || '/logo.png'} alt="Family Adventures" class="h-8 w-8 rounded-full object-cover" />
           <span class="text-lg font-display font-semibold text-navy-600 hidden sm:block">Family Adventures</span>
         </a>
 
@@ -195,7 +195,7 @@
     <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6">
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-navy-400">
         <div class="flex items-center gap-2">
-          <img src="/logo.png" alt="Family Adventures" class="h-5 w-5 rounded-full object-cover" />
+          <img src={data.site?.logoUrl || '/logo.png'} alt="Family Adventures" class="h-5 w-5 rounded-full object-cover" />
           <span>Family Adventures</span>
         </div>
         <div class="flex items-center gap-4">

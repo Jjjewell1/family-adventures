@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import type { PageData } from './$types';
+  import { onMount } from 'svelte';
 
   let { data }: { data: PageData } = $props();
 
@@ -39,9 +40,76 @@
   let logoUploading = $state(false);
   let logoMessage = $state('');
   let logoError = $state('');
-  let logoPreviewUrl = $state('/logo.png');
   let logoTimestamp = $state(Date.now());
   let dragOver = $state(false);
+  let logoHistory = $state<any[]>([]);
+  let activeLogo = $state('');
+  let deletingLogo = $state<string | null>(null);
+
+  async function loadLogoHistory() {
+    try {
+      const res = await fetch('/api/admin/logo');
+      if (res.ok) {
+        const data = await res.json();
+        logoHistory = data.logos || [];
+        activeLogo = data.activeLogo || '';
+      }
+    } catch {}
+  }
+
+  async function handleDeleteLogo(filename: string) {
+    deletingLogo = filename;
+  }
+
+  async function confirmDeleteLogo(filename: string) {
+    try {
+      const res = await fetch('/api/admin/logo', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename })
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        logoMessage = 'Logo deleted';
+        await loadLogoHistory();
+      } else {
+        logoError = result.error || 'Failed to delete logo';
+      }
+    } catch {
+      logoError = 'An error occurred';
+    }
+    deletingLogo = null;
+  }
+
+  async function setActiveLogo(logoPath: string) {
+    try {
+      // logoPath is like /uploads/branding/logo-123.png
+      const configValue = logoPath.replace('/uploads/', '');
+      const res = await fetch('/api/admin/logo', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ logoFilename: configValue })
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        logoMessage = 'Active logo updated';
+        activeLogo = configValue;
+        logoTimestamp = Date.now();
+        await loadLogoHistory();
+      } else {
+        logoError = result.error || 'Failed to set active logo';
+      }
+    } catch {
+      logoError = 'An error occurred';
+    }
+  }
+
+  // Load logo history when branding tab is shown
+  $effect(() => {
+    if (activeTab === 'branding') {
+      loadLogoHistory();
+    }
+  });
 
   const isAdmin = $derived(data.user.role === 'admin');
   const pendingUsers = $derived(data.users.filter((u: any) => !u.approved));
@@ -208,8 +276,9 @@
       const result = await res.json();
 
       if (res.ok && result.success) {
-        logoMessage = 'Logo updated! Background removed, all sizes generated (logo, favicon, OG image).';
+        logoMessage = 'Logo updated! Background removed, all sizes generated.';
         logoTimestamp = Date.now();
+        await loadLogoHistory();
       } else {
         logoError = result.error || 'Failed to upload logo';
       }
@@ -434,22 +503,6 @@
         <div class="p-4 rounded-xl bg-coral-50 border border-coral-200 text-coral-600 text-sm">{logoError}</div>
       {/if}
 
-      <!-- Current Logo Preview -->
-      <div class="flex items-center gap-6">
-        <div class="h-20 w-20 rounded-full bg-navy-500/10 border-2 border-dashed border-navy-300/30 flex items-center justify-center overflow-hidden">
-          <img
-            src="{logoPreviewUrl}?t={logoTimestamp}"
-            alt="Current logo"
-            class="h-full w-full object-cover rounded-full"
-            onerror={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }}
-          />
-        </div>
-        <div>
-          <p class="text-sm font-medium text-navy-600">Current Logo</p>
-          <p class="text-xs text-navy-400 mt-0.5">Used for nav, footer, favicon, and link previews</p>
-        </div>
-      </div>
-
       <!-- Upload Zone -->
       <div
         class="relative border-2 border-dashed rounded-2xl p-8 text-center transition-colors cursor-pointer
@@ -487,24 +540,80 @@
         />
       </div>
 
+      <!-- Logo History -->
+      {#if logoHistory.length > 0}
+        <div>
+          <h3 class="text-sm font-semibold text-navy-600 mb-3">Uploaded Logos ({logoHistory.length})</h3>
+          <div class="space-y-3">
+            {#each logoHistory as logo}
+              {@const isActive = activeLogo === `branding/${logo.filename}`}
+              <div class="flex items-center gap-4 p-3 rounded-xl border transition-colors
+                {isActive ? 'bg-ocean-50 border-ocean-200' : 'bg-sand-50 border-sand-200/50 hover:border-sand-300'}">
+                <div class="h-14 w-14 rounded-full overflow-hidden bg-navy-500/10 border border-navy-300/20 shrink-0">
+                  <img src={logo.logoPath} alt="Logo" class="h-full w-full object-cover" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    {#if isActive}
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-ocean-100 text-ocean-700">Active</span>
+                    {/if}
+                    <span class="text-xs text-navy-400">{logo.date}</span>
+                  </div>
+                  <p class="text-xs text-navy-300 mt-0.5 truncate">{logo.filename}</p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  {#if !isActive}
+                    <button
+                      class="text-xs px-3 py-1.5 rounded-full font-medium bg-ocean-500 text-white hover:bg-ocean-600 transition-colors"
+                      onclick={() => setActiveLogo(logo.logoPath)}
+                    >
+                      Set Active
+                    </button>
+                  {/if}
+                  {#if !isActive}
+                    {#if deletingLogo === logo.filename}
+                      <div class="flex items-center gap-1">
+                        <span class="text-xs text-coral-500">Delete?</span>
+                        <button class="text-xs text-coral-500 hover:text-coral-700 font-medium" onclick={() => confirmDeleteLogo(logo.filename)}>Yes</button>
+                        <button class="text-xs text-navy-400 hover:text-navy-600 font-medium" onclick={() => deletingLogo = null}>No</button>
+                      </div>
+                    {:else}
+                      <button
+                        class="text-sm text-navy-300 hover:text-coral-500 transition-colors"
+                        onclick={() => handleDeleteLogo(logo.filename)}
+                        title="Delete logo"
+                      >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    {/if}
+                  {/if}
+                </div>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
       <!-- Info -->
       <div class="p-5 rounded-xl bg-sand-50 border border-sand-200/50">
         <h3 class="text-sm font-semibold text-navy-600 mb-2">What gets generated</h3>
         <ul class="text-sm text-navy-400 space-y-1.5">
           <li class="flex items-center gap-2">
             <span class="h-1.5 w-1.5 rounded-full bg-ocean-400 shrink-0"></span>
-            <span><strong class="text-navy-600">logo.png</strong> — 512x512 transparent, used in nav bar and footer</span>
+            <span><strong class="text-navy-600">Logo</strong> — 512x512 transparent, used in nav bar and footer</span>
           </li>
           <li class="flex items-center gap-2">
             <span class="h-1.5 w-1.5 rounded-full bg-sunset-400 shrink-0"></span>
-            <span><strong class="text-navy-600">favicon.png</strong> — 64x64 transparent, shown in browser tab</span>
+            <span><strong class="text-navy-600">Favicon</strong> — 64x64 transparent, shown in browser tab</span>
           </li>
           <li class="flex items-center gap-2">
             <span class="h-1.5 w-1.5 rounded-full bg-coral-400 shrink-0"></span>
-            <span><strong class="text-navy-600">og-image.png</strong> — 1200x630, shown when you share links on social media</span>
+            <span><strong class="text-navy-600">OG Image</strong> — 1200x630, shown when you share links on social media</span>
           </li>
         </ul>
-        <p class="text-xs text-navy-400 mt-3">White or near-white backgrounds are automatically removed. The original image is not stored.</p>
+        <p class="text-xs text-navy-400 mt-3">White or near-white backgrounds are automatically removed. Previous logos are kept so you can switch back or delete them.</p>
       </div>
     </div>
   {/if}
