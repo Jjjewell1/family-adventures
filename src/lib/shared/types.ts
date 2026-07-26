@@ -106,11 +106,13 @@ export interface ActivityFeedItem {
   id: string;
   user_id: string;
   adventure_id: string | null;
-  action_type: 'created_adventure' | 'commented' | 'reacted' | 'shared';
+  action_type: 'created_adventure' | 'commented' | 'reacted' | 'shared' | 'joined' | 'rated' | 'uploaded_photo' | 'created_story';
   metadata: string | null;
   created_at: string;
   user?: User;
   adventure?: Adventure;
+  target_user?: User;
+  media?: AdventureMedia;
 }
 
 export interface ImmichAsset {

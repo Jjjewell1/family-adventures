@@ -35,7 +35,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   await dbRun(`
     INSERT INTO activity_feed (id, user_id, adventure_id, action_type, metadata)
     VALUES (?, ?, ?, 'commented', ?)
-  `, generateToken(), user.id, adventureId, JSON.stringify({ commentId: id }));
+  `, generateToken(), user.id, adventureId, JSON.stringify({ commentId: id, content: content.trim().substring(0, 200) }));
 
   // Send push notification (non-blocking)
   const adv = await dbGet('SELECT title, slug FROM adventures WHERE id = ?', adventureId) as { title: string; slug: string } | undefined;

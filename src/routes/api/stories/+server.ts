@@ -42,6 +42,11 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     id
   );
 
+  await dbRun(
+    'INSERT INTO activity_feed (id, user_id, adventure_id, action_type, metadata) VALUES (?, ?, ?, ?, ?)',
+    generateToken(), user.id, adventureId, 'created_story', JSON.stringify({ title: title?.trim() || null })
+  );
+
   return json(story, { status: 201 });
 };
 

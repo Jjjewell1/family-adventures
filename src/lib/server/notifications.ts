@@ -92,4 +92,47 @@ export async function notifyNewComment(comment: {
   });
 }
 
+export async function notifyNewFamilyMember(member: {
+  name: string;
+  siteUrl?: string;
+}): Promise<void> {
+  const url = siteUrl ? `${siteUrl}/feed` : '/feed';
+
+  await sendNotification({
+    headings: { en: 'Welcome to the Family! 🎉' },
+    contents: { en: `Everyone welcome ${member.name}! They've joined Family Adventures.` },
+    url
+  });
+}
+
+export async function notifyFeedItem(item: {
+  userName: string;
+  actionType: string;
+  adventureTitle?: string;
+  siteUrl?: string;
+}): Promise<void> {
+  const url = siteUrl ? `${siteUrl}/feed` : '/feed';
+  let body = `${item.userName} `;
+
+  switch (item.actionType) {
+    case 'rated':
+      body += `rated ${item.adventureTitle || 'an adventure'}`;
+      break;
+    case 'uploaded_photo':
+      body += `added photos to ${item.adventureTitle || 'an adventure'}`;
+      break;
+    case 'created_story':
+      body += `wrote a story for ${item.adventureTitle || 'an adventure'}`;
+      break;
+    default:
+      body += `did something on ${item.adventureTitle || 'an adventure'}`;
+  }
+
+  await sendNotification({
+    headings: { en: 'New Activity' },
+    contents: { en: body },
+    url
+  });
+}
+
 export { isConfigured };

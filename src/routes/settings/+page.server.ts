@@ -4,6 +4,7 @@ import { getSessionUser, hashPassword, verifyPassword } from '$lib/server/auth';
 import { dbRun, dbGet, dbAll } from '$lib/server/db';
 import { generateToken } from '$lib/shared/utils';
 import { env } from '$env/dynamic/private';
+import { notifyNewFamilyMember } from '$lib/server/notifications';
 
 export const load: PageServerLoad = async ({ cookies }) => {
   const user = await getSessionUser(cookies);
@@ -94,6 +95,12 @@ export const actions: Actions = {
       'INSERT INTO users (id, username, email, name, password_hash, role) VALUES (?, ?, ?, ?, ?, ?)',
       userId, username, email, name, passwordHash, role === 'admin' ? 'admin' : 'member'
     );
+
+    await dbRun(
+      'INSERT INTO activity_feed (id, user_id, action_type, metadata) VALUES (?, ?, ?, ?)',
+      generateToken(), user.id, 'joined', JSON.stringify({ target_user_id: userId, target_user_name: name })
+    );
+    notifyNewFamilyMember({ name }).catch(() => {});
 
     return { success: true, message: 'Member added' };
   },

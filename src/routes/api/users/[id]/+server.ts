@@ -2,6 +2,8 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getSessionUser } from '$lib/server/auth';
 import { dbRun, dbGet } from '$lib/server/db';
+import { generateToken } from '$lib/shared/utils';
+import { notifyNewFamilyMember } from '$lib/server/notifications';
 
 export const PUT: RequestHandler = async ({ request, cookies, params }) => {
   const user = await getSessionUser(cookies);
@@ -42,7 +44,17 @@ export const PUT: RequestHandler = async ({ request, cookies, params }) => {
   }
 
   if (approved !== undefined && isAdmin) {
+    const wasApproved = (target as any).approved;
     await dbRun('UPDATE users SET approved = ? WHERE id = ?', approved ? 1 : 0, targetId);
+
+    if (approved && !wasApproved) {
+      const targetUser = await dbGet('SELECT name FROM users WHERE id = ?', targetId) as any;
+      await dbRun(
+        'INSERT INTO activity_feed (id, user_id, action_type, metadata) VALUES (?, ?, ?, ?)',
+        generateToken(), targetId, 'joined', JSON.stringify({ target_user_name: targetUser?.name })
+      );
+      notifyNewFamilyMember({ name: targetUser?.name || 'Someone' }).catch(() => {});
+    }
   }
 
   const updated = await dbGet('SELECT id, username, email, name, role, approved, provider, avatar_url, created_at FROM users WHERE id = ?', targetId);

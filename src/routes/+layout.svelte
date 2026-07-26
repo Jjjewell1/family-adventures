@@ -116,6 +116,9 @@
           <a href="/map" class="px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:text-navy-600 hover:bg-sand-100 transition-colors">
             Map
           </a>
+          <a href="/feed" class="px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:text-navy-600 hover:bg-sand-100 transition-colors">
+            Feed
+          </a>
           <a href="/memories" class="px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:text-navy-600 hover:bg-sand-100 transition-colors">
             Memories
           </a>
@@ -219,6 +222,7 @@
           <a href="/adventures" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Adventures</a>
           <a href="/gallery" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Gallery</a>
           <a href="/map" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Map</a>
+          <a href="/feed" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Feed</a>
           <a href="/memories" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Memories</a>
           <a href="/bucket-list" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Bucket List</a>
           <a href="/stats" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Stats</a>
@@ -273,6 +277,7 @@
         <div class="flex items-center gap-4">
           <a href="/adventures" class="hover:text-navy-600 transition-colors">Adventures</a>
           <a href="/gallery" class="hover:text-navy-600 transition-colors">Gallery</a>
+          <a href="/feed" class="hover:text-navy-600 transition-colors">Feed</a>
           <a href="/map" class="hover:text-navy-600 transition-colors">Map</a>
         </div>
       </div>

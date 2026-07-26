@@ -51,6 +51,11 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
 
   const media = await dbGet('SELECT * FROM adventure_media WHERE id = ?', mediaId);
 
+  await dbRun(
+    'INSERT INTO activity_feed (id, user_id, adventure_id, action_type, metadata) VALUES (?, ?, ?, ?, ?)',
+    generateToken(), user.id, adventure.id, 'uploaded_photo', JSON.stringify({ media_id: mediaId })
+  );
+
   return json({ media });
 };
 

@@ -21,6 +21,11 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     id, adventureId, user.id, score, label || null
   );
 
+  await dbRun(
+    'INSERT INTO activity_feed (id, user_id, adventure_id, action_type, metadata) VALUES (?, ?, ?, ?, ?)',
+    generateToken(), user.id, adventureId, 'rated', JSON.stringify({ score, label })
+  );
+
   return json({ success: true });
 };
 
