@@ -327,14 +327,36 @@
 <svelte:head>
   <title>{data.adventure.title} | Family Adventures</title>
   <meta name="description" content={data.adventure.description || data.adventure.title} />
-  
+
   <!-- Open Graph -->
-  <meta property="og:title" content={data.adventure.title} />
-  <meta property="og:description" content={data.adventure.description || ''} />
-  {#if data.adventure.cover_asset_id}
-    <meta property="og:image" content="{data.siteUrl}/api/immich/asset/{data.adventure.cover_asset_id}" />
-  {/if}
   <meta property="og:type" content="article" />
+  <meta property="og:title" content={data.adventure.title} />
+  <meta property="og:description" content={data.adventure.description || data.adventure.title} />
+  <meta property="og:site_name" content="Family Adventures" />
+  {#if data.adventure.cover_file_path}
+    <meta property="og:image" content="{data.siteUrl}{data.adventure.cover_file_path}" />
+  {:else}
+    <meta property="og:image" content="{data.siteUrl}/og-image.png" />
+  {/if}
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  {#if data.adventure.location_name}
+    <meta property="og:latitude" content={data.adventure.lat} />
+    <meta property="og:longitude" content={data.adventure.lng} />
+  {/if}
+  {#if data.adventure.start_date}
+    <meta property="article:published_time" content={data.adventure.start_date} />
+  {/if}
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={data.adventure.title} />
+  <meta name="twitter:description" content={data.adventure.description || data.adventure.title} />
+  {#if data.adventure.cover_file_path}
+    <meta name="twitter:image" content="{data.siteUrl}{data.adventure.cover_file_path}" />
+  {:else}
+    <meta name="twitter:image" content="{data.siteUrl}/og-image.png" />
+  {/if}
 </svelte:head>
 
 <article class="max-w-4xl mx-auto">

@@ -36,10 +36,21 @@
     })();
   </script>
   <link rel="icon" type="image/png" href="/favicon.png" />
-  <title>Family Adventures</title>
-  <meta name="description" content="Our family's collection of adventures, memories, and shared moments" />
-  <meta property="og:title" content="Family Adventures" />
-  <meta property="og:description" content="Our family's collection of adventures, memories, and shared moments" />
+  <title>{data.site?.title || 'Family Adventures'}</title>
+  <meta name="description" content={data.site?.description || "Our family's collection of adventures, memories, and shared moments"} />
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={data.site?.title || 'Family Adventures'} />
+  <meta property="og:description" content={data.site?.description || "Our family's collection of adventures, memories, and shared moments"} />
+  <meta property="og:image" content="{data.siteUrl || 'https://adventures.jewellcore.com'}{data.site?.ogImageUrl || '/og-image.png'}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content={data.site?.title || 'Family Adventures'} />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={data.site?.title || 'Family Adventures'} />
+  <meta name="twitter:description" content={data.site?.description || "Our family's collection of adventures, memories, and shared moments"} />
+  <meta name="twitter:image" content="{data.siteUrl || 'https://adventures.jewellcore.com'}{data.site?.ogImageUrl || '/og-image.png'}" />
 </svelte:head>
 
 <div class="min-h-screen flex flex-col">

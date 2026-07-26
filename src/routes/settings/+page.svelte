@@ -35,11 +35,19 @@
   // Delete confirmation
   let deletingId = $state<string | null>(null);
 
+  // Branding/logo state
+  let logoUploading = $state(false);
+  let logoMessage = $state('');
+  let logoError = $state('');
+  let logoPreviewUrl = $state('/logo.png');
+  let logoTimestamp = $state(Date.now());
+  let dragOver = $state(false);
+
   const isAdmin = $derived(data.user.role === 'admin');
   const pendingUsers = $derived(data.users.filter((u: any) => !u.approved));
   const activeUsers = $derived(data.users.filter((u: any) => u.approved));
   const tabs = $derived(isAdmin
-    ? [{ id: 'profile', label: 'Profile' }, { id: 'immich', label: 'Immich' }, { id: 'members', label: 'Family Members' }]
+    ? [{ id: 'profile', label: 'Profile' }, { id: 'branding', label: 'Branding' }, { id: 'immich', label: 'Immich' }, { id: 'members', label: 'Family Members' }]
     : [{ id: 'profile', label: 'Profile' }, { id: 'immich', label: 'Immich' }]
   );
 
@@ -185,6 +193,46 @@
     } catch {
       memberError = 'An error occurred';
     }
+  }
+
+  async function handleLogoUpload(file: File) {
+    logoUploading = true;
+    logoError = '';
+    logoMessage = '';
+
+    const form = new FormData();
+    form.append('file', file);
+
+    try {
+      const res = await fetch('/api/admin/logo', { method: 'POST', body: form });
+      const result = await res.json();
+
+      if (res.ok && result.success) {
+        logoMessage = 'Logo updated! Background removed, all sizes generated (logo, favicon, OG image).';
+        logoTimestamp = Date.now();
+      } else {
+        logoError = result.error || 'Failed to upload logo';
+      }
+    } catch {
+      logoError = 'An error occurred during upload';
+    }
+    logoUploading = false;
+  }
+
+  function handleLogoDrop(e: DragEvent) {
+    e.preventDefault();
+    dragOver = false;
+    const file = e.dataTransfer?.files[0];
+    if (file && file.type.startsWith('image/')) {
+      handleLogoUpload(file);
+    }
+  }
+
+  function handleLogoFileInput(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) handleLogoUpload(file);
+    input.value = '';
   }
 </script>
 
@@ -367,6 +415,96 @@
             {passwordSaving ? 'Changing...' : 'Change Password'}
           </button>
         </form>
+      </div>
+    </div>
+  {/if}
+
+  <!-- Branding Tab (admin only) -->
+  {#if activeTab === 'branding' && isAdmin}
+    <div class="glass rounded-3xl p-8 space-y-8">
+      <div>
+        <h2 class="text-xl font-display font-semibold text-navy-600 mb-1">Site Branding</h2>
+        <p class="text-sm text-navy-400">Upload a logo to customize your site appearance</p>
+      </div>
+
+      {#if logoMessage}
+        <div class="p-4 rounded-xl bg-ocean-50 border border-ocean-200 text-ocean-600 text-sm">{logoMessage}</div>
+      {/if}
+      {#if logoError}
+        <div class="p-4 rounded-xl bg-coral-50 border border-coral-200 text-coral-600 text-sm">{logoError}</div>
+      {/if}
+
+      <!-- Current Logo Preview -->
+      <div class="flex items-center gap-6">
+        <div class="h-20 w-20 rounded-full bg-navy-500/10 border-2 border-dashed border-navy-300/30 flex items-center justify-center overflow-hidden">
+          <img
+            src="{logoPreviewUrl}?t={logoTimestamp}"
+            alt="Current logo"
+            class="h-full w-full object-cover rounded-full"
+            onerror={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }}
+          />
+        </div>
+        <div>
+          <p class="text-sm font-medium text-navy-600">Current Logo</p>
+          <p class="text-xs text-navy-400 mt-0.5">Used for nav, footer, favicon, and link previews</p>
+        </div>
+      </div>
+
+      <!-- Upload Zone -->
+      <div
+        class="relative border-2 border-dashed rounded-2xl p-8 text-center transition-colors cursor-pointer
+          {dragOver ? 'border-ocean-400 bg-ocean-50' : 'border-sand-300 hover:border-ocean-300 hover:bg-sand-50'}"
+        ondragover={(e) => { e.preventDefault(); dragOver = true; }}
+        ondragleave={() => dragOver = false}
+        ondrop={handleLogoDrop}
+        onclick={() => document.getElementById('logoFileInput')?.click()}
+        onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('logoFileInput')?.click(); } }}
+        role="button"
+        tabindex="0"
+      >
+        {#if logoUploading}
+          <div class="flex flex-col items-center gap-3">
+            <div class="h-10 w-10 rounded-full border-2 border-ocean-300 border-t-ocean-500 animate-spin"></div>
+            <p class="text-sm text-navy-500">Processing logo...</p>
+          </div>
+        {:else}
+          <div class="flex flex-col items-center gap-3">
+            <svg class="h-10 w-10 text-navy-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <div>
+              <p class="text-sm font-medium text-navy-600">Drop an image here or click to browse</p>
+              <p class="text-xs text-navy-400 mt-1">JPG, PNG, GIF, WebP, HEIC — background will be removed automatically</p>
+            </div>
+          </div>
+        {/if}
+        <input
+          type="file"
+          id="logoFileInput"
+          class="hidden"
+          accept="image/*"
+          onchange={handleLogoFileInput}
+        />
+      </div>
+
+      <!-- Info -->
+      <div class="p-5 rounded-xl bg-sand-50 border border-sand-200/50">
+        <h3 class="text-sm font-semibold text-navy-600 mb-2">What gets generated</h3>
+        <ul class="text-sm text-navy-400 space-y-1.5">
+          <li class="flex items-center gap-2">
+            <span class="h-1.5 w-1.5 rounded-full bg-ocean-400 shrink-0"></span>
+            <span><strong class="text-navy-600">logo.png</strong> — 512x512 transparent, used in nav bar and footer</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="h-1.5 w-1.5 rounded-full bg-sunset-400 shrink-0"></span>
+            <span><strong class="text-navy-600">favicon.png</strong> — 64x64 transparent, shown in browser tab</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="h-1.5 w-1.5 rounded-full bg-coral-400 shrink-0"></span>
+            <span><strong class="text-navy-600">og-image.png</strong> — 1200x630, shown when you share links on social media</span>
+          </li>
+        </ul>
+        <p class="text-xs text-navy-400 mt-3">White or near-white backgrounds are automatically removed. The original image is not stored.</p>
       </div>
     </div>
   {/if}

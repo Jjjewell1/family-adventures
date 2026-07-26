@@ -276,6 +276,15 @@ function migrateDatabase() {
     )
   `);
 
+  // Site configuration (key-value store)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS site_config (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
   // Seed example sub-adventures for the first adventure (if none exist yet)
   const sqCount = db.exec('SELECT COUNT(*) as cnt FROM sub_adventures');
   const hasExisting = sqCount.length > 0 && (sqCount[0].values[0][0] as number) > 0;
@@ -536,6 +545,15 @@ function initializeDatabase() {
       FOREIGN KEY (sub_adventure_id) REFERENCES sub_adventures(id) ON DELETE CASCADE
     )
   `);
+
+  // Site configuration (key-value store)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS site_config (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
 }
 
 // Helper functions that mimic better-sqlite3 API
@@ -583,6 +601,16 @@ export async function dbAll<T = any>(sql: string, ...params: any[]): Promise<T[]
   }
   stmt.free();
   return rows;
+}
+
+// Site config helpers
+export async function getConfig(key: string): Promise<string | null> {
+  const row = await dbGet<{ value: string }>('SELECT value FROM site_config WHERE key = ?', key);
+  return row?.value ?? null;
+}
+
+export async function setConfig(key: string, value: string): Promise<void> {
+  await dbRun('INSERT OR REPLACE INTO site_config (key, value) VALUES (?, ?)', key, value);
 }
 
 export { getDb, saveDb };

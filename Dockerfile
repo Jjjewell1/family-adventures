@@ -1,4 +1,5 @@
 FROM node:20-alpine AS base
+RUN apk add --no-cache python3 py3-pip py3-pillow
 WORKDIR /app
 
 FROM base AS deps
@@ -18,5 +19,6 @@ RUN mkdir -p /app/data /app/build/client/uploads
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/scripts ./scripts
 EXPOSE 3000
 CMD ["node", "build"]
