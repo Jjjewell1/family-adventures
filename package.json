@@ -22,6 +22,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@onesignal/node-onesignal": "^5.12.0",
     "leaflet": "^1.9.4",
     "sql.js": "^1.11.0"
   }

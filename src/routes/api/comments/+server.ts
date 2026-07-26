@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { getSessionUser } from '$lib/server/auth';
 import { dbRun, dbGet } from '$lib/server/db';
 import { generateToken } from '$lib/shared/utils';
+import { notifyNewComment } from '$lib/server/notifications';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
   const user = await getSessionUser(cookies);
@@ -35,6 +36,17 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     INSERT INTO activity_feed (id, user_id, adventure_id, action_type, metadata)
     VALUES (?, ?, ?, 'commented', ?)
   `, generateToken(), user.id, adventureId, JSON.stringify({ commentId: id }));
+
+  // Send push notification (non-blocking)
+  const adv = await dbGet('SELECT title, slug FROM adventures WHERE id = ?', adventureId) as { title: string; slug: string } | undefined;
+  if (adv) {
+    notifyNewComment({
+      adventureTitle: adv.title,
+      adventureSlug: adv.slug,
+      authorName: user.name,
+      content: content.trim()
+    }).catch(() => {});
+  }
 
   return json({ id });
 };

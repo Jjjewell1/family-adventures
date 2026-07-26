@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getSessionUser } from '$lib/server/auth';
 import { dbRun, dbGet } from '$lib/server/db';
-import { writeFile, mkdir, unlink, readdir, rm } from 'fs/promises';
+import { writeFile, mkdir, unlink, readdir } from 'fs/promises';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { join } from 'path';

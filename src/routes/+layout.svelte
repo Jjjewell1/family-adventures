@@ -1,6 +1,8 @@
 <script lang="ts">
   import '../app.css';
   import { onMount } from 'svelte';
+  import InstallBanner from '$lib/components/InstallBanner.svelte';
+  import { env } from '$env/dynamic/public';
   let { children, data } = $props();
   let mobileMenuOpen = $state(false);
   let isDark = $state(true);
@@ -22,6 +24,28 @@
         isDark = false;
         document.documentElement.classList.add('light');
       }
+    }
+
+    // Register service worker for PWA installability
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
+    }
+
+    // Initialize OneSignal (deferred so it doesn't block the SW)
+    const appId = env.PUBLIC_ONESIGNAL_APP_ID;
+    if (appId) {
+      (window as any).OneSignalDeferred = (window as any).OneSignalDeferred || [];
+      (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
+        await OneSignal.init({
+          appId,
+          notifyButton: { enable: false },
+          allowLocalhostAsSecureOrigin: true,
+          welcomeNotification: {
+            title: 'Family Adventures',
+            body: 'Notifications enabled!'
+          }
+        });
+      });
     }
   });
 </script>
@@ -226,4 +250,7 @@
       <path class="fixed-wave-3" d="M0,155 C180,170 420,130 660,150 C900,170 1140,135 1440,155 L1440,180 L0,180Z" fill="rgba(77,184,184,0.06)" />
     </svg>
   </div>
+
+  <!-- PWA Install Banner -->
+  <InstallBanner />
 </div>

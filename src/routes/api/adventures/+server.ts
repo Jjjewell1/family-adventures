@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { getSessionUser } from '$lib/server/auth';
 import { dbRun, dbGet, dbAll } from '$lib/server/db';
 import { slugify, generateToken } from '$lib/shared/utils';
+import { notifyNewAdventure } from '$lib/server/notifications';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
   const user = await getSessionUser(cookies);
@@ -73,6 +74,15 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     INSERT INTO activity_feed (id, user_id, adventure_id, action_type, metadata)
     VALUES (?, ?, ?, 'created_adventure', ?)
   `, generateToken(), user.id, id, JSON.stringify({ title }));
+
+  // Send push notification (non-blocking)
+  if (!isDraft) {
+    notifyNewAdventure({
+      title: title.trim(),
+      slug,
+      authorName: user.name
+    }).catch(() => {});
+  }
 
   return json({ id, slug });
 };
