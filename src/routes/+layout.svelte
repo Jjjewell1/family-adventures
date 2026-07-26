@@ -6,11 +6,26 @@
   let { children, data } = $props();
   let mobileMenuOpen = $state(false);
   let isDark = $state(true);
+  let oneSignalReady = $state(false);
+  let isSubscribed = $state(false);
 
   function toggleTheme() {
     isDark = !isDark;
     document.documentElement.classList.toggle('light', !isDark);
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }
+
+  async function toggleNotifications() {
+    const OneSignal = (window as any).OneSignal;
+    if (!OneSignal) return;
+
+    if (isSubscribed) {
+      await OneSignal.User.PushSubscription.optOut();
+      isSubscribed = false;
+    } else {
+      const accepted = await OneSignal.Slidedown.promptPush();
+      isSubscribed = accepted;
+    }
   }
 
   onMount(() => {
@@ -45,6 +60,9 @@
             body: 'Notifications enabled!'
           }
         });
+        oneSignalReady = true;
+        isSubscribed = await OneSignal.User.PushSubscription.optedInAsync?.() ?? false;
+        isSubscribed = isSubscribed || OneSignal.User.PushSubscription.optedIn;
       });
     }
   });
@@ -160,6 +178,25 @@
             {/if}
           </button>
 
+          <!-- Notification bell -->
+          {#if oneSignalReady && data.user}
+            <button
+              onclick={toggleNotifications}
+              class="p-2 rounded-lg transition-colors {isSubscribed ? 'text-ocean-400 hover:text-ocean-300 hover:bg-navy-700/50' : 'text-sand-400 hover:text-sand-200 hover:bg-navy-700/50'}"
+              title={isSubscribed ? 'Notifications on — tap to turn off' : 'Enable push notifications'}
+            >
+              {#if isSubscribed}
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                </svg>
+              {:else}
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              {/if}
+            </button>
+          {/if}
+
           <!-- Mobile menu button -->
           <button
             class="md:hidden p-2 rounded-lg text-navy-500 hover:bg-sand-100"
@@ -194,6 +231,17 @@
               Dark Mode
             {/if}
           </button>
+          {#if oneSignalReady && data.user}
+            <button onclick={toggleNotifications} class="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">
+              {#if isSubscribed}
+                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                Notifications On
+              {:else}
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                Enable Notifications
+              {/if}
+            </button>
+          {/if}
           {#if data.user}
             <a href="/adventures/create" class="block px-3 py-2 rounded-lg text-sm font-medium text-ocean-500 hover:bg-sand-100">New Adventure</a>
             <a href="/settings" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Settings</a>
