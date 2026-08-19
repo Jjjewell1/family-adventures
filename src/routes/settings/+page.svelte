@@ -363,17 +363,11 @@
 
   async function fetchModels() {
     try {
-      const res = await fetch(`/api/tags`, { signal: AbortSignal.timeout(5000) });
+      const res = await fetch('/api/ai/models', { signal: AbortSignal.timeout(8000) });
       const data = await res.json();
-      aiModels = (data.models || []).map((m: { name: string }) => m.name);
+      aiModels = data.models || [];
     } catch {
-      try {
-        const res = await fetch(aiUrl + '/api/tags', { signal: AbortSignal.timeout(5000) });
-        const data = await res.json();
-        aiModels = (data.models || []).map((m: { name: string }) => m.name);
-      } catch {
-        aiModels = [];
-      }
+      aiModels = [];
     }
   }
 </script>
@@ -780,14 +774,30 @@
         </div>
 
         <div>
-          <label for="aiModel" class="block text-sm font-medium text-navy-600 mb-2">Model Name</label>
-          <input
-            type="text"
-            id="aiModel"
-            bind:value={aiModel}
-            placeholder="llama3.1"
-            class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
-          />
+          <label for="aiModel" class="block text-sm font-medium text-navy-600 mb-2">Model</label>
+          {#if aiModels.length > 0}
+            <select
+              id="aiModel"
+              bind:value={aiModel}
+              class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
+            >
+              {#each aiModels as model}
+                <option value={model}>{model}</option>
+              {/each}
+              {#if aiModel && !aiModels.includes(aiModel)}
+                <option value={aiModel}>{aiModel} (not installed)</option>
+              {/if}
+            </select>
+          {:else}
+            <input
+              type="text"
+              id="aiModel"
+              bind:value={aiModel}
+              placeholder="gpt-oss:20b"
+              class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
+            />
+            <p class="text-xs text-navy-400 mt-1">Click "Test Connection" to load available models</p>
+          {/if}
         </div>
 
         <div class="flex gap-3">

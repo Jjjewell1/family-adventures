@@ -6,6 +6,8 @@
 
   let { data } = $props();
 
+  // svelte-ignore state_referenced_locally
+  let items = $state<any[]>(data.items);
   let showAddForm = $state(false);
   let newTitle = $state('');
   let newDescription = $state('');
@@ -62,7 +64,14 @@
       });
 
       if (res.ok) {
-        window.location.reload();
+        const newItem = await res.json();
+        items = [newItem, ...items];
+        newTitle = '';
+        newDescription = '';
+        newLocation = '';
+        newLat = null;
+        newLng = null;
+        showAddForm = false;
       } else {
         const err = await res.json();
         error = err.error || 'Failed to add item';
@@ -73,17 +82,27 @@
     submitting = false;
   }
 
-  async function vote(itemId: string, vote: number) {
+  async function vote(itemId: string, voteValue: number) {
     votingId = itemId;
     error = '';
     try {
       const res = await fetch('/api/bucket-list/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bucketItemId: itemId, vote })
+        body: JSON.stringify({ bucketItemId: itemId, vote: voteValue })
       });
-      if (res.ok) window.location.reload();
-      else error = 'Failed to vote';
+      if (res.ok) {
+        // Optimistically update vote score
+        items = items.map(item => {
+          if (item.id === itemId) {
+            // Simple increment/decrement — server handles the actual math
+            return { ...item, vote_score: (item.vote_score || 0) + voteValue };
+          }
+          return item;
+        });
+      } else {
+        error = 'Failed to vote';
+      }
     } catch { error = 'Network error'; }
     votingId = null;
   }
@@ -97,8 +116,17 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bucketItemId: itemId, content: commentText.trim() })
       });
-      if (res.ok) window.location.reload();
-      else error = 'Failed to add comment';
+      if (res.ok) {
+        items = items.map(item => {
+          if (item.id === itemId) {
+            return { ...item, comment_count: (item.comment_count || 0) + 1 };
+          }
+          return item;
+        });
+        commentText = '';
+      } else {
+        error = 'Failed to add comment';
+      }
     } catch { error = 'Network error'; }
   }
 
@@ -110,8 +138,11 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
-      if (res.ok) window.location.reload();
-      else error = 'Failed to update status';
+      if (res.ok) {
+        items = items.map(item => item.id === itemId ? { ...item, status } : item);
+      } else {
+        error = 'Failed to update status';
+      }
     } catch { error = 'Network error'; }
   }
 
@@ -119,8 +150,11 @@
     error = '';
     try {
       const res = await fetch(`/api/bucket-list/${itemId}`, { method: 'DELETE' });
-      if (res.ok) window.location.reload();
-      else error = 'Failed to delete item';
+      if (res.ok) {
+        items = items.filter(item => item.id !== itemId);
+      } else {
+        error = 'Failed to delete item';
+      }
     } catch { error = 'Network error'; }
   }
 
@@ -169,8 +203,9 @@
         })
       });
       if (res.ok) {
+        const newItem = await res.json();
+        items = [newItem, ...items];
         aiSuggestions = aiSuggestions.filter(s => s.title !== suggestion.title);
-        window.location.reload();
       }
     } catch {}
   }
@@ -312,15 +347,15 @@
 
   <!-- Group by status -->
   {#each statuses as status}
-    {@const items = data.items.filter((i: any) => i.status === status.id)}
-    {#if items.length > 0}
+      {@const itemsList = items.filter((i: any) => i.status === status.id)}
+      {#if itemsList.length > 0}
       <div>
         <div class="flex items-center gap-2 mb-3">
           <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {status.color}">{status.label}</span>
           <span class="text-xs text-navy-400">({items.length})</span>
         </div>
-        <div class="grid gap-4 md:grid-cols-2">
-          {#each items as item (item.id)}
+          <div class="grid gap-4 md:grid-cols-2">
+            {#each itemsList as item (item.id)}
             <div class="glass rounded-2xl p-5 hover:shadow-md transition-shadow">
               <div class="flex items-start justify-between gap-3">
                 <div class="flex-1 min-w-0">
@@ -419,7 +454,7 @@
     {/if}
   {/each}
 
-  {#if data.items.length === 0}
+  {#if items.length === 0}
     <div class="glass rounded-3xl p-12 text-center">
       <div class="h-16 w-16 mx-auto mb-4 rounded-full bg-ocean-100 flex items-center justify-center">
         <svg class="h-8 w-8 text-ocean-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

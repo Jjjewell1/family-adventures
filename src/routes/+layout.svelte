@@ -1,6 +1,7 @@
 <script lang="ts">
   import '../app.css';
   import { onMount } from 'svelte';
+  import { page } from '$app/stores';
   import InstallBanner from '$lib/components/InstallBanner.svelte';
   import { env } from '$env/dynamic/public';
   let { children, data } = $props();
@@ -8,6 +9,8 @@
   let isDark = $state(true);
   let oneSignalReady = $state(false);
   let isSubscribed = $state(false);
+
+  const currentPath = $derived($page.url.pathname);
 
   function toggleTheme() {
     isDark = !isDark;
@@ -107,27 +110,21 @@
 
         <!-- Desktop nav -->
         <div class="hidden md:flex items-center gap-1">
-          <a href="/adventures" class="px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:text-navy-600 hover:bg-sand-100 transition-colors">
-            Adventures
-          </a>
-          <a href="/gallery" class="px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:text-navy-600 hover:bg-sand-100 transition-colors">
-            Gallery
-          </a>
-          <a href="/map" class="px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:text-navy-600 hover:bg-sand-100 transition-colors">
-            Map
-          </a>
-          <a href="/feed" class="px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:text-navy-600 hover:bg-sand-100 transition-colors">
-            Feed
-          </a>
-          <a href="/memories" class="px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:text-navy-600 hover:bg-sand-100 transition-colors">
-            Memories
-          </a>
-          <a href="/bucket-list" class="px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:text-navy-600 hover:bg-sand-100 transition-colors">
-            Bucket List
-          </a>
-          <a href="/stats" class="px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:text-navy-600 hover:bg-sand-100 transition-colors">
-            Stats
-          </a>
+          {#each [
+            { href: '/adventures', label: 'Adventures' },
+            { href: '/gallery', label: 'Gallery' },
+            { href: '/map', label: 'Map' },
+            { href: '/feed', label: 'Feed' },
+            { href: '/memories', label: 'Memories' },
+            { href: '/bucket-list', label: 'Bucket List' },
+            { href: '/stats', label: 'Stats' },
+          ] as link}
+            <a href={link.href}
+              class="px-3 py-2 rounded-lg text-sm font-medium transition-colors {currentPath.startsWith(link.href) ? 'text-ocean-600 bg-ocean-50' : 'text-navy-500 hover:text-navy-600 hover:bg-sand-100'}"
+            >
+              {link.label}
+            </a>
+          {/each}
         </div>
 
         <!-- Right side -->
@@ -219,13 +216,22 @@
       <!-- Mobile menu -->
       {#if mobileMenuOpen}
         <div class="md:hidden pb-4 border-t border-sand-200/50 pt-3 space-y-1">
-          <a href="/adventures" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Adventures</a>
-          <a href="/gallery" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Gallery</a>
-          <a href="/map" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Map</a>
-          <a href="/feed" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Feed</a>
-          <a href="/memories" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Memories</a>
-          <a href="/bucket-list" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Bucket List</a>
-          <a href="/stats" class="block px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">Stats</a>
+          {#each [
+            { href: '/adventures', label: 'Adventures' },
+            { href: '/gallery', label: 'Gallery' },
+            { href: '/map', label: 'Map' },
+            { href: '/feed', label: 'Feed' },
+            { href: '/memories', label: 'Memories' },
+            { href: '/bucket-list', label: 'Bucket List' },
+            { href: '/stats', label: 'Stats' },
+          ] as link}
+            <a href={link.href}
+              class="block px-3 py-2 rounded-lg text-sm font-medium transition-colors {currentPath.startsWith(link.href) ? 'text-ocean-600 bg-ocean-50' : 'text-navy-500 hover:bg-sand-100'}"
+              onclick={() => mobileMenuOpen = false}
+            >
+              {link.label}
+            </a>
+          {/each}
           <button onclick={toggleTheme} class="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-medium text-navy-500 hover:bg-sand-100">
             {#if isDark}
               <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>

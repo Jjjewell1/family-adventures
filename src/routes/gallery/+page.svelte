@@ -5,6 +5,7 @@
   let { data } = $props();
   let selectedMedia = $state<any>(null);
   let lightboxOpen = $state(false);
+  let mediaList = $derived(data.media || []);
 
   function openLightbox(media: any) {
     selectedMedia = media;
@@ -14,6 +15,21 @@
   function closeLightbox() {
     lightboxOpen = false;
     selectedMedia = null;
+  }
+
+  function navigate(direction: number) {
+    if (!selectedMedia) return;
+    const idx = mediaList.indexOf(selectedMedia);
+    if (idx === -1) return;
+    const newIdx = (idx + direction + mediaList.length) % mediaList.length;
+    selectedMedia = mediaList[newIdx];
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (!lightboxOpen) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') navigate(-1);
+    if (e.key === 'ArrowRight') navigate(1);
   }
 </script>
 
@@ -82,24 +98,38 @@
 </div>
 
 <!-- Lightbox -->
+<svelte:window onkeydown={handleKeydown} />
 {#if lightboxOpen && selectedMedia}
   <div 
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
     onclick={closeLightbox}
     role="dialog"
     tabindex="-1"
-    onkeydown={(e) => e.key === 'Escape' && closeLightbox()}
   >
-    <button 
-      class="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-      onclick={closeLightbox}
-    >
+      <button 
+        class="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+        onclick={closeLightbox}
+        aria-label="Close lightbox"
+      >
       <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
 
-    <div class="max-w-4xl max-h-[90vh] mx-4" onclick={(e) => e.stopPropagation()}>
+    <!-- Prev button -->
+    {#if mediaList.length > 1}
+      <button
+        class="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+        onclick={(e) => { e.stopPropagation(); navigate(-1); }}
+        title="Previous"
+      >
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+    {/if}
+
+    <div class="max-w-4xl max-h-[90vh] mx-4" role="presentation" onclick={(e) => e.stopPropagation()}>
       {#if selectedMedia.media_type === 'video'}
         <video 
           controls 
@@ -129,5 +159,18 @@
         </div>
       {/if}
     </div>
+
+    <!-- Next button -->
+    {#if mediaList.length > 1}
+      <button
+        class="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+        onclick={(e) => { e.stopPropagation(); navigate(1); }}
+        title="Next"
+      >
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    {/if}
   </div>
 {/if}

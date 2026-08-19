@@ -491,3 +491,77 @@ main input:focus, main textarea:focus, main select:focus {
 .light .tide-line {
   background: linear-gradient(90deg, transparent 0%, var(--color-ocean-200) 20%, var(--color-ocean-300) 50%, var(--color-ocean-200) 80%, transparent 100%) !important;
 }
+
+/* ==============================
+   POLISH & UX
+   ============================== */
+
+/* Brand-colored text selection */
+::selection {
+  background: rgba(14, 124, 123, 0.3);
+  color: inherit;
+}
+
+/* Smooth image loading */
+img {
+  transition: opacity 0.3s ease;
+}
+
+/* Focus visible ring for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--color-ocean-400);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Active nav link */
+nav a.bg-ocean-50 {
+  background-color: rgba(14, 124, 123, 0.15);
+}
+
+/* Better lightbox backdrop */
+.lightbox-backdrop {
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Smooth color transitions on interactive elements */
+button, a, [role="button"] {
+  transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+/* Subtle glow on primary buttons */
+.bg-ocean-500, .bg-coral-500 {
+  box-shadow: 0 2px 8px rgba(14, 124, 123, 0.3);
+}
+.bg-ocean-500:hover, .bg-coral-500:hover {
+  box-shadow: 0 4px 16px rgba(14, 124, 123, 0.4);
+}
+
+/* Card entrance animation — only on direct page load */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.glass {
+  animation: slideUp 0.35s ease;
+  animation-fill-mode: backwards;
+}
+/* Stagger children glass cards */
+.glass:nth-child(2) { animation-delay: 0.05s; }
+.glass:nth-child(3) { animation-delay: 0.1s; }
+.glass:nth-child(4) { animation-delay: 0.15s; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
