@@ -123,3 +123,29 @@ export interface ImmichAsset {
   mimeType?: string;
   [key: string]: unknown;
 }
+
+export interface AIConfig {
+  enabled: boolean;
+  url: string;
+  model: string;
+}
+
+export interface AIGenerateRequest {
+  type: 'description' | 'enhance' | 'story' | 'summarize' | 'tags' | 'captions' | 'bucket-suggestions' | 'plan-trip';
+  title?: string;
+  description?: string;
+  content?: string;
+  locationName?: string;
+  startDate?: string;
+  endDate?: string;
+  mood?: string;
+  templateType?: string;
+  existingTags?: string[];
+  adventureHistory?: { title: string; location: string; type: string }[];
+  bucketList?: { title: string; location: string }[];
+  mediaCaptions?: string[];
+  destination?: string;
+  tripDuration?: string;
+  familySize?: string;
+  extraNotes?: string;
+}

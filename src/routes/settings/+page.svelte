@@ -46,6 +46,16 @@
   let activeLogo = $state('');
   let deletingLogo = $state<string | null>(null);
 
+  // AI settings state
+  let aiEnabled = $state(data.aiConfig?.enabled ?? true);
+  let aiUrl = $state(data.aiConfig?.url ?? 'http://localhost:11434');
+  let aiModel = $state(data.aiConfig?.model ?? 'llama3.1');
+  let aiSaving = $state(false);
+  let aiMessage = $state('');
+  let aiError = $state('');
+  let aiTesting = $state(false);
+  let aiTestResult = $state<{ ok: boolean; models: string[]; error?: string } | null>(null);
+
   async function loadLogoHistory() {
     try {
       const res = await fetch('/api/admin/logo');
@@ -115,8 +125,8 @@
   const pendingUsers = $derived(data.users.filter((u: any) => !u.approved));
   const activeUsers = $derived(data.users.filter((u: any) => u.approved));
   const tabs = $derived(isAdmin
-    ? [{ id: 'profile', label: 'Profile' }, { id: 'branding', label: 'Branding' }, { id: 'immich', label: 'Immich' }, { id: 'members', label: 'Family Members' }]
-    : [{ id: 'profile', label: 'Profile' }, { id: 'immich', label: 'Immich' }]
+    ? [{ id: 'profile', label: 'Profile' }, { id: 'branding', label: 'Branding' }, { id: 'immich', label: 'Immich' }, { id: 'ai', label: 'AI Assistant' }, { id: 'members', label: 'Family Members' }]
+    : [{ id: 'profile', label: 'Profile' }, { id: 'immich', label: 'Immich' }, { id: 'ai', label: 'AI' }]
   );
 
   async function handleProfileSubmit(e: SubmitEvent) {
@@ -302,6 +312,43 @@
     const file = input.files?.[0];
     if (file) handleLogoUpload(file);
     input.value = '';
+  }
+
+  async function handleSaveAI(e: Event) {
+    e.preventDefault();
+    aiSaving = true;
+    aiError = '';
+    aiMessage = '';
+
+    try {
+      const res = await fetch('/api/ai/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: aiEnabled, url: aiUrl, model: aiModel })
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        aiMessage = 'AI settings saved successfully';
+      } else {
+        aiError = result.error || 'Failed to save AI settings';
+      }
+    } catch {
+      aiError = 'An error occurred';
+    }
+    aiSaving = false;
+  }
+
+  async function handleTestAI() {
+    aiTesting = true;
+    aiTestResult = null;
+    try {
+      const res = await fetch('/api/ai/config');
+      const data = await res.json();
+      aiTestResult = data.connection;
+    } catch {
+      aiTestResult = { ok: false, models: [], error: 'Connection failed' };
+    }
+    aiTesting = false;
   }
 </script>
 
@@ -661,6 +708,142 @@
           <p>IMMICH_API_KEY=your-api-key-here</p>
         </div>
         <p class="text-xs text-navy-400 mt-3">A restart is required after changing environment variables.</p>
+      </div>
+    </div>
+  {/if}
+
+  <!-- AI Assistant Tab (admin only) -->
+  {#if activeTab === 'ai' && isAdmin}
+    <div class="glass rounded-3xl p-8 space-y-6">
+      <div>
+        <h2 class="text-xl font-display font-semibold text-navy-600 mb-1">AI Assistant</h2>
+        <p class="text-sm text-navy-400">Configure the local AI for content generation</p>
+      </div>
+
+      {#if aiMessage}
+        <div class="p-4 rounded-xl bg-ocean-50 border border-ocean-200 text-ocean-600 text-sm">{aiMessage}</div>
+      {/if}
+      {#if aiError}
+        <div class="p-4 rounded-xl bg-coral-50 border border-coral-200 text-coral-600 text-sm">{aiError}</div>
+      {/if}
+
+      <form onsubmit={handleSaveAI} class="space-y-5">
+        <div class="flex items-center justify-between p-4 rounded-xl bg-sand-50 border border-sand-200/50">
+          <div>
+            <p class="text-sm font-medium text-navy-600">Enable AI Assistant</p>
+            <p class="text-xs text-navy-400 mt-0.5">Show AI buttons for content generation throughout the site</p>
+          </div>
+          <button
+            type="button"
+            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {aiEnabled ? 'bg-ocean-500' : 'bg-sand-300'}"
+            onclick={() => aiEnabled = !aiEnabled}
+          >
+            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {aiEnabled ? 'translate-x-6' : 'translate-x-1'}"></span>
+          </button>
+        </div>
+
+        <div>
+          <label for="aiUrl" class="block text-sm font-medium text-navy-600 mb-2">Ollama Server URL</label>
+          <input
+            type="text"
+            id="aiUrl"
+            bind:value={aiUrl}
+            placeholder="http://localhost:11434"
+            class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
+          />
+        </div>
+
+        <div>
+          <label for="aiModel" class="block text-sm font-medium text-navy-600 mb-2">Model Name</label>
+          <input
+            type="text"
+            id="aiModel"
+            bind:value={aiModel}
+            placeholder="llama3.1"
+            class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
+          />
+        </div>
+
+        <div class="flex gap-3">
+          <button
+            type="submit"
+            disabled={aiSaving}
+            class="inline-flex items-center justify-center gap-2 rounded-full bg-ocean-500 px-6 py-3 text-sm font-medium text-white hover:bg-ocean-600 disabled:opacity-50 transition-colors"
+          >
+            {aiSaving ? 'Saving...' : 'Save Settings'}
+          </button>
+          <button
+            type="button"
+            disabled={aiTesting}
+            onclick={handleTestAI}
+            class="inline-flex items-center justify-center gap-2 rounded-full border border-sand-300 bg-white px-6 py-3 text-sm font-medium text-navy-600 hover:bg-sand-50 disabled:opacity-50 transition-colors"
+          >
+            {aiTesting ? 'Testing...' : 'Test Connection'}
+          </button>
+        </div>
+      </form>
+
+      {#if aiTestResult}
+        <div class="p-5 rounded-xl border {aiTestResult.ok ? 'bg-ocean-50 border-ocean-200' : 'bg-coral-50 border-coral-200'}">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full {aiTestResult.ok ? 'bg-ocean-500' : 'bg-coral-500'}"></span>
+            <h3 class="text-sm font-semibold {aiTestResult.ok ? 'text-ocean-600' : 'text-coral-600'}">
+              {aiTestResult.ok ? 'Connected!' : 'Connection Failed'}
+            </h3>
+          </div>
+          {#if aiTestResult.ok && aiTestResult.models.length > 0}
+            <p class="text-sm text-navy-500">Available models:</p>
+            <div class="flex flex-wrap gap-2 mt-2">
+              {#each aiTestResult.models as model}
+                <button
+                  type="button"
+                  class="px-3 py-1 rounded-full text-xs font-medium border transition-colors
+                    {aiModel === model ? 'bg-ocean-500 text-white border-ocean-500' : 'bg-white text-navy-600 border-sand-200 hover:border-ocean-300'}"
+                  onclick={() => aiModel = model}
+                >
+                  {model}
+                </button>
+              {/each}
+            </div>
+          {:else if aiTestResult.error}
+            <p class="text-sm text-coral-500">{aiTestResult.error}</p>
+          {/if}
+        </div>
+      {/if}
+
+      <div class="p-5 rounded-xl bg-sand-50 border border-sand-200/50">
+        <h3 class="text-sm font-semibold text-navy-600 mb-2">What AI can do</h3>
+        <ul class="text-sm text-navy-400 space-y-1.5">
+          <li class="flex items-center gap-2">
+            <span class="h-1.5 w-1.5 rounded-full bg-ocean-400 shrink-0"></span>
+            <span><strong class="text-navy-600">Generate descriptions</strong> — Write trip summaries from basic details</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="h-1.5 w-1.5 rounded-full bg-sunset-400 shrink-0"></span>
+            <span><strong class="text-navy-600">Write stories</strong> — Create personal adventure narratives</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="h-1.5 w-1.5 rounded-full bg-coral-400 shrink-0"></span>
+            <span><strong class="text-navy-600">Enhance content</strong> — Polish and improve existing text</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="h-1.5 w-1.5 rounded-full bg-ocean-400 shrink-0"></span>
+            <span><strong class="text-navy-600">Suggest tags</strong> — Auto-categorize adventures</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="h-1.5 w-1.5 rounded-full bg-sunset-400 shrink-0"></span>
+            <span><strong class="text-navy-600">Photo captions</strong> — Generate descriptions for photos</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="h-1.5 w-1.5 rounded-full bg-coral-400 shrink-0"></span>
+            <span><strong class="text-navy-600">Bucket list ideas</strong> — Suggest future adventures</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="h-1.5 w-1.5 rounded-full bg-ocean-400 shrink-0"></span>
+            <span><strong class="text-navy-600">Trip planning</strong> — Create itineraries and packing lists</span>
+          </li>
+        </ul>
+        <p class="text-xs text-navy-400 mt-3">All AI processing runs locally via Ollama — no data leaves your network.</p>
       </div>
     </div>
   {/if}

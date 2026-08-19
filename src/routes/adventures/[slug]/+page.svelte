@@ -2,6 +2,7 @@
   import type { PageData } from './$types';
   import { formatDate, timeAgo } from '$lib/shared/utils';
   import { getImmichAssetUrl } from '$lib/shared/immich';
+  import { onMount } from 'svelte';
   
   let { data } = $props();
   let showShareDialog = $state(false);
@@ -34,6 +35,12 @@
   let sqUploadProgress = $state<Record<string, string>>({});
   let sqUploading = $state<Record<string, boolean>>({});
   let sqUploadErrors = $state<Record<string, string[]>>({});
+
+  // AI state
+  let aiEnabled = $state(false);
+  let aiGeneratingStory = $state(false);
+  let aiGeneratingCaptions = $state(false);
+  let aiError = $state('');
 
   const reactionEmojis = ['❤️', '🔥', '😊', '👏', '🌊', '✈️'];
 
@@ -200,6 +207,92 @@
     if (media.immich_asset_id) return getImmichAssetUrl(media.immich_asset_id, true);
     return '';
   }
+
+  async function checkAIStatus() {
+    try {
+      const res = await fetch('/api/ai/config');
+      const data = await res.json();
+      aiEnabled = data.config?.enabled && data.connection?.ok;
+    } catch {
+      aiEnabled = false;
+    }
+  }
+
+  async function generateStory() {
+    aiGeneratingStory = true;
+    aiError = '';
+    try {
+      const sideQuests = (data.subAdventures || []).map((sq: any) => ({ title: sq.title, note: sq.note }));
+      const res = await fetch('/api/ai/generate-story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: data.adventure.title,
+          description: data.adventure.description,
+          content: data.adventure.content,
+          locationName: data.adventure.location_name,
+          startDate: data.adventure.start_date,
+          endDate: data.adventure.end_date,
+          mood: data.adventure.mood,
+          templateType: data.adventure.template_type,
+          sideQuests
+        })
+      });
+      const result = await res.json();
+      if (res.ok && result.result) {
+        storyContent = result.result;
+        storyTitle = `AI Story: ${data.adventure.title}`;
+        showStoryForm = true;
+      } else {
+        aiError = result.error || 'Failed to generate story';
+      }
+    } catch {
+      aiError = 'Failed to connect to AI';
+    }
+    aiGeneratingStory = false;
+  }
+
+  async function generateCaptions() {
+    aiGeneratingCaptions = true;
+    aiError = '';
+    try {
+      const existingCaptions = (data.adventure.media || []).filter((m: any) => m.caption).map((m: any) => m.caption);
+      const uncaptionedCount = (data.adventure.media || []).filter((m: any) => !m.caption).length;
+      const res = await fetch('/api/ai/generate-captions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: data.adventure.title,
+          description: data.adventure.description,
+          locationName: data.adventure.location_name,
+          photoCount: Math.max(uncaptionedCount, 5),
+          existingCaptions
+        })
+      });
+      const result = await res.json();
+      if (res.ok && result.captions) {
+        let captionIndex = 0;
+        for (const media of (data.adventure.media || [])) {
+          if (!media.caption && captionIndex < result.captions.length) {
+            await fetch(`/api/adventures/${data.adventure.slug}/media`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ mediaId: media.id, caption: result.captions[captionIndex] })
+            });
+            captionIndex++;
+          }
+        }
+        window.location.reload();
+      } else {
+        aiError = result.error || 'Failed to generate captions';
+      }
+    } catch {
+      aiError = 'Failed to connect to AI';
+    }
+    aiGeneratingCaptions = false;
+  }
+
+  onMount(() => { checkAIStatus(); });
 
   async function handleAdventureMediaUpload(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -368,6 +461,13 @@
     Back to Adventures
   </a>
 
+  {#if aiError}
+    <div class="mb-6 p-4 rounded-xl bg-sunset-50 border border-sunset-200 text-sunset-600 text-sm">
+      {aiError}
+      <button class="ml-2 underline" onclick={() => aiError = ''}>Dismiss</button>
+    </div>
+  {/if}
+
   <!-- Hero -->
   <div class="relative rounded-3xl overflow-hidden mb-8">
     {#if data.adventure.cover_file_path}
@@ -473,9 +573,28 @@
             <p class="text-xs text-navy-400">Moments captured along the way</p>
           </div>
         </div>
-        {#if data.user && data.user.id === data.adventure.author_id}
-          <p class="text-xs text-navy-400">Click the star to feature a photo on the homepage</p>
-        {/if}
+        <div class="flex items-center gap-3">
+          {#if aiEnabled && data.user && data.user.id === data.adventure.author_id}
+            <button
+              onclick={generateCaptions}
+              disabled={aiGeneratingCaptions}
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-ocean-500 to-coral-500 text-white hover:from-ocean-600 hover:to-coral-600 disabled:opacity-50 transition-all"
+            >
+              {#if aiGeneratingCaptions}
+                <div class="h-3 w-3 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
+                Generating captions...
+              {:else}
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                AI Captions
+              {/if}
+            </button>
+          {/if}
+          {#if data.user && data.user.id === data.adventure.author_id}
+            <p class="text-xs text-navy-400">Click the star to feature a photo on the homepage</p>
+          {/if}
+        </div>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
         {#each data.adventure.media as media}
@@ -1082,12 +1201,31 @@
         </div>
       </div>
       {#if data.user}
-        <button
-          onclick={() => showStoryForm = !showStoryForm}
-          class="text-sm text-ocean-500 hover:text-ocean-600 font-medium"
-        >
-          {showStoryForm ? 'Cancel' : '+ Share a Story'}
-        </button>
+        <div class="flex gap-3">
+          {#if aiEnabled}
+            <button
+              onclick={generateStory}
+              disabled={aiGeneratingStory}
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-ocean-500 to-coral-500 text-white hover:from-ocean-600 hover:to-coral-600 disabled:opacity-50 transition-all"
+            >
+              {#if aiGeneratingStory}
+                <div class="h-3 w-3 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
+                Generating...
+              {:else}
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                AI Story
+              {/if}
+            </button>
+          {/if}
+          <button
+            onclick={() => showStoryForm = !showStoryForm}
+            class="text-sm text-ocean-500 hover:text-ocean-600 font-medium"
+          >
+            {showStoryForm ? 'Cancel' : '+ Share a Story'}
+          </button>
+        </div>
       {/if}
     </div>
 

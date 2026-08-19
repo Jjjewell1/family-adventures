@@ -5,19 +5,22 @@ import { dbRun, dbGet, dbAll } from '$lib/server/db';
 import { generateToken } from '$lib/shared/utils';
 import { env } from '$env/dynamic/private';
 import { notifyNewFamilyMember } from '$lib/server/notifications';
+import { getAIConfig } from '$lib/server/ai';
 
 export const load: PageServerLoad = async ({ cookies }) => {
   const user = await getSessionUser(cookies);
   if (!user) throw redirect(302, '/auth/login');
 
   const users = await dbAll('SELECT id, username, email, name, role, approved, provider, avatar_url, created_at FROM users ORDER BY approved ASC, created_at ASC');
+  const aiConfig = await getAIConfig();
 
   return {
     user,
     users,
     immichConfigured: !!(env.IMMICH_API_URL && env.IMMICH_API_KEY),
     immichUrl: env.IMMICH_API_URL ? 'Set' : 'Not set',
-    immichKey: env.IMMICH_API_KEY ? 'Set' : 'Not set'
+    immichKey: env.IMMICH_API_KEY ? 'Set' : 'Not set',
+    aiConfig
   };
 };
 

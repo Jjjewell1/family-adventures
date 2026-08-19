@@ -2,6 +2,7 @@
   import type { PageData } from './$types';
   import { getImmichAssetUrl } from '$lib/shared/immich';
   import LocationInput from '$lib/components/LocationInput.svelte';
+  import { onMount } from 'svelte';
 
   let { data } = $props();
 
@@ -18,6 +19,12 @@
   let expandedId = $state<string | null>(null);
   let commentText = $state('');
   let votingId = $state<string | null>(null);
+
+  // AI state
+  let aiEnabled = $state(false);
+  let aiLoading = $state(false);
+  let aiSuggestions = $state<{ title: string; description: string; locationName: string; category: string }[]>([]);
+  let aiError = $state('');
 
   const categories = [
     { id: 'destination', label: 'Destination', icon: '🌍' },
@@ -116,6 +123,59 @@
       else error = 'Failed to delete item';
     } catch { error = 'Network error'; }
   }
+
+  async function checkAIStatus() {
+    try {
+      const res = await fetch('/api/ai/config');
+      const data = await res.json();
+      aiEnabled = data.config?.enabled && data.connection?.ok;
+    } catch {
+      aiEnabled = false;
+    }
+  }
+
+  async function getAISuggestions() {
+    aiLoading = true;
+    aiError = '';
+    try {
+      const res = await fetch('/api/ai/bucket-suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      const result = await res.json();
+      if (res.ok && result.suggestions) {
+        aiSuggestions = result.suggestions;
+      } else {
+        aiError = result.error || 'Failed to get suggestions';
+      }
+    } catch {
+      aiError = 'Failed to connect to AI';
+    }
+    aiLoading = false;
+  }
+
+  async function addSuggestion(suggestion: { title: string; description: string; locationName: string; category: string }) {
+    try {
+      const res = await fetch('/api/bucket-list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: suggestion.title,
+          description: suggestion.description || null,
+          locationName: suggestion.locationName || null,
+          category: suggestion.category || 'destination',
+          status: 'wishlist'
+        })
+      });
+      if (res.ok) {
+        aiSuggestions = aiSuggestions.filter(s => s.title !== suggestion.title);
+        window.location.reload();
+      }
+    } catch {}
+  }
+
+  onMount(() => { checkAIStatus(); });
 </script>
 
 <svelte:head>
@@ -130,15 +190,34 @@
       <p class="text-navy-400 mt-1">Places to go, things to do — vote on what's next!</p>
     </div>
     {#if data.user}
-      <button
-        onclick={() => showAddForm = !showAddForm}
-        class="inline-flex items-center gap-2 rounded-full bg-ocean-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-ocean-600 transition-colors"
-      >
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        Add
-      </button>
+      <div class="flex gap-3">
+        {#if aiEnabled}
+          <button
+            onclick={getAISuggestions}
+            disabled={aiLoading}
+            class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-ocean-500 to-coral-500 px-5 py-2.5 text-sm font-medium text-white hover:from-ocean-600 hover:to-coral-600 disabled:opacity-50 transition-all"
+          >
+            {#if aiLoading}
+              <div class="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
+              Getting ideas...
+            {:else}
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              AI Suggestions
+            {/if}
+          </button>
+        {/if}
+        <button
+          onclick={() => showAddForm = !showAddForm}
+          class="inline-flex items-center gap-2 rounded-full border border-sand-300 bg-white px-5 py-2.5 text-sm font-medium text-navy-600 hover:bg-sand-50 transition-colors"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Add
+        </button>
+      </div>
     {/if}
   </div>
 
@@ -183,6 +262,51 @@
           </button>
         </div>
       </form>
+    </div>
+  {/if}
+
+  {#if aiError}
+    <div class="p-4 rounded-xl bg-sunset-50 border border-sunset-200 text-sunset-600 text-sm">
+      {aiError}
+      <button class="ml-2 underline" onclick={() => aiError = ''}>Dismiss</button>
+    </div>
+  {/if}
+
+  {#if aiSuggestions.length > 0}
+    <div class="glass rounded-3xl p-6">
+      <h2 class="text-lg font-semibold text-navy-600 mb-1">AI Suggestions</h2>
+      <p class="text-xs text-navy-400 mb-4">Based on your family's travel history</p>
+      <div class="grid gap-3 md:grid-cols-2">
+        {#each aiSuggestions as suggestion}
+          <div class="p-4 rounded-xl bg-ocean-50 border border-ocean-200">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <h3 class="font-semibold text-navy-600">{suggestion.title}</h3>
+                {#if suggestion.description}
+                  <p class="text-sm text-navy-400 mt-1">{suggestion.description}</p>
+                {/if}
+                {#if suggestion.locationName}
+                  <p class="text-xs text-navy-400 mt-1 flex items-center gap-1">
+                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    </svg>
+                    {suggestion.locationName}
+                  </p>
+                {/if}
+              </div>
+              <button
+                onclick={() => addSuggestion(suggestion)}
+                class="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-ocean-500 text-white text-xs font-medium hover:bg-ocean-600 transition-colors"
+              >
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add
+              </button>
+            </div>
+          </div>
+        {/each}
+      </div>
     </div>
   {/if}
 
