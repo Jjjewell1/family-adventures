@@ -1,7 +1,7 @@
 import { env } from '$env/dynamic/private';
 import { getConfig } from './db';
 
-const ENV_OLLAMA_URL = env.OLLAMA_URL?.trim().replace(/\/$/, '') || 'http://localhost:11434';
+const ENV_OLLAMA_URL = env.OLLAMA_URL?.trim().replace(/\/$/, '') || 'http://100.116.226.10:11434';
 const ENV_OLLAMA_MODEL = env.OLLAMA_MODEL?.trim() || 'llama3.1';
 const ENV_AI_ENABLED = env.AI_ENABLED?.trim().toLowerCase();
 

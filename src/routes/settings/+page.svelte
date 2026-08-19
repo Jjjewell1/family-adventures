@@ -48,13 +48,14 @@
 
   // AI settings state
   let aiEnabled = $state(data.aiConfig?.enabled ?? true);
-  let aiUrl = $state(data.aiConfig?.url ?? 'http://localhost:11434');
+  let aiUrl = $state(data.aiConfig?.url ?? 'http://100.116.226.10:11434');
   let aiModel = $state(data.aiConfig?.model ?? 'llama3.1');
   let aiSaving = $state(false);
   let aiMessage = $state('');
   let aiError = $state('');
   let aiTesting = $state(false);
   let aiTestResult = $state<{ ok: boolean; models: string[]; error?: string } | null>(null);
+  let aiModels = $state<string[]>([]);
 
   async function loadLogoHistory() {
     try {
@@ -118,6 +119,9 @@
   $effect(() => {
     if (activeTab === 'branding') {
       loadLogoHistory();
+    }
+    if (activeTab === 'ai') {
+      fetchModels();
     }
   });
 
@@ -345,10 +349,32 @@
       const res = await fetch('/api/ai/config');
       const data = await res.json();
       aiTestResult = data.connection;
+      if (data.connection?.ok && data.connection.models?.length) {
+        aiModels = data.connection.models;
+        if (!aiModels.includes(aiModel) && aiModels.length > 0) {
+          aiModel = aiModels[0];
+        }
+      }
     } catch {
       aiTestResult = { ok: false, models: [], error: 'Connection failed' };
     }
     aiTesting = false;
+  }
+
+  async function fetchModels() {
+    try {
+      const res = await fetch(`/api/tags`, { signal: AbortSignal.timeout(5000) });
+      const data = await res.json();
+      aiModels = (data.models || []).map((m: { name: string }) => m.name);
+    } catch {
+      try {
+        const res = await fetch(aiUrl + '/api/tags', { signal: AbortSignal.timeout(5000) });
+        const data = await res.json();
+        aiModels = (data.models || []).map((m: { name: string }) => m.name);
+      } catch {
+        aiModels = [];
+      }
+    }
   }
 </script>
 
@@ -748,7 +774,7 @@
             type="text"
             id="aiUrl"
             bind:value={aiUrl}
-            placeholder="http://localhost:11434"
+            placeholder="http://100.116.226.10:11434"
             class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
           />
         </div>
