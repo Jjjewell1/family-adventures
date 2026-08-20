@@ -31,14 +31,28 @@
   let uploadingMedia = $state(false);
   let uploadProgress = $state('');
   let uploadErrors = $state<string[]>([]);
+  let uploadFileProgress = $state<Record<string, { status: 'pending'|'uploading'|'done'|'error'; percent: number }>>({});
+  let failedFiles = $state<File[]>([]);
   let sqUploadProgress = $state<Record<string, string>>({});
   let sqUploading = $state<Record<string, boolean>>({});
   let sqUploadErrors = $state<Record<string, string[]>>({});
+
+  // People tagging state
+  let taggingMediaId = $state<string | null>(null);
+  let taggingPeople = $state<any[]>([]);
+  let taggingLoading = $state(false);
+  let tagSearchQuery = $state('');
+  let tagSearchResults = $state<any[]>([]);
+  let tagSearching = $state(false);
+  let showNewPersonInput = $state(false);
+  let newPersonName = $state('');
+  let creatingPerson = $state(false);
 
   // AI state
   let aiEnabled = $state(false);
   let aiGeneratingStory = $state(false);
   let aiGeneratingCaptions = $state(false);
+  let aiAnalyzing = $state<Record<string, boolean>>({});
   let aiError = $state('');
 
   const reactionEmojis = ['❤️', '🔥', '😊', '👏', '🌊', '✈️'];
@@ -291,6 +305,64 @@
 
   onMount(() => { checkAIStatus(); });
 
+  function detectMediaType(file: File): string {
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    if (['mp4', 'webm', 'mov'].includes(ext)) return 'video';
+    if (['mp3', 'wav', 'ogg'].includes(ext)) return 'audio';
+    return 'photo';
+  }
+
+  async function uploadSingleFile(file: File, retries = 2): Promise<{ filePath?: string; error?: string }> {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const formData = new FormData();
+        formData.append('files', file);
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!uploadRes.ok) {
+          if (attempt < retries) { await new Promise(r => setTimeout(r, 500 * (attempt + 1))); continue; }
+          return { error: `HTTP ${uploadRes.status}` };
+        }
+        const { files: results } = await uploadRes.json();
+        const result = results[0];
+        if (result.error) return { error: result.error };
+        return { filePath: result.filePath };
+      } catch {
+        if (attempt < retries) { await new Promise(r => setTimeout(r, 500 * (attempt + 1))); continue; }
+        return { error: 'network error' };
+      }
+    }
+    return { error: 'upload failed' };
+  }
+
+  async function uploadWithConcurrency(files: File[], concurrency: number): Promise<{ filePath: string; mediaType: string }[]> {
+    const uploaded: { filePath: string; mediaType: string }[] = [];
+    const errors: string[] = [];
+    let idx = 0;
+
+    async function worker() {
+      while (idx < files.length) {
+        const i = idx++;
+        const file = files[i];
+        const key = `${file.name}-${i}`;
+        uploadFileProgress = { ...uploadFileProgress, [key]: { status: 'uploading', percent: 0 } };
+
+        const result = await uploadSingleFile(file);
+        if (result.filePath) {
+          uploaded.push({ filePath: result.filePath, mediaType: detectMediaType(file) });
+          uploadFileProgress = { ...uploadFileProgress, [key]: { status: 'done', percent: 100 } };
+        } else {
+          errors.push(`${file.name}: ${result.error}`);
+          uploadFileProgress = { ...uploadFileProgress, [key]: { status: 'error', percent: 0 } };
+          failedFiles = [...failedFiles, file];
+        }
+      }
+    }
+
+    await Promise.all(Array.from({ length: Math.min(concurrency, files.length) }, () => worker()));
+    uploadErrors = errors;
+    return uploaded;
+  }
+
   async function handleAdventureMediaUpload(event: Event) {
     const input = event.target as HTMLInputElement;
     const files = input.files;
@@ -300,57 +372,176 @@
     const total = fileList.length;
     uploadingMedia = true;
     uploadErrors = [];
-    uploadProgress = `Uploading 1 of ${total}...`;
+    failedFiles = [];
+    uploadFileProgress = {};
+    uploadProgress = `Uploading ${total} file${total > 1 ? 's' : ''}...`;
 
-    let successCount = 0;
-    let errorCount = 0;
+    const uploaded = await uploadWithConcurrency(fileList, 3);
 
-    for (let i = 0; i < fileList.length; i++) {
-      uploadProgress = `Uploading ${i + 1} of ${total}...`;
-      const formData = new FormData();
-      formData.append('files', fileList[i]);
+    if (uploaded.length > 0) {
+      const batchRes = await fetch(`/api/adventures/${data.adventure.slug}/media/batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          files: uploaded.map(u => ({
+            filePath: u.filePath,
+            mediaType: u.mediaType
+          }))
+        })
+      });
 
-      try {
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
-        if (!uploadRes.ok) { uploadErrors.push(`${fileList[i].name}: upload failed`); errorCount++; continue; }
-        const { files: results } = await uploadRes.json();
-        const result = results[0];
-        if (result.error) { uploadErrors.push(`${fileList[i].name}: ${result.error}`); errorCount++; continue; }
-
-        const mediaRes = await fetch(`/api/adventures/${data.adventure.slug}/media`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            adventureId: data.adventure.id,
-            filePath: result.filePath,
-            mediaType: result.filePath.match(/\.(mp4|webm|mov)$/i) ? 'video' : 'photo'
-          })
-        });
-        if (mediaRes.ok) {
-          const { media: newMedia } = await mediaRes.json();
-          data.adventure.media = [...(data.adventure.media || []), newMedia];
-          successCount++;
-        } else {
-          const err = await mediaRes.json().catch(() => ({ error: 'Failed' }));
-          uploadErrors.push(`${fileList[i].name}: ${err.error}`);
-          errorCount++;
-        }
-      } catch {
-        uploadErrors.push(`${fileList[i].name}: network error`);
-        errorCount++;
+      if (batchRes.ok) {
+        const { media: newMedia } = await batchRes.json();
+        data.adventure.media = [...(data.adventure.media || []), ...newMedia];
       }
     }
 
-    if (errorCount > 0 && successCount > 0) {
-      uploadProgress = `${successCount} uploaded, ${errorCount} failed`;
-    } else if (errorCount > 0) {
-      uploadProgress = `All ${errorCount} file${errorCount > 1 ? 's' : ''} failed`;
+    if (failedFiles.length > 0 && uploaded.length > 0) {
+      uploadProgress = `${uploaded.length} uploaded, ${failedFiles.length} failed`;
+    } else if (failedFiles.length > 0) {
+      uploadProgress = `All ${failedFiles.length} file${failedFiles.length > 1 ? 's' : ''} failed`;
     } else {
-      uploadProgress = `${successCount} file${successCount > 1 ? 's' : ''} uploaded!`;
+      uploadProgress = `${uploaded.length} file${uploaded.length > 1 ? 's' : ''} uploaded!`;
       setTimeout(() => { uploadProgress = ''; }, 2000);
     }
     uploadingMedia = false;
     input.value = '';
+  }
+
+  async function retryFailedUploads() {
+    if (failedFiles.length === 0) return;
+    const retryList = [...failedFiles];
+    failedFiles = [];
+    uploadErrors = [];
+    uploadingMedia = true;
+    uploadProgress = `Retrying ${retryList.length} file${retryList.length > 1 ? 's' : ''}...`;
+    uploadFileProgress = {};
+
+    const uploaded = await uploadWithConcurrency(retryList, 3);
+
+    if (uploaded.length > 0) {
+      const batchRes = await fetch(`/api/adventures/${data.adventure.slug}/media/batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: uploaded.map(u => ({ filePath: u.filePath, mediaType: u.mediaType })) })
+      });
+      if (batchRes.ok) {
+        const { media: newMedia } = await batchRes.json();
+        data.adventure.media = [...(data.adventure.media || []), ...newMedia];
+      }
+    }
+
+    uploadProgress = failedFiles.length > 0
+      ? `${uploaded.length} recovered, ${failedFiles.length} still failed`
+      : `${uploaded.length} file${uploaded.length > 1 ? 's' : ''} recovered!`;
+    if (failedFiles.length === 0) setTimeout(() => { uploadProgress = ''; }, 2000);
+    uploadingMedia = false;
+  }
+
+  // People tagging
+  async function openTagging(mediaId: string) {
+    taggingMediaId = mediaId;
+    taggingLoading = true;
+    tagSearchQuery = '';
+    tagSearchResults = [];
+    showNewPersonInput = false;
+    newPersonName = '';
+    try {
+      const res = await fetch(`/api/media/${mediaId}/people`);
+      if (res.ok) {
+        const result = await res.json();
+        taggingPeople = result.people || [];
+      }
+    } catch {}
+    taggingLoading = false;
+  }
+
+  function closeTagging() {
+    taggingMediaId = null;
+    taggingPeople = [];
+  }
+
+  async function searchPeople(query: string) {
+    tagSearchQuery = query;
+    if (!query.trim()) { tagSearchResults = []; return; }
+    tagSearching = true;
+    try {
+      const res = await fetch('/api/people');
+      if (res.ok) {
+        const { people } = await res.json();
+        const q = query.toLowerCase();
+        tagSearchResults = people.filter((p: any) =>
+          p.name.toLowerCase().includes(q) && !taggingPeople.some((tp: any) => tp.person_id === p.id)
+        );
+      }
+    } catch {}
+    tagSearching = false;
+  }
+
+  async function tagPerson(personId?: string, personName?: string) {
+    if (!taggingMediaId) return;
+    try {
+      const res = await fetch(`/api/media/${taggingMediaId}/people`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ personId, personName })
+      });
+      if (res.ok) {
+        const { tag } = await res.json();
+        taggingPeople = [...taggingPeople, {
+          person_id: tag.person.id,
+          person_name: tag.person.name,
+          person_slug: tag.person.slug,
+          person_avatar: tag.person.avatar_file_path
+        }];
+        tagSearchQuery = '';
+        tagSearchResults = [];
+        showNewPersonInput = false;
+        newPersonName = '';
+      }
+    } catch {}
+  }
+
+  async function untagPerson(personId: string) {
+    if (!taggingMediaId) return;
+    try {
+      await fetch(`/api/media/${taggingMediaId}/people`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ personId })
+      });
+      taggingPeople = taggingPeople.filter((p: any) => p.person_id !== personId);
+    } catch {}
+  }
+
+  // AI image analysis
+  async function analyzeMedia(mediaId: string, filePath: string) {
+    aiAnalyzing = { ...aiAnalyzing, [mediaId]: true };
+    try {
+      const res = await fetch('/api/ai/analyze-media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mediaId, filePath })
+      });
+      if (res.ok) {
+        const { analysis } = await res.json();
+        if (analysis) {
+          data.adventure.media = data.adventure.media.map((m: any) =>
+            m.id === mediaId ? { ...m, ai_caption: analysis.caption, category: analysis.category, ai_tags: JSON.stringify(analysis.tags) } : m
+          );
+        }
+      }
+    } catch {}
+    aiAnalyzing = { ...aiAnalyzing, [mediaId]: false };
+  }
+
+  async function analyzeAllMedia() {
+    if (!data.adventure.media) return;
+    for (const media of data.adventure.media) {
+      if (media.file_path && !media.ai_caption) {
+        await analyzeMedia(media.id, media.file_path);
+      }
+    }
   }
 
   async function handleSQMediaUpload(sqId: string, event: Event) {
@@ -566,23 +757,23 @@
         <div class="flex items-center gap-3">
           {#if aiEnabled && data.user && data.user.id === data.adventure.author_id}
             <button
-              onclick={generateCaptions}
+              onclick={analyzeAllMedia}
               disabled={aiGeneratingCaptions}
               class="btn-accent inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium disabled:opacity-50 transition-all"
             >
               {#if aiGeneratingCaptions}
                 <div class="h-3 w-3 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
-                Generating captions...
+                Analyzing...
               {:else}
                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                AI Captions
+                AI Analyze All
               {/if}
             </button>
           {/if}
           {#if data.user && data.user.id === data.adventure.author_id}
-            <p class="text-xs text-ink-400 dark:text-cream-300">Click the star to feature a photo on the homepage</p>
+            <p class="text-xs text-ink-400 dark:text-cream-300">Hover photos for controls</p>
           {/if}
         </div>
       </div>
@@ -595,21 +786,52 @@
               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               loading="lazy"
             />
-            {#if media.caption}
+            {#if media.caption || media.ai_caption}
               <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                <p class="absolute bottom-3 left-3 right-3 text-white text-sm">{media.caption}</p>
+                <p class="absolute bottom-3 left-3 right-3 text-white text-sm">{media.caption || media.ai_caption}</p>
+              </div>
+            {/if}
+            {#if media.category}
+              <div class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/40 text-white text-[10px] font-medium backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity capitalize">
+                {media.category}
               </div>
             {/if}
             {#if data.user && data.user.id === data.adventure.author_id}
-              <button
-                class="absolute top-2 right-2 p-1.5 rounded-full backdrop-blur-sm transition-all {media.hero_image ? 'bg-gold-400/90 text-white shadow-md' : 'bg-black/30 text-white/60 opacity-0 group-hover:opacity-100 hover:bg-black/50'}"
-                onclick={() => toggleHeroImage(media.id, !!media.hero_image)}
-                title={media.hero_image ? 'Remove from homepage hero' : 'Feature on homepage hero'}
-              >
-                <svg class="h-4 w-4" fill={media.hero_image ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
-              </button>
+              <div class="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  class="p-1.5 rounded-full backdrop-blur-sm transition-all bg-black/30 text-white/60 hover:bg-forest-500/80 hover:text-white"
+                  onclick={() => openTagging(media.id)}
+                  title="Tag people"
+                >
+                  <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+                {#if !media.ai_caption && media.file_path && !aiAnalyzing[media.id]}
+                  <button
+                    class="p-1.5 rounded-full bg-black/30 text-white/60 backdrop-blur-sm hover:bg-forest-500/80 hover:text-white transition-all"
+                    onclick={() => analyzeMedia(media.id, media.file_path)}
+                    title="AI analyze this photo"
+                  >
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </button>
+                {:else if aiAnalyzing[media.id]}
+                  <div class="h-7 w-7 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center">
+                    <div class="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  </div>
+                {/if}
+                <button
+                  class="p-1.5 rounded-full backdrop-blur-sm transition-all {media.hero_image ? 'bg-gold-400/90 text-white shadow-md' : 'bg-black/30 text-white/60 hover:bg-gold-400/80 hover:text-white'}"
+                  onclick={() => toggleHeroImage(media.id, !!media.hero_image)}
+                  title={media.hero_image ? 'Remove from homepage hero' : 'Feature on homepage hero'}
+                >
+                  <svg class="h-3.5 w-3.5" fill={media.hero_image ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                </button>
+              </div>
             {/if}
           </div>
         {/each}
@@ -638,6 +860,22 @@
                 <div class="h-4 w-4 border-2 border-forest-300 border-t-transparent rounded-full animate-spin"></div>
                 <p class="text-sm text-forest-600">{uploadProgress}</p>
               </div>
+              {#if Object.keys(uploadFileProgress).length > 0}
+                <div class="mt-3 space-y-1 max-h-32 overflow-y-auto">
+                  {#each Object.entries(uploadFileProgress) as [key, info]}
+                    <div class="flex items-center gap-2 text-xs">
+                      {#if info.status === 'done'}
+                        <svg class="h-3 w-3 text-forest-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      {:else if info.status === 'error'}
+                        <svg class="h-3 w-3 text-terra-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      {:else}
+                        <div class="h-3 w-3 rounded-full border-2 border-forest-300 border-t-transparent animate-spin flex-shrink-0"></div>
+                      {/if}
+                      <span class="text-ink-500 truncate">{key.split('-').slice(0, -1).join('-')}</span>
+                    </div>
+                  {/each}
+                </div>
+              {/if}
             {:else}
               <div class="flex items-center justify-center gap-2 text-ink-400 dark:text-cream-300 hover:text-forest-500 transition-colors">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -654,6 +892,12 @@
             <div class="text-xs text-terra-400 mt-1 space-y-0.5">
               {#each uploadErrors as err}<p>{err}</p>{/each}
             </div>
+          {/if}
+          {#if failedFiles.length > 0 && !uploadingMedia}
+            <button class="btn-secondary text-xs mt-2" onclick={retryFailedUploads}>
+              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+              Retry {failedFiles.length} failed file{failedFiles.length > 1 ? 's' : ''}
+            </button>
           {/if}
         </div>
       {/if}
@@ -1314,6 +1558,101 @@
       >
         Close
       </button>
+    </div>
+  </div>
+{/if}
+
+<!-- Tag People Modal -->
+{#if taggingMediaId}
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onclick={closeTagging}>
+    <div class="card rounded-xl p-6 max-w-md w-full mx-4" onclick={(e) => e.stopPropagation()}>
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Tag People</h3>
+        <button onclick={closeTagging} class="text-ink-400 hover:text-ink-600">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+
+      {#if taggingLoading}
+        <div class="py-8 text-center">
+          <div class="h-6 w-6 mx-auto border-2 border-forest-300 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      {:else}
+        {#if taggingPeople.length > 0}
+          <div class="flex flex-wrap gap-2 mb-4">
+            {#each taggingPeople as person}
+              <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-forest-50 dark:bg-forest-900/30 border border-forest-200 dark:border-forest-700">
+                {#if person.person_avatar}
+                  <img src={person.person_avatar} alt="" class="h-5 w-5 rounded-full object-cover" />
+                {:else}
+                  <div class="h-5 w-5 rounded-full bg-forest-200 dark:bg-forest-700 flex items-center justify-center text-[10px] font-bold text-forest-700 dark:text-forest-200">{person.person_name?.charAt(0).toUpperCase()}</div>
+                {/if}
+                <a href="/people/{person.person_slug}" class="text-sm font-medium text-forest-700 dark:text-forest-300 hover:underline">{person.person_name}</a>
+                <button onclick={() => untagPerson(person.person_id)} class="text-forest-400 hover:text-red-500 transition-colors">
+                  <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            {/each}
+          </div>
+        {/if}
+
+        {#if showNewPersonInput}
+          <form class="flex items-center gap-2 mb-4" onsubmit={(e) => { e.preventDefault(); tagPerson(undefined, newPersonName); }}>
+            <input
+              type="text"
+              bind:value={newPersonName}
+              placeholder="Enter name..."
+              class="input flex-1 px-3 py-2 text-sm"
+              autofocus
+            />
+            <button type="submit" class="btn-primary text-xs px-3 py-2" disabled={creatingPerson || !newPersonName.trim()}>
+              {creatingPerson ? '...' : 'Add'}
+            </button>
+            <button type="button" class="btn-secondary text-xs px-3 py-2" onclick={() => { showNewPersonInput = false; newPersonName = ''; }}>Cancel</button>
+          </form>
+        {:else}
+          <div class="relative mb-4">
+            <input
+              type="text"
+              value={tagSearchQuery}
+              oninput={(e) => searchPeople((e.target as HTMLInputElement).value)}
+              placeholder="Search people or add new..."
+              class="input w-full px-3 py-2 text-sm pl-9"
+            />
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          </div>
+        {/if}
+
+        {#if tagSearchResults.length > 0}
+          <div class="space-y-1 mb-3 max-h-40 overflow-y-auto">
+            {#each tagSearchResults as person}
+              <button
+                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-cream-100 dark:hover:bg-ink-700 transition-colors text-left"
+                onclick={() => tagPerson(person.id)}
+              >
+                {#if person.avatar_file_path}
+                  <img src={person.avatar_file_path} alt="" class="h-8 w-8 rounded-full object-cover" />
+                {:else}
+                  <div class="h-8 w-8 rounded-full bg-forest-100 dark:bg-forest-800 flex items-center justify-center text-sm font-bold text-forest-600">{person.name.charAt(0).toUpperCase()}</div>
+                {/if}
+                <div>
+                  <p class="text-sm font-medium text-ink-700 dark:text-cream-200">{person.name}</p>
+                  <p class="text-xs text-ink-400">{person.photo_count} photos</p>
+                </div>
+              </button>
+            {/each}
+          </div>
+        {/if}
+
+        {#if !showNewPersonInput}
+          <button
+            class="w-full text-left px-3 py-2 rounded-lg text-sm text-forest-500 hover:bg-forest-50 dark:hover:bg-forest-900/30 transition-colors"
+            onclick={() => { showNewPersonInput = true; newPersonName = tagSearchQuery; }}
+          >
+            + Add "{tagSearchQuery || 'new person'}" as someone new
+          </button>
+        {/if}
+      {/if}
     </div>
   </div>
 {/if}

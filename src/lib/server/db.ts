@@ -144,6 +144,28 @@ function migrateDatabase() {
       db.run("ALTER TABLE adventure_media ADD COLUMN hero_image INTEGER DEFAULT 0");
       markDirty();
     }
+    if (!mediaCols2.includes('category')) {
+      db.run("ALTER TABLE adventure_media ADD COLUMN category TEXT");
+      markDirty();
+    }
+    if (!mediaCols2.includes('ai_caption')) {
+      db.run("ALTER TABLE adventure_media ADD COLUMN ai_caption TEXT");
+      markDirty();
+    }
+    if (!mediaCols2.includes('ai_tags')) {
+      db.run("ALTER TABLE adventure_media ADD COLUMN ai_tags TEXT");
+      markDirty();
+    }
+  }
+
+  // Add media_type to sub_adventure_media if missing
+  const subMediaInfo = db.exec("PRAGMA table_info(sub_adventure_media)");
+  if (subMediaInfo.length > 0) {
+    const subMediaCols = subMediaInfo[0].values.map(r => r[1] as string);
+    if (!subMediaCols.includes('media_type')) {
+      db.run("ALTER TABLE sub_adventure_media ADD COLUMN media_type TEXT DEFAULT 'photo'");
+      markDirty();
+    }
   }
 
   // Add Google auth columns to users table
@@ -282,6 +304,35 @@ function migrateDatabase() {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL,
       updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
+  // People
+  db.run(`
+    CREATE TABLE IF NOT EXISTS people (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      slug TEXT UNIQUE NOT NULL,
+      avatar_file_path TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
+  // Media-People junction (tagging faces in photos)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS media_people (
+      id TEXT PRIMARY KEY,
+      media_id TEXT NOT NULL,
+      person_id TEXT NOT NULL,
+      face_x REAL,
+      face_y REAL,
+      face_width REAL,
+      face_height REAL,
+      tagged_by TEXT DEFAULT 'user',
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (media_id) REFERENCES adventure_media(id) ON DELETE CASCADE,
+      FOREIGN KEY (person_id) REFERENCES people(id) ON DELETE CASCADE,
+      UNIQUE(media_id, person_id)
     )
   `);
 

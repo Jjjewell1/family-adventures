@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getSessionUser } from '$lib/server/auth';
-import { writeFileSync, mkdirSync, existsSync } from 'fs';
+import { writeFile, mkdir, access } from 'fs/promises';
 import { join } from 'path';
 import { randomBytes } from 'crypto';
 
@@ -30,6 +30,14 @@ function isAllowedFile(file: File): { ok: boolean; reason?: string } {
   return { ok: false, reason: `File type not allowed: ${file.type}` };
 }
 
+async function ensureUploadDir() {
+  try {
+    await access(UPLOAD_DIR);
+  } catch {
+    await mkdir(UPLOAD_DIR, { recursive: true });
+  }
+}
+
 export const POST: RequestHandler = async ({ request, cookies }) => {
   const user = await getSessionUser(cookies);
   if (!user) {
@@ -43,9 +51,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     return json({ error: 'No files provided' }, { status: 400 });
   }
 
-  if (!existsSync(UPLOAD_DIR)) {
-    mkdirSync(UPLOAD_DIR, { recursive: true });
-  }
+  await ensureUploadDir();
 
   const results: { filePath: string; filename: string; error?: string }[] = [];
 
@@ -64,7 +70,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       const filepath = join(UPLOAD_DIR, filename);
 
       const buffer = Buffer.from(await file.arrayBuffer());
-      writeFileSync(filepath, buffer);
+      await writeFile(filepath, buffer);
 
       results.push({ filePath: `/uploads/${filename}`, filename });
     } catch (e) {

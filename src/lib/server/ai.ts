@@ -59,6 +59,81 @@ export interface GenerateOptions {
   format?: 'json';
 }
 
+export interface VisionAnalysis {
+  caption: string;
+  category: string;
+  tags: string[];
+  people_count: number;
+}
+
+export async function generateVision(imageBase64: string, prompt: string, system?: string): Promise<string | null> {
+  if (!(await isAIEnabled())) return null;
+
+  const url = await getOllamaUrl();
+  const model = await getOllamaModel();
+
+  try {
+    const body: Record<string, unknown> = {
+      model,
+      messages: [
+        ...(system ? [{ role: 'system', content: system }] : []),
+        {
+          role: 'user',
+          content: prompt,
+          images: [imageBase64]
+        }
+      ],
+      stream: false,
+      options: {
+        temperature: 0.3,
+        num_predict: 512
+      }
+    };
+
+    const response = await fetch(`${url}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(60_000)
+    });
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.message?.content ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function analyzeImage(imageBase64: string): Promise<VisionAnalysis | null> {
+  const raw = await generateVision(
+    imageBase64,
+    `Analyze this family adventure photo. Return ONLY valid JSON with these fields:
+- "caption": A brief, warm caption for this photo (1 sentence)
+- "category": One of "landscape", "portrait", "group", "food", "activity", "selfie", "other"
+- "tags": Array of 2-5 relevant tags (lowercase, e.g. ["beach", "sunset", "family"])
+- "people_count": Number of people visible (0 if none)
+
+No explanation. Just the JSON object.`,
+    'You are a photo analyst for a family adventure journal. Be warm and descriptive.'
+  );
+
+  if (!raw) return null;
+
+  try {
+    const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    return {
+      caption: parsed.caption || '',
+      category: parsed.category || 'other',
+      tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+      people_count: typeof parsed.people_count === 'number' ? parsed.people_count : 0
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function generateText(options: GenerateOptions): Promise<string | null> {
   if (!(await isAIEnabled())) return null;
 

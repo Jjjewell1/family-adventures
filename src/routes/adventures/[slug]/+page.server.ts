@@ -37,11 +37,16 @@ export const load: PageServerLoad = async ({ params, url, cookies }) => {
     WHERE at2.adventure_id = ?
   `, adventure.id) as Tag[];
 
-  // Get media
+  // Get media with people tags
   const media = await dbAll(`
-    SELECT * FROM adventure_media
-    WHERE adventure_id = ?
-    ORDER BY order_index
+    SELECT am.*,
+      GROUP_CONCAT(DISTINCT p.name) as tagged_people
+    FROM adventure_media am
+    LEFT JOIN media_people mp ON mp.media_id = am.id
+    LEFT JOIN people p ON mp.person_id = p.id
+    WHERE am.adventure_id = ?
+    GROUP BY am.id
+    ORDER BY am.order_index
   `, adventure.id);
 
   // Get comments with authors

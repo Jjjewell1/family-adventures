@@ -18,6 +18,7 @@ export interface Adventure {
   description: string;
   content: string;
   cover_asset_id: string | null;
+  cover_file_path: string | null;
   location_name: string | null;
   lat: number | null;
   lng: number | null;
@@ -39,6 +40,9 @@ export interface AdventureMedia {
   caption: string | null;
   hero_image: boolean;
   order_index: number;
+  category: string | null;
+  ai_caption: string | null;
+  ai_tags: string | null;
   created_at: string;
 }
 
@@ -59,9 +63,34 @@ export interface SubAdventureMedia {
   id: string;
   sub_adventure_id: string;
   file_path: string | null;
+  media_type: 'photo' | 'video' | 'audio';
   caption: string | null;
   order_index: number;
   created_at: string;
+}
+
+export interface Person {
+  id: string;
+  name: string;
+  slug: string;
+  avatar_file_path: string | null;
+  photo_count?: number;
+  created_at: string;
+}
+
+export interface MediaPerson {
+  id: string;
+  media_id: string;
+  person_id: string;
+  face_x: number | null;
+  face_y: number | null;
+  face_width: number | null;
+  face_height: number | null;
+  tagged_by: 'user' | 'ai';
+  created_at: string;
+  person_name?: string;
+  person_slug?: string;
+  person_avatar?: string | null;
 }
 
 export interface Comment {

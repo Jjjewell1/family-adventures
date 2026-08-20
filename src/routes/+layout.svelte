@@ -113,6 +113,7 @@
           {#each [
             { href: '/adventures', label: 'Adventures' },
             { href: '/gallery', label: 'Gallery' },
+            { href: '/people', label: 'People' },
             { href: '/map', label: 'Map' },
             { href: '/feed', label: 'Feed' },
             { href: '/memories', label: 'Memories' },
@@ -211,6 +212,7 @@
           {#each [
             { href: '/adventures', label: 'Adventures' },
             { href: '/gallery', label: 'Gallery' },
+            { href: '/people', label: 'People' },
             { href: '/map', label: 'Map' },
             { href: '/feed', label: 'Feed' },
             { href: '/memories', label: 'Memories' },

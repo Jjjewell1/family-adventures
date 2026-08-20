@@ -1,10 +1,24 @@
 <script lang="ts">
   import type { PageData } from './$types';
-  
+  import { goto } from '$app/navigation';
+
   let { data } = $props();
   let selectedMedia = $state<any>(null);
   let lightboxOpen = $state(false);
   let mediaList = $derived(data.media || []);
+
+  const categories = ['all', 'landscape', 'portrait', 'group', 'food', 'activity', 'selfie', 'other'];
+  const types = ['all', 'photo', 'video'];
+
+  function setFilter(key: string, value: string) {
+    const url = new URL(window.location.href);
+    if (value === 'all') {
+      url.searchParams.delete(key);
+    } else {
+      url.searchParams.set(key, value);
+    }
+    goto(url.pathname + url.search, { replaceState: true, keepFocus: true });
+  }
 
   function openLightbox(media: any) {
     selectedMedia = media;
@@ -43,6 +57,35 @@
     <p class="page-header-desc">All the moments we've captured together</p>
   </div>
 
+  <!-- Filters -->
+  {#if data.media.length > 0}
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="flex items-center gap-1.5">
+        <span class="text-xs font-medium text-ink-400 uppercase tracking-wide">Type</span>
+        {#each types as t}
+          <button
+            class="badge transition-colors {(data.currentType || 'all') === t ? 'bg-forest-500 text-white' : 'bg-cream-100 text-ink-500 hover:bg-cream-200 dark:bg-ink-700 dark:text-cream-300'}"
+            onclick={() => setFilter('type', t)}
+          >
+            {t === 'all' ? 'All' : t.charAt(0).toUpperCase() + t.slice(1)}
+          </button>
+        {/each}
+      </div>
+      <div class="h-4 w-px bg-cream-200 dark:bg-ink-600"></div>
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <span class="text-xs font-medium text-ink-400 uppercase tracking-wide">Category</span>
+        {#each categories as cat}
+          <button
+            class="badge transition-colors {(data.currentCategory || 'all') === cat ? 'bg-forest-500 text-white' : 'bg-cream-100 text-ink-500 hover:bg-cream-200 dark:bg-ink-700 dark:text-cream-300'}"
+            onclick={() => setFilter('category', cat)}
+          >
+            {cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+          </button>
+        {/each}
+      </div>
+    </div>
+  {/if}
+
   {#if data.media.length === 0}
     <div class="card-flat text-center py-16">
       <div class="h-14 w-14 mx-auto rounded-full bg-cream-100 flex items-center justify-center mb-4">
@@ -75,6 +118,9 @@
                 {/if}
                 {#if media.adventure_title}
                   <p class="text-white/70 text-xs truncate">{media.adventure_title}</p>
+                {/if}
+                {#if media.tagged_people}
+                  <p class="text-white/60 text-[10px] truncate mt-0.5">{media.tagged_people}</p>
                 {/if}
               </div>
             </div>
