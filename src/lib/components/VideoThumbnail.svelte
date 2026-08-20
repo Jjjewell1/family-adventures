@@ -5,10 +5,10 @@
 
   let thumbnailUrl = $state('');
   let loaded = $state(false);
-  let failed = $state(false);
+  let serverFallback = $state(false);
 
   onMount(() => {
-    if (!src) { failed = true; return; }
+    if (!src) { serverFallback = true; return; }
 
     const video = document.createElement('video');
     video.crossOrigin = 'anonymous';
@@ -18,14 +18,14 @@
     video.src = src;
 
     const timeout = setTimeout(() => {
-      failed = true;
+      serverFallback = true;
       video.pause();
       video.removeAttribute('src');
       video.load();
-    }, 5000);
+    }, 4000);
 
     video.addEventListener('loadeddata', () => {
-      video.currentTime = Math.min(1, video.duration * 0.1);
+      video.currentTime = Math.min(0.5, video.duration * 0.1);
     });
 
     video.addEventListener('seeked', () => {
@@ -41,13 +41,13 @@
           clearTimeout(timeout);
         }
       } catch {
-        failed = true;
+        serverFallback = true;
         clearTimeout(timeout);
       }
     });
 
     video.addEventListener('error', () => {
-      failed = true;
+      serverFallback = true;
       clearTimeout(timeout);
     });
 
@@ -58,12 +58,16 @@
       video.load();
     };
   });
+
+  let serverThumbSrc = $derived(
+    serverFallback && src ? `/api/media/thumbnail?path=${encodeURIComponent(src)}` : ''
+  );
 </script>
 
 {#if loaded && thumbnailUrl}
   <img src={thumbnailUrl} {alt} class={className} loading="lazy" />
-{:else if failed}
-  <img {src} {alt} class={className} loading="lazy" />
+{:else if serverFallback && serverThumbSrc}
+  <img src={serverThumbSrc} {alt} class={className} loading="lazy" onerror={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
 {:else}
   <div class="{className} bg-gradient-to-br from-ink-700 to-ink-800 dark:from-ink-600 dark:to-ink-700 flex items-center justify-center">
     <div class="flex flex-col items-center gap-2">
