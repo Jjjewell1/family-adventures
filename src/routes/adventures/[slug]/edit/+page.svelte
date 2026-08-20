@@ -28,6 +28,8 @@
   let uploadError = $state('');
   let uploadProgress = $state('');
   let uploadErrors = $state<string[]>([]);
+  let uploadFileProgress = $state<Record<string, { status: 'pending'|'uploading'|'done'|'error'; percent: number }>>({});
+  let failedFiles = $state<File[]>([]);
 
   // AI state
   let aiEnabled = $state(false);
@@ -287,77 +289,113 @@
     }
   }
 
+  function detectMediaType(file: File): string {
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    if (['mp4', 'webm', 'mov', 'avi', 'hevc'].includes(ext)) return 'video';
+    if (['mp3', 'wav', 'ogg'].includes(ext)) return 'audio';
+    return 'photo';
+  }
+
+  async function uploadSingleFile(file: File, retries = 2): Promise<{ filePath?: string; error?: string }> {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const formData = new FormData();
+        formData.append('files', file);
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!uploadRes.ok) {
+          if (attempt < retries) { await new Promise(r => setTimeout(r, 500 * (attempt + 1))); continue; }
+          return { error: `HTTP ${uploadRes.status}` };
+        }
+        const { files: results } = await uploadRes.json();
+        const result = results[0];
+        if (result.error) return { error: result.error };
+        return { filePath: result.filePath };
+      } catch {
+        if (attempt < retries) { await new Promise(r => setTimeout(r, 500 * (attempt + 1))); continue; }
+        return { error: 'network error' };
+      }
+    }
+    return { error: 'upload failed' };
+  }
+
+  async function uploadWithConcurrency(files: File[], concurrency: number): Promise<{ filePath: string; mediaType: string }[]> {
+    const uploaded: { filePath: string; mediaType: string }[] = [];
+    const errors: string[] = [];
+    let idx = 0;
+
+    async function worker() {
+      while (idx < files.length) {
+        const i = idx++;
+        const file = files[i];
+        const key = `${file.name}-${i}`;
+        uploadFileProgress = { ...uploadFileProgress, [key]: { status: 'uploading', percent: 0 } };
+
+        const result = await uploadSingleFile(file);
+        if (result.filePath) {
+          uploaded.push({ filePath: result.filePath, mediaType: detectMediaType(file) });
+          uploadFileProgress = { ...uploadFileProgress, [key]: { status: 'done', percent: 100 } };
+        } else {
+          errors.push(`${file.name}: ${result.error}`);
+          uploadFileProgress = { ...uploadFileProgress, [key]: { status: 'error', percent: 0 } };
+          failedFiles = [...failedFiles, file];
+        }
+      }
+    }
+
+    await Promise.all(Array.from({ length: Math.min(concurrency, files.length) }, () => worker()));
+    uploadErrors = errors;
+    return uploaded;
+  }
+
+  function retryFailedUploads() {
+    if (failedFiles.length === 0) return;
+    const filesToRetry = [...failedFiles];
+    failedFiles = [];
+    uploadErrors = [];
+    uploadFileProgress = {};
+    doUpload(filesToRetry);
+  }
+
+  async function doUpload(fileList: File[]) {
+    const total = fileList.length;
+    uploadingFile = true;
+    uploadErrors = [];
+    uploadFileProgress = {};
+    uploadProgress = `Uploading ${total} file${total > 1 ? 's' : ''}...`;
+
+    const uploaded = await uploadWithConcurrency(fileList, 3);
+
+    if (uploaded.length > 0) {
+      const batchRes = await fetch(`/api/adventures/${data.adventure.slug}/media/batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          files: uploaded.map(u => ({ filePath: u.filePath, mediaType: u.mediaType }))
+        })
+      });
+
+      if (batchRes.ok) {
+        const { media: newMedia } = await batchRes.json();
+        media = [...media, ...newMedia];
+      }
+    }
+
+    if (failedFiles.length > 0 && uploaded.length > 0) {
+      uploadError = `${uploaded.length} uploaded, ${failedFiles.length} failed — click retry to try again`;
+    } else if (failedFiles.length > 0) {
+      uploadError = `All ${failedFiles.length} file${failedFiles.length > 1 ? 's' : ''} failed — click retry to try again`;
+    } else {
+      uploadProgress = `${uploaded.length} file${uploaded.length > 1 ? 's' : ''} uploaded!`;
+      setTimeout(() => { uploadProgress = ''; }, 2000);
+    }
+    uploadingFile = false;
+  }
+
   async function handleFileUpload(event: Event) {
     const input = event.target as HTMLInputElement;
     const files = input.files;
     if (!files || files.length === 0) return;
-
-    const fileList = Array.from(files);
-    const total = fileList.length;
-    uploadingFile = true;
-    uploadError = '';
-    uploadErrors = [];
-    uploadProgress = `Uploading 1 of ${total}...`;
-
-    try {
-      let successCount = 0;
-      let errorCount = 0;
-
-      for (let i = 0; i < fileList.length; i++) {
-        uploadProgress = `Uploading ${i + 1} of ${total}...`;
-
-        const formData = new FormData();
-        formData.append('files', fileList[i]);
-
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
-        if (!uploadRes.ok) {
-          uploadErrors.push(`${fileList[i].name}: upload failed (HTTP ${uploadRes.status})`);
-          errorCount++;
-          continue;
-        }
-
-        const { files: results } = await uploadRes.json();
-        const result = results[0];
-
-        if (result.error) {
-          uploadErrors.push(`${fileList[i].name}: ${result.error}`);
-          errorCount++;
-          continue;
-        }
-
-        const mediaRes = await fetch(`/api/adventures/${data.adventure.slug}/media`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            adventureId: data.adventure.id,
-            filePath: result.filePath,
-            mediaType: result.filePath.match(/\.(mp4|webm|mov)$/i) ? 'video' : result.filePath.match(/\.(mp3|wav|ogg)$/i) ? 'audio' : 'photo'
-          })
-        });
-
-        if (mediaRes.ok) {
-          const { media: newMedia } = await mediaRes.json();
-          media = [...media, newMedia];
-          successCount++;
-        } else {
-          const errBody = await mediaRes.json().catch(() => ({ error: 'Unknown error' }));
-          uploadErrors.push(`${fileList[i].name}: ${errBody.error || 'failed to save to adventure'}`);
-          errorCount++;
-        }
-      }
-
-      if (errorCount > 0 && successCount > 0) {
-        uploadError = `${successCount} uploaded, ${errorCount} failed`;
-      } else if (errorCount > 0) {
-        uploadError = `All ${errorCount} file${errorCount > 1 ? 's' : ''} failed to upload`;
-      } else {
-        uploadProgress = `${successCount} file${successCount > 1 ? 's' : ''} uploaded!`;
-        setTimeout(() => { uploadProgress = ''; }, 2000);
-      }
-    } catch (e) {
-      uploadError = 'Upload failed. Please try again.';
-    }
-    uploadingFile = false;
+    await doUpload(Array.from(files));
     input.value = '';
   }
 </script>
@@ -727,6 +765,28 @@
         {/if}
         {#if uploadError}
           <p class="text-sm text-terra-500">{uploadError}</p>
+        {/if}
+        {#if failedFiles.length > 0 && !uploadingFile}
+          <button class="mt-2 text-sm text-forest-500 hover:text-forest-600 font-medium underline" onclick={retryFailedUploads}>
+            Retry {failedFiles.length} failed file{failedFiles.length > 1 ? 's' : ''}
+          </button>
+        {/if}
+        {#if Object.keys(uploadFileProgress).length > 0}
+          <div class="space-y-1 mt-2">
+            {#each Object.entries(uploadFileProgress) as [key, info]}
+              {@const name = key.replace(/-\d+$/, '')}
+              <div class="flex items-center gap-2 text-xs">
+                {#if info.status === 'done'}
+                  <svg class="h-3.5 w-3.5 text-forest-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                {:else if info.status === 'error'}
+                  <svg class="h-3.5 w-3.5 text-terra-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                {:else}
+                  <div class="h-3.5 w-3.5 rounded-full border-2 border-forest-300 border-t-forest-500 animate-spin shrink-0"></div>
+                {/if}
+                <span class="truncate {info.status === 'error' ? 'text-terra-500' : info.status === 'done' ? 'text-forest-500' : 'text-ink-500'}">{name}</span>
+              </div>
+            {/each}
+          </div>
         {/if}
         {#if uploadErrors.length > 0}
           <div class="text-xs text-terra-400 space-y-0.5 mt-1">

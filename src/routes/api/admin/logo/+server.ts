@@ -10,7 +10,7 @@ import { env } from '$env/dynamic/private';
 
 const execFileAsync = promisify(execFile);
 
-const UPLOAD_DIR = env.UPLOAD_DIR || './build/client/uploads';
+const UPLOAD_DIR = env.UPLOAD_DIR || './data/uploads';
 const BRANDING_DIR = join(UPLOAD_DIR, 'branding');
 
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.heif'];

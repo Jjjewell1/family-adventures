@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import InstallBanner from '$lib/components/InstallBanner.svelte';
+  import Chatbot from '$lib/components/Chatbot.svelte';
   import { env } from '$env/dynamic/public';
   let { children, data } = $props();
   let mobileMenuOpen = $state(false);
@@ -287,4 +288,7 @@
 
   <!-- PWA Install Banner -->
   <InstallBanner />
+
+  <!-- AI Chat Assistant -->
+  <Chatbot />
 </div>

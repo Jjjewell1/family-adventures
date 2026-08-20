@@ -37,10 +37,12 @@ export const load: PageServerLoad = async () => {
   const stats = await dbGet(`
     SELECT 
       COUNT(*) as total_adventures,
-      COUNT(DISTINCT author_id) as total_contributors
+      COUNT(DISTINCT author_id) as total_contributors,
+      (SELECT COUNT(*) FROM adventure_media WHERE media_type = 'photo') as total_photos,
+      (SELECT COUNT(*) FROM adventure_media WHERE media_type = 'video') as total_videos
     FROM adventures 
     WHERE is_draft = 0
-  `) as { total_adventures: number; total_contributors: number };
+  `) as { total_adventures: number; total_contributors: number; total_photos: number; total_videos: number };
 
   return {
     recentAdventures,
