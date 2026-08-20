@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import LocationInput from '$lib/components/LocationInput.svelte';
+  import VideoThumbnail from '$lib/components/VideoThumbnail.svelte';
 
   let { data } = $props();
 
@@ -672,12 +673,16 @@
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {#each media as m}
           <div class="relative aspect-square rounded-xl overflow-hidden group">
-            <img
-              src={m.file_path}
-              alt={m.caption || 'Adventure photo'}
-              class="w-full h-full object-cover"
-              loading="lazy"
-            />
+            {#if m.media_type === 'video'}
+              <VideoThumbnail src={m.file_path} alt={m.caption || 'Video'} class="w-full h-full object-cover" />
+            {:else}
+              <img
+                src={m.file_path}
+                alt={m.caption || 'Adventure photo'}
+                class="w-full h-full object-cover"
+                loading="lazy"
+              />
+            {/if}
             {#if m.caption}
               <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
                 <p class="text-white text-xs">{m.caption}</p>

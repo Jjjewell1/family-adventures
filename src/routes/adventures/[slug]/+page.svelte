@@ -55,6 +55,8 @@
   let aiAnalyzing = $state<Record<string, boolean>>({});
   let aiError = $state('');
 
+  import VideoThumbnail from '$lib/components/VideoThumbnail.svelte';
+
   const reactionEmojis = ['❤️', '🔥', '😊', '👏', '🌊', '✈️'];
 
   const subAdventures = $derived(data.subAdventures || []);
@@ -790,12 +792,16 @@
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
         {#each data.adventure.media as media}
           <div class="relative aspect-square rounded-xl overflow-hidden group">
-            <img
-              src={media.file_path}
-              alt={media.caption || 'Adventure photo'}
-              class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              loading="lazy"
-            />
+            {#if media.media_type === 'video'}
+              <VideoThumbnail src={media.file_path} alt={media.caption || 'Video'} class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            {:else}
+              <img
+                src={media.file_path}
+                alt={media.caption || 'Adventure photo'}
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+              />
+            {/if}
             {#if media.caption || media.ai_caption}
               <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                 <p class="absolute bottom-3 left-3 right-3 text-white text-sm">{media.caption || media.ai_caption}</p>

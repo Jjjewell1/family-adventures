@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import { goto } from '$app/navigation';
+  import VideoThumbnail from '$lib/components/VideoThumbnail.svelte';
 
   let { data } = $props();
   let selectedMedia = $state<any>(null);
@@ -105,12 +106,16 @@
           onclick={() => openLightbox(media)}
         >
           <div class="relative">
-            <img
-              src={media.file_path}
-              alt={media.caption || 'Gallery photo'}
-              class="w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              loading="lazy"
-            />
+            {#if media.media_type === 'video'}
+              <VideoThumbnail src={media.file_path} alt={media.caption || 'Video'} class="w-full object-cover transition-transform duration-300 group-hover:scale-105 aspect-square" />
+            {:else}
+              <img
+                src={media.file_path}
+                alt={media.caption || 'Gallery photo'}
+                class="w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+              />
+            {/if}
             <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
               <div class="absolute bottom-3 left-3 right-3">
                 {#if media.caption}
@@ -124,13 +129,6 @@
                 {/if}
               </div>
             </div>
-            {#if media.media_type === 'video'}
-              <div class="absolute top-2 right-2 h-7 w-7 rounded-full bg-black/50 flex items-center justify-center">
-                <svg class="h-3.5 w-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-            {/if}
           </div>
         </button>
       {/each}
