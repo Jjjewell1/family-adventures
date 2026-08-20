@@ -54,40 +54,35 @@
 </svelte:head>
 
 <div class="min-h-[60vh] flex items-center justify-center">
-  <div class="glass rounded-3xl p-8 max-w-md w-full">
+  <div class="card p-8 max-w-md w-full animate-in">
     {#if success}
       <div class="text-center">
-        <div class="h-16 w-16 mx-auto mb-4 rounded-full bg-ocean-100 flex items-center justify-center">
-          <svg class="h-8 w-8 text-ocean-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="h-14 w-14 mx-auto mb-4 rounded-xl bg-forest-50 flex items-center justify-center">
+          <svg class="h-7 w-7 text-forest-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 class="text-2xl font-display font-semibold text-navy-600 mb-2">Request Submitted!</h1>
-        <p class="text-navy-400 mb-6">
+        <h1 class="text-2xl font-display font-semibold text-ink-800 dark:text-cream-100 mb-2">Request Submitted!</h1>
+        <p class="text-ink-400 mb-6 text-sm">
           Your account is awaiting admin approval. You'll be able to sign in once approved.
         </p>
-        <a href="/auth/login" class="inline-flex items-center gap-2 rounded-full bg-ocean-500 px-6 py-3 text-sm font-medium text-white hover:bg-ocean-600 transition-colors">
-          Back to Login
-        </a>
+        <a href="/auth/login" class="btn-primary">Back to Login</a>
       </div>
     {:else}
       <div class="text-center mb-6">
-        <h1 class="text-2xl font-display font-semibold text-navy-600">Join Family Adventures</h1>
-        <p class="text-sm text-navy-400 mt-1">Create your account to start sharing</p>
+        <h1 class="text-2xl font-display font-semibold text-ink-800 dark:text-cream-100">Join Family Adventures</h1>
+        <p class="text-sm text-ink-400 mt-1">Create your account to start sharing</p>
       </div>
 
       {#if error}
-        <div class="mb-4 p-3 rounded-xl bg-coral-50 border border-coral-200 text-coral-600 text-sm">
+        <div class="mb-4 p-3 rounded-lg bg-terra-50 border border-terra-200 text-terra-600 text-sm">
           {error}
         </div>
       {/if}
 
       <div class="space-y-4">
         <!-- Google Sign Up -->
-        <a
-          href="/api/auth/google"
-          class="flex items-center justify-center gap-3 w-full rounded-xl border border-sand-200 bg-navy-800 px-4 py-3 text-sm font-medium text-navy-600 hover:bg-navy-700 transition-colors"
-        >
+        <a href="/api/auth/google" class="btn-secondary w-full justify-center">
           <svg class="h-5 w-5" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -99,73 +94,41 @@
 
         <div class="relative">
           <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-sand-200"></div>
+            <div class="w-full divider"></div>
           </div>
           <div class="relative flex justify-center text-xs">
-            <span class="bg-navy-800 px-2 text-navy-400">or sign up with email</span>
+            <span class="bg-white px-2 text-ink-400 dark:bg-ink-700">or sign up with email</span>
           </div>
         </div>
 
         <!-- Email Sign Up -->
         <form class="space-y-4" onsubmit={(e) => { e.preventDefault(); handleSignup(); }}>
           <div>
-            <label for="name" class="block text-sm font-medium text-navy-600 mb-1">Name</label>
-            <input
-              type="text"
-              id="name"
-              bind:value={name}
-              placeholder="Your name"
-              class="w-full rounded-xl border border-sand-200 bg-navy-800 px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
-              required
-            />
+            <label for="name" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">Name</label>
+            <input type="text" id="name" bind:value={name} placeholder="Your name" class="input" required />
           </div>
 
           <div>
-            <label for="email" class="block text-sm font-medium text-navy-600 mb-1">Email</label>
-            <input
-              type="email"
-              id="email"
-              bind:value={email}
-              placeholder="you@example.com"
-              class="w-full rounded-xl border border-sand-200 bg-navy-800 px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
-              required
-            />
+            <label for="email" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">Email</label>
+            <input type="email" id="email" bind:value={email} placeholder="you@example.com" class="input" required />
           </div>
 
           <div>
-            <label for="password" class="block text-sm font-medium text-navy-600 mb-1">Password</label>
-            <input
-              type="password"
-              id="password"
-              bind:value={password}
-              placeholder="At least 6 characters"
-              class="w-full rounded-xl border border-sand-200 bg-navy-800 px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
-              required
-            />
+            <label for="password" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">Password</label>
+            <input type="password" id="password" bind:value={password} placeholder="At least 6 characters" class="input" required />
           </div>
 
           <div>
-            <label for="confirmPassword" class="block text-sm font-medium text-navy-600 mb-1">Confirm Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              bind:value={confirmPassword}
-              placeholder="Repeat password"
-              class="w-full rounded-xl border border-sand-200 bg-navy-800 px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
-              required
-            />
+            <label for="confirmPassword" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">Confirm Password</label>
+            <input type="password" id="confirmPassword" bind:value={confirmPassword} placeholder="Repeat password" class="input" required />
           </div>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            class="w-full rounded-full bg-ocean-500 px-6 py-3 text-sm font-medium text-white hover:bg-ocean-600 disabled:opacity-50 transition-colors"
-          >
+          <button type="submit" disabled={submitting} class="btn-primary w-full justify-center disabled:opacity-50">
             {submitting ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
 
-        <p class="text-center text-xs text-navy-400">
+        <p class="text-center text-xs text-ink-400">
           New accounts require admin approval before you can sign in.
         </p>
       </div>

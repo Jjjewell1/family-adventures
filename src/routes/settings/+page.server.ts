@@ -3,7 +3,6 @@ import type { PageServerLoad, Actions } from './$types';
 import { getSessionUser, hashPassword, verifyPassword } from '$lib/server/auth';
 import { dbRun, dbGet, dbAll } from '$lib/server/db';
 import { generateToken } from '$lib/shared/utils';
-import { env } from '$env/dynamic/private';
 import { notifyNewFamilyMember } from '$lib/server/notifications';
 import { getAIConfig } from '$lib/server/ai';
 
@@ -17,9 +16,6 @@ export const load: PageServerLoad = async ({ cookies }) => {
   return {
     user,
     users,
-    immichConfigured: !!(env.IMMICH_API_URL && env.IMMICH_API_KEY),
-    immichUrl: env.IMMICH_API_URL ? 'Set' : 'Not set',
-    immichKey: env.IMMICH_API_KEY ? 'Set' : 'Not set',
     aiConfig
   };
 };

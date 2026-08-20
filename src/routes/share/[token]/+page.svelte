@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import { formatDate } from '$lib/shared/utils';
-  import { getImmichAssetUrl } from '$lib/shared/immich';
   
   let { data } = $props();
 </script>
@@ -10,47 +9,43 @@
   <title>{data.adventure.title} | Family Adventures</title>
   <meta name="description" content={data.adventure.description || data.adventure.title} />
   
-  <!-- Open Graph for social sharing -->
   <meta property="og:title" content={data.adventure.title} />
   <meta property="og:description" content={data.adventure.description || ''} />
-  {#if data.adventure.cover_asset_id}
-    <meta property="og:image" content="{data.siteUrl}/api/immich/asset/{data.adventure.cover_asset_id}" />
+  {#if data.adventure.cover_file_path}
+    <meta property="og:image" content="{data.siteUrl}{data.adventure.cover_file_path}" />
   {/if}
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="Family Adventures" />
   
-  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={data.adventure.title} />
   <meta name="twitter:description" content={data.adventure.description || ''} />
-  {#if data.adventure.cover_asset_id}
-    <meta name="twitter:image" content="{data.siteUrl}/api/immich/asset/{data.adventure.cover_asset_id}" />
+  {#if data.adventure.cover_file_path}
+    <meta name="twitter:image" content="{data.siteUrl}{data.adventure.cover_file_path}" />
   {/if}
 </svelte:head>
 
 <div class="max-w-4xl mx-auto">
-  <!-- Header -->
   <div class="text-center mb-8">
-    <a href="/" class="inline-flex items-center gap-2 text-sm text-navy-400 hover:text-navy-600 mb-4 transition-colors">
+    <a href="/" class="inline-flex items-center gap-2 text-sm text-ink-400 hover:text-ink-600 mb-4 transition-colors">
       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       Family Adventures
     </a>
-    <p class="text-xs text-navy-400 uppercase tracking-wider">Shared Adventure</p>
+    <p class="text-xs text-ink-300 uppercase tracking-wider">Shared Adventure</p>
   </div>
 
-  <!-- Hero -->
-  <div class="relative rounded-3xl overflow-hidden mb-8">
-    {#if data.adventure.cover_asset_id}
+  <div class="relative rounded-2xl overflow-hidden mb-8">
+    {#if data.adventure.cover_file_path}
       <img
-        src={getImmichAssetUrl(data.adventure.cover_asset_id)}
+        src={data.adventure.cover_file_path}
         alt={data.adventure.title}
         class="w-full h-64 md:h-96 object-cover"
       />
       <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
     {:else}
-      <div class="w-full h-64 md:h-96 bg-gradient-to-br from-ocean-400 to-ocean-600"></div>
+      <div class="w-full h-64 md:h-96 bg-gradient-to-br from-forest-400 to-terra-400"></div>
     {/if}
     
     <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8">
@@ -83,29 +78,26 @@
     </div>
   </div>
 
-  <!-- Description -->
   {#if data.adventure.description}
-    <div class="glass rounded-2xl p-6 mb-8">
-      <p class="text-lg text-navy-500 leading-relaxed">{data.adventure.description}</p>
+    <div class="card p-6 mb-8">
+      <p class="text-lg text-ink-500 leading-relaxed dark:text-cream-200">{data.adventure.description}</p>
     </div>
   {/if}
 
-  <!-- Content -->
   {#if data.adventure.content}
     <div class="prose prose-lg max-w-none mb-8">
       {@html data.adventure.content}
     </div>
   {/if}
 
-  <!-- Media Gallery -->
   {#if data.adventure.media && data.adventure.media.length > 0}
     <div class="mb-8">
-      <h2 class="text-xl font-semibold text-navy-600 mb-4">Photos & Videos</h2>
+      <h2 class="text-xl font-display font-semibold text-ink-800 dark:text-cream-100 mb-4">Photos & Videos</h2>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
         {#each data.adventure.media as media}
-          <div class="relative aspect-square rounded-2xl overflow-hidden group">
+          <div class="relative aspect-square rounded-xl overflow-hidden group">
             <img
-              src={getImmichAssetUrl(media.immich_asset_id, true)}
+              src={media.file_path}
               alt={media.caption || 'Adventure photo'}
               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               loading="lazy"
@@ -121,11 +113,10 @@
     </div>
   {/if}
 
-  <!-- Footer -->
-  <div class="text-center py-8 border-t border-sand-200">
-    <p class="text-sm text-navy-400">
+  <div class="text-center py-8 border-t border-cream-200 dark:border-ink-600">
+    <p class="text-sm text-ink-400">
       Shared with love from 
-      <a href="/" class="text-ocean-500 hover:text-ocean-600">Family Adventures</a>
+      <a href="/" class="text-forest-500 hover:text-forest-600">Family Adventures</a>
     </p>
   </div>
 </div>

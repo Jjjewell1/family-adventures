@@ -59,19 +59,19 @@
 </svelte:head>
 
 <div class="min-h-[60vh] flex items-center justify-center">
-  <div class="glass rounded-3xl p-8 max-w-md w-full">
+  <div class="card p-8 max-w-md w-full animate-in">
     <div class="text-center mb-8">
-      <div class="h-16 w-16 mx-auto rounded-full bg-gradient-to-br from-ocean-400 to-ocean-600 flex items-center justify-center text-white mb-4">
-        <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="h-14 w-14 mx-auto rounded-xl bg-forest-500 flex items-center justify-center text-white mb-4">
+        <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
-      <h1 class="text-2xl font-display font-semibold text-navy-600">Welcome Back</h1>
-      <p class="text-navy-400 mt-2">Sign in to your Family Adventures account</p>
+      <h1 class="text-2xl font-display font-semibold text-ink-800 dark:text-cream-100">Welcome Back</h1>
+      <p class="text-ink-400 mt-2 text-sm">Sign in to your Family Adventures account</p>
     </div>
 
     {#if error}
-      <div class="mb-6 p-4 rounded-xl bg-coral-900/30 border border-coral-800/50 text-coral-300 text-sm">
+      <div class="mb-6 p-3 rounded-lg bg-terra-50 border border-terra-200 text-terra-600 text-sm">
         {error}
       </div>
     {/if}
@@ -79,7 +79,7 @@
     <!-- Google Sign In -->
     <a
       href="/api/auth/google"
-      class="flex items-center justify-center gap-3 w-full rounded-xl border border-sand-200 bg-navy-800 px-4 py-3 text-sm font-medium text-navy-600 hover:bg-navy-700 transition-colors mb-4"
+      class="btn-secondary w-full justify-center mb-4"
     >
       <svg class="h-5 w-5" viewBox="0 0 24 24">
         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -92,16 +92,16 @@
 
     <div class="relative mb-4">
       <div class="absolute inset-0 flex items-center">
-        <div class="w-full border-t border-sand-200"></div>
+        <div class="w-full divider"></div>
       </div>
       <div class="relative flex justify-center text-xs">
-        <span class="bg-navy-800 px-2 text-navy-400">or sign in with email</span>
+        <span class="bg-white px-2 text-ink-400 dark:bg-ink-700">or sign in with email</span>
       </div>
     </div>
 
-    <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-5">
+    <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
       <div>
-        <label for="email" class="block text-sm font-medium text-navy-600 mb-2">
+        <label for="email" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
           Email
         </label>
         <input
@@ -109,13 +109,13 @@
           id="email"
           bind:value={email}
           placeholder="you@example.com"
-          class="w-full rounded-xl border border-sand-200 bg-navy-800 px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
+          class="input"
           required
         />
       </div>
 
       <div>
-        <label for="password" class="block text-sm font-medium text-navy-600 mb-2">
+        <label for="password" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
           Password
         </label>
         <div class="relative">
@@ -124,12 +124,12 @@
             id="password"
             bind:value={password}
             placeholder="Enter your password"
-            class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 pr-12 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
+            class="input pr-11"
             required
           />
           <button
             type="button"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-navy-400 hover:text-navy-600"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-300 hover:text-ink-500"
             onclick={() => showPassword = !showPassword}
           >
             {#if showPassword}
@@ -146,11 +146,7 @@
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={loading}
-        class="w-full inline-flex items-center justify-center gap-2 rounded-full bg-ocean-500 px-5 py-3 text-sm font-medium text-white hover:bg-ocean-600 disabled:opacity-50 transition-colors"
-      >
+      <button type="submit" disabled={loading} class="btn-primary w-full justify-center disabled:opacity-50">
         {loading ? 'Signing in...' : 'Sign In'}
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -159,9 +155,9 @@
     </form>
 
     <div class="mt-6 text-center">
-      <p class="text-sm text-navy-400">
+      <p class="text-sm text-ink-400">
         Don't have an account?
-        <a href="/auth/signup" class="text-ocean-500 hover:text-ocean-600 font-medium">Sign up</a>
+        <a href="/auth/signup" class="text-forest-500 hover:text-forest-600 font-medium">Sign up</a>
       </p>
     </div>
   </div>

@@ -213,26 +213,26 @@
 </svelte:head>
 
 <div class="max-w-3xl mx-auto">
-  <a href="/adventures" class="inline-flex items-center gap-2 text-sm text-navy-400 hover:text-navy-600 mb-6 transition-colors">
+  <a href="/adventures" class="inline-flex items-center gap-2 text-sm text-ink-400 hover:text-ink-600 mb-6 transition-colors">
     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
     </svg>
     Back to Adventures
   </a>
 
-  <div class="glass rounded-3xl p-6 md:p-8">
-    <h1 class="text-2xl md:text-3xl font-display font-semibold text-navy-600 mb-6">
+  <div class="card p-6 md:p-8 animate-in">
+    <h1 class="text-2xl md:text-3xl font-display font-semibold text-ink-800 dark:text-cream-100 mb-6">
       New Adventure
     </h1>
 
     {#if error}
-      <div class="mb-6 p-4 rounded-xl bg-coral-50 border border-coral-200 text-coral-600 text-sm">
+      <div class="mb-6 p-3 rounded-lg bg-terra-50 border border-terra-200 text-terra-600 text-sm">
         {error}
       </div>
     {/if}
 
     {#if aiError}
-      <div class="mb-6 p-4 rounded-xl bg-sunset-50 border border-sunset-200 text-sunset-600 text-sm">
+      <div class="mb-6 p-3 rounded-lg bg-gold-50 border border-gold-200 text-gold-700 text-sm">
         {aiError}
         <button class="ml-2 underline" onclick={() => aiError = ''}>Dismiss</button>
       </div>
@@ -241,7 +241,7 @@
     <form class="space-y-6" onsubmit={(e) => { e.preventDefault(); handleSubmit(false); }}>
       <!-- Title -->
       <div>
-        <label for="title" class="block text-sm font-medium text-navy-600 mb-2">
+        <label for="title" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
           Title *
         </label>
         <input
@@ -249,15 +249,15 @@
           id="title"
           bind:value={title}
           placeholder="Our Amazing Beach Vacation"
-          class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
+          class="input"
           required
         />
       </div>
 
       <!-- Description -->
       <div>
-        <div class="flex items-center justify-between mb-2">
-          <label for="description" class="block text-sm font-medium text-navy-600">
+        <div class="flex items-center justify-between mb-1.5">
+          <label for="description" class="block text-sm font-medium text-ink-600 dark:text-cream-200">
             Description
           </label>
           {#if aiEnabled}
@@ -266,7 +266,7 @@
                 type="button"
                 onclick={generateDescription}
                 disabled={aiGeneratingDescription}
-                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-ocean-500 to-coral-500 text-white hover:from-ocean-600 hover:to-coral-600 disabled:opacity-50 transition-all"
+                class="btn-accent text-xs px-3 py-1"
               >
                 {#if aiGeneratingDescription}
                   <div class="h-3 w-3 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
@@ -275,7 +275,7 @@
                   <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  Generate with AI
+                  Generate
                 {/if}
               </button>
               {#if description.trim()}
@@ -283,10 +283,10 @@
                   type="button"
                   onclick={enhanceDescription}
                   disabled={aiEnhancingDescription}
-                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-ocean-300 text-ocean-600 hover:bg-ocean-50 disabled:opacity-50 transition-colors"
+                  class="btn-secondary text-xs px-3 py-1"
                 >
                   {#if aiEnhancingDescription}
-                    <div class="h-3 w-3 rounded-full border-2 border-ocean-300 border-t-ocean-500 animate-spin"></div>
+                    <div class="h-3 w-3 rounded-full border-2 border-forest-300 border-t-forest-500 animate-spin"></div>
                   {:else}
                     <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -303,14 +303,14 @@
           bind:value={description}
           placeholder="A brief summary of this adventure..."
           rows="3"
-          class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100 resize-none"
+          class="input resize-none"
         ></textarea>
       </div>
 
       <!-- Content / Story -->
       <div>
-        <div class="flex items-center justify-between mb-2">
-          <label for="content" class="block text-sm font-medium text-navy-600">
+        <div class="flex items-center justify-between mb-1.5">
+          <label for="content" class="block text-sm font-medium text-ink-600 dark:text-cream-200">
             Story
           </label>
           {#if aiEnabled && content.trim()}
@@ -318,10 +318,10 @@
               type="button"
               onclick={enhanceContent}
               disabled={aiEnhancingContent}
-              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-ocean-300 text-ocean-600 hover:bg-ocean-50 disabled:opacity-50 transition-colors"
+              class="btn-secondary text-xs px-3 py-1"
             >
               {#if aiEnhancingContent}
-                <div class="h-3 w-3 rounded-full border-2 border-ocean-300 border-t-ocean-500 animate-spin"></div>
+                <div class="h-3 w-3 rounded-full border-2 border-forest-300 border-t-forest-500 animate-spin"></div>
               {:else}
                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -336,24 +336,24 @@
           bind:value={content}
           placeholder="Tell the story of this adventure..."
           rows="8"
-          class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100 resize-y"
+          class="input resize-y"
         ></textarea>
-        <p class="mt-1 text-xs text-navy-400">HTML is supported for rich formatting.</p>
+        <p class="mt-1 text-xs text-ink-300">HTML is supported for rich formatting.</p>
       </div>
 
       <!-- Template -->
       <div>
-        <label class="block text-sm font-medium text-navy-600 mb-2">
+        <label class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
           Adventure Type
         </label>
         <div class="grid grid-cols-4 gap-2">
           {#each templates as template}
             <button
               type="button"
-              class="flex flex-col items-center gap-1 p-3 rounded-xl border transition-colors
+              class="flex flex-col items-center gap-1 p-3 rounded-lg border transition-colors
                 {templateType === template.id 
-                  ? 'border-ocean-300 bg-ocean-50 text-ocean-600' 
-                  : 'border-sand-200 bg-white text-navy-500 hover:border-sand-300'}"
+                  ? 'border-forest-400 bg-forest-50 text-forest-600 dark:bg-forest-900 dark:text-forest-300' 
+                  : 'border-cream-200 bg-white text-ink-500 hover:border-cream-300 dark:bg-ink-700 dark:border-ink-600'}"
               onclick={() => templateType = template.id}
             >
               <span class="text-2xl">{template.icon}</span>
@@ -366,32 +366,22 @@
       <!-- Dates -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label for="startDate" class="block text-sm font-medium text-navy-600 mb-2">
+          <label for="startDate" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
             Start Date
           </label>
-          <input
-            type="date"
-            id="startDate"
-            bind:value={startDate}
-            class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
-          />
+          <input type="date" id="startDate" bind:value={startDate} class="input" />
         </div>
         <div>
-          <label for="endDate" class="block text-sm font-medium text-navy-600 mb-2">
+          <label for="endDate" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
             End Date
           </label>
-          <input
-            type="date"
-            id="endDate"
-            bind:value={endDate}
-            class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100"
-          />
+          <input type="date" id="endDate" bind:value={endDate} class="input" />
         </div>
       </div>
 
       <!-- Location -->
       <div>
-        <label for="location" class="block text-sm font-medium text-navy-600 mb-2">
+        <label for="location" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
           Location
         </label>
         <LocationInput bind:value={locationName} bind:lat bind:lng />
@@ -399,17 +389,16 @@
 
       <!-- Mood -->
       <div>
-        <label class="block text-sm font-medium text-navy-600 mb-2">
+        <label class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
           Mood
         </label>
         <div class="flex flex-wrap gap-2">
           {#each moods as m}
             <button
               type="button"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-colors
-                {mood === m.id 
-                  ? 'border-ocean-300 bg-ocean-50 text-ocean-600' 
-                  : 'border-sand-200 bg-white text-navy-500 hover:border-sand-300'}"
+              class="badge border {mood === m.id 
+                ? 'border-forest-400 bg-forest-50 text-forest-600 dark:bg-forest-900 dark:text-forest-300' 
+                : 'border-cream-200 bg-white text-ink-500 hover:border-cream-300 dark:bg-ink-700 dark:border-ink-600'}"
               onclick={() => mood = m.id}
             >
               <span>{m.icon}</span>
@@ -422,8 +411,8 @@
       <!-- Tags -->
       {#if data.tags.length > 0 || aiEnabled}
         <div>
-          <div class="flex items-center justify-between mb-2">
-            <label class="block text-sm font-medium text-navy-600">
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-sm font-medium text-ink-600 dark:text-cream-200">
               Tags
             </label>
             {#if aiEnabled}
@@ -431,7 +420,7 @@
                 type="button"
                 onclick={suggestTags}
                 disabled={aiSuggestingTags}
-                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-ocean-500 to-coral-500 text-white hover:from-ocean-600 hover:to-coral-600 disabled:opacity-50 transition-all"
+                class="btn-accent text-xs px-3 py-1"
               >
                 {#if aiSuggestingTags}
                   <div class="h-3 w-3 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
@@ -450,8 +439,8 @@
               {#each data.tags as tag}
                 <button
                   type="button"
-                  class="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
-                  style="background-color: {selectedTags.includes(tag.id) ? tag.color : '#F5E6D3'}; color: {selectedTags.includes(tag.id) ? 'white' : '#1A2B3C'}"
+                  class="badge transition-colors"
+                  style="background-color: {selectedTags.includes(tag.id) ? tag.color : 'var(--color-cream-100)'}; color: {selectedTags.includes(tag.id) ? 'white' : 'var(--color-ink-500)'}"
                   onclick={() => toggleTag(tag.id)}
                 >
                   {tag.name}
@@ -460,18 +449,18 @@
             </div>
           {/if}
           {#if aiSuggestedTags.length > 0}
-            <div class="mt-3 p-3 rounded-xl bg-ocean-50 border border-ocean-200">
-              <p class="text-xs font-medium text-ocean-600 mb-2">AI Suggested Tags:</p>
+            <div class="mt-3 p-3 rounded-lg bg-forest-50 border border-forest-100 dark:bg-forest-900 dark:border-forest-800">
+              <p class="text-xs font-medium text-forest-600 dark:text-forest-300 mb-2">AI Suggested Tags:</p>
               <div class="flex flex-wrap gap-2">
                 {#each aiSuggestedTags as tag}
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border border-ocean-300 text-ocean-600 hover:bg-ocean-100 transition-colors"
+                    class="badge border border-forest-200 text-forest-600 hover:bg-forest-100 transition-colors dark:border-forest-700 dark:text-forest-300"
                     onclick={() => applyTag(tag.name)}
                   >
                     {tag.name}
                     {#if tag.isNew}
-                      <span class="text-[10px] text-ocean-400">(new)</span>
+                      <span class="text-[10px] text-forest-400">(new)</span>
                     {/if}
                     <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -486,32 +475,32 @@
 
       <!-- Visibility -->
       <div>
-        <label class="block text-sm font-medium text-navy-600 mb-2">
+        <label class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
           Visibility
         </label>
-        <div class="flex gap-3">
+        <div class="flex gap-4">
           <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" bind:group={visibility} value="private" class="text-ocean-500 focus:ring-ocean-300" />
-            <span class="text-sm text-navy-500">Private</span>
+            <input type="radio" bind:group={visibility} value="private" class="accent-forest-500" />
+            <span class="text-sm text-ink-500 dark:text-cream-200">Private</span>
           </label>
           <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" bind:group={visibility} value="family" class="text-ocean-500 focus:ring-ocean-300" />
-            <span class="text-sm text-navy-500">Family</span>
+            <input type="radio" bind:group={visibility} value="family" class="accent-forest-500" />
+            <span class="text-sm text-ink-500 dark:text-cream-200">Family</span>
           </label>
           <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" bind:group={visibility} value="public" class="text-ocean-500 focus:ring-ocean-300" />
-            <span class="text-sm text-navy-500">Public</span>
+            <input type="radio" bind:group={visibility} value="public" class="accent-forest-500" />
+            <span class="text-sm text-ink-500 dark:text-cream-200">Public</span>
           </label>
         </div>
       </div>
 
       <!-- Actions -->
-      <div class="flex flex-wrap gap-3 pt-4 border-t border-sand-200">
+      <div class="flex flex-wrap gap-3 pt-4 border-t border-cream-200 dark:border-ink-600">
         <button
           type="button"
           onclick={() => handleSubmit(false)}
           disabled={submitting}
-          class="inline-flex items-center gap-2 rounded-full border border-sand-300 bg-white px-5 py-2.5 text-sm font-medium text-navy-600 hover:bg-sand-50 disabled:opacity-50 transition-colors"
+          class="btn-secondary disabled:opacity-50"
         >
           {submitting ? 'Saving...' : 'Save as Draft'}
         </button>
@@ -519,7 +508,7 @@
           type="button"
           onclick={() => handleSubmit(true)}
           disabled={submitting}
-          class="inline-flex items-center gap-2 rounded-full bg-ocean-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-ocean-600 disabled:opacity-50 transition-colors"
+          class="btn-primary disabled:opacity-50"
         >
           {submitting ? 'Publishing...' : 'Publish Adventure'}
         </button>

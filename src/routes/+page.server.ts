@@ -14,7 +14,7 @@ export const load: PageServerLoad = async () => {
 
   // Prefer hero-flagged images, fall back to any photo if none flagged
   let heroImages = await dbAll(`
-    SELECT am.file_path, am.immich_asset_id, a.title as adventure_title, a.slug
+    SELECT am.file_path, a.title as adventure_title, a.slug
     FROM adventure_media am
     JOIN adventures a ON am.adventure_id = a.id
     WHERE a.is_draft = 0 AND a.visibility = 'family' AND am.media_type = 'photo' AND am.hero_image = 1
@@ -24,11 +24,11 @@ export const load: PageServerLoad = async () => {
 
   if (heroImages.length === 0) {
     heroImages = await dbAll(`
-      SELECT am.file_path, am.immich_asset_id, a.title as adventure_title, a.slug
+      SELECT am.file_path, a.title as adventure_title, a.slug
       FROM adventure_media am
       JOIN adventures a ON am.adventure_id = a.id
       WHERE a.is_draft = 0 AND a.visibility = 'family' AND am.media_type = 'photo'
-        AND (am.file_path IS NOT NULL OR am.immich_asset_id IS NOT NULL)
+        AND am.file_path IS NOT NULL
       ORDER BY RANDOM()
       LIMIT 12
     `);

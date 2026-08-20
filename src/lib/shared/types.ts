@@ -1,6 +1,5 @@
 export interface User {
   id: string;
-  immich_user_id: string;
   name: string;
   email: string;
   avatar_url: string | null;
@@ -35,7 +34,6 @@ export interface Adventure {
 export interface AdventureMedia {
   id: string;
   adventure_id: string;
-  immich_asset_id: string | null;
   file_path: string | null;
   media_type: 'photo' | 'video' | 'audio';
   caption: string | null;
@@ -61,7 +59,6 @@ export interface SubAdventureMedia {
   id: string;
   sub_adventure_id: string;
   file_path: string | null;
-  immich_asset_id: string | null;
   caption: string | null;
   order_index: number;
   created_at: string;
@@ -113,15 +110,6 @@ export interface ActivityFeedItem {
   adventure?: Adventure;
   target_user?: User;
   media?: AdventureMedia;
-}
-
-export interface ImmichAsset {
-  id: string;
-  originalFileName?: string;
-  originalPath?: string;
-  type?: string;
-  mimeType?: string;
-  [key: string]: unknown;
 }
 
 export interface AIConfig {

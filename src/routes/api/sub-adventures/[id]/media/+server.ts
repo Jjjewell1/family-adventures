@@ -12,10 +12,10 @@ export const POST: RequestHandler = async ({ request, cookies, params }) => {
   if (!sub) return json({ error: 'Sub-adventure not found' }, { status: 404 });
 
   const body = await request.json();
-  const { filePath, immichAssetId, caption } = body;
+  const { filePath, caption } = body;
 
-  if (!filePath && !immichAssetId) {
-    return json({ error: 'File path or Immich asset ID is required' }, { status: 400 });
+  if (!filePath) {
+    return json({ error: 'File path is required' }, { status: 400 });
   }
 
   const maxOrder = await dbGet(
@@ -25,11 +25,10 @@ export const POST: RequestHandler = async ({ request, cookies, params }) => {
 
   const id = generateToken();
   await dbRun(
-    'INSERT INTO sub_adventure_media (id, sub_adventure_id, file_path, immich_asset_id, caption, order_index) VALUES (?, ?, ?, ?, ?, ?)',
+    'INSERT INTO sub_adventure_media (id, sub_adventure_id, file_path, caption, order_index) VALUES (?, ?, ?, ?, ?)',
     id,
     params.id,
     filePath || null,
-    immichAssetId || null,
     caption?.trim() || null,
     maxOrder.next
   );

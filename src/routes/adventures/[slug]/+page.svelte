@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import { formatDate, timeAgo } from '$lib/shared/utils';
-  import { getImmichAssetUrl } from '$lib/shared/immich';
   import { onMount } from 'svelte';
   
   let { data } = $props();
@@ -203,9 +202,7 @@
   }
 
   function sqImageUrl(media: any) {
-    if (media.file_path) return media.file_path;
-    if (media.immich_asset_id) return getImmichAssetUrl(media.immich_asset_id, true);
-    return '';
+    return media.file_path || '';
   }
 
   async function checkAIStatus() {
@@ -454,7 +451,7 @@
 
 <article class="max-w-4xl mx-auto">
   <!-- Back button -->
-  <a href="/adventures" class="inline-flex items-center gap-2 text-sm text-navy-400 hover:text-navy-600 mb-6 transition-colors">
+  <a href="/adventures" class="inline-flex items-center gap-2 text-sm text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 mb-6 transition-colors">
     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
     </svg>
@@ -462,14 +459,14 @@
   </a>
 
   {#if aiError}
-    <div class="mb-6 p-4 rounded-xl bg-sunset-50 border border-sunset-200 text-sunset-600 text-sm">
+    <div class="mb-6 p-4 rounded-xl bg-gold-50 dark:bg-gold-900/30 border border-gold-200 dark:border-gold-800 text-gold-700 dark:text-gold-300 text-sm">
       {aiError}
       <button class="ml-2 underline" onclick={() => aiError = ''}>Dismiss</button>
     </div>
   {/if}
 
   <!-- Hero -->
-  <div class="relative rounded-3xl overflow-hidden mb-8">
+  <div class="relative rounded-2xl overflow-hidden mb-8">
     {#if data.adventure.cover_file_path}
       <img
         src={data.adventure.cover_file_path}
@@ -477,15 +474,8 @@
         class="w-full h-64 md:h-96 object-cover"
       />
       <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-    {:else if data.adventure.cover_asset_id}
-      <img
-        src={getImmichAssetUrl(data.adventure.cover_asset_id)}
-        alt={data.adventure.title}
-        class="w-full h-64 md:h-96 object-cover"
-      />
-      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
     {:else}
-      <div class="w-full h-64 md:h-96 bg-gradient-to-br from-ocean-400 to-ocean-600"></div>
+      <div class="w-full h-64 md:h-96 bg-gradient-to-br from-forest-400 to-forest-600"></div>
     {/if}
     
     <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8">
@@ -529,7 +519,7 @@
         {/if}
 
         <span class="flex items-center gap-1.5">
-          <div class="h-5 w-5 rounded-full bg-gradient-to-br from-coral-400 to-sunset-400 flex items-center justify-center text-white text-xs font-medium">
+          <div class="h-5 w-5 rounded-full bg-gradient-to-br from-terra-400 to-gold-400 flex items-center justify-center text-white text-xs font-medium">
             {data.adventure.author_name.charAt(0).toUpperCase()}
           </div>
           {data.adventure.author_name}
@@ -540,14 +530,14 @@
 
   <!-- Description -->
   {#if data.adventure.description}
-    <div class="glass rounded-2xl p-6 mb-4 border-t-4 border-coral-400">
-      <p class="text-lg text-navy-500 leading-relaxed">{data.adventure.description}</p>
+    <div class="card rounded-xl p-6 mb-4 border-t-4 border-terra-400">
+      <p class="text-lg text-ink-500 dark:text-cream-200 leading-relaxed">{data.adventure.description}</p>
     </div>
   {/if}
 
   <!-- Content -->
   {#if data.adventure.content}
-    <div class="band-sand rounded-2xl p-6 mb-4">
+    <div class="bg-cream-50 dark:bg-ink-800 rounded-xl p-6 mb-4">
       <div class="prose prose-lg max-w-none">
         {@html data.adventure.content}
       </div>
@@ -557,20 +547,20 @@
   <!-- Wave: Story -> Gallery -->
   <div class="wave-divider my-2">
     <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
-      <path d="M0 24 C200 48 400 0 600 24 C800 48 1000 0 1200 24 L1200 48 L0 48Z" fill="rgba(14,124,123,0.12)" />
-      <path d="M0 32 C300 48 500 12 700 32 C900 48 1100 12 1200 32 L1200 48 L0 48Z" fill="rgba(26,166,166,0.08)" />
+      <path d="M0 24 C200 48 400 0 600 24 C800 48 1000 0 1200 24 L1200 48 L0 48Z" fill="rgba(34,97,69,0.12)" />
+      <path d="M0 32 C300 48 500 12 700 32 C900 48 1100 12 1200 32 L1200 48 L0 48Z" fill="rgba(34,97,69,0.08)" />
     </svg>
   </div>
 
   <!-- Media Gallery -->
   {#if data.adventure.media && data.adventure.media.length > 0}
-    <div class="band-ocean rounded-2xl p-6 mb-4">
+    <div class="bg-forest-50 dark:bg-forest-900/30 rounded-xl p-6 mb-4">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <span class="text-2xl">📸</span>
           <div>
-            <h2 class="text-lg font-semibold text-navy-600">Photos & Videos</h2>
-            <p class="text-xs text-navy-400">Moments captured along the way</p>
+            <h2 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Photos & Videos</h2>
+            <p class="text-xs text-ink-400 dark:text-cream-300">Moments captured along the way</p>
           </div>
         </div>
         <div class="flex items-center gap-3">
@@ -578,7 +568,7 @@
             <button
               onclick={generateCaptions}
               disabled={aiGeneratingCaptions}
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-ocean-500 to-coral-500 text-white hover:from-ocean-600 hover:to-coral-600 disabled:opacity-50 transition-all"
+              class="btn-accent inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium disabled:opacity-50 transition-all"
             >
               {#if aiGeneratingCaptions}
                 <div class="h-3 w-3 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
@@ -592,15 +582,15 @@
             </button>
           {/if}
           {#if data.user && data.user.id === data.adventure.author_id}
-            <p class="text-xs text-navy-400">Click the star to feature a photo on the homepage</p>
+            <p class="text-xs text-ink-400 dark:text-cream-300">Click the star to feature a photo on the homepage</p>
           {/if}
         </div>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
         {#each data.adventure.media as media}
-          <div class="relative aspect-square rounded-2xl overflow-hidden group">
+          <div class="relative aspect-square rounded-xl overflow-hidden group">
             <img
-              src={media.file_path || getImmichAssetUrl(media.immich_asset_id, true)}
+              src={media.file_path}
               alt={media.caption || 'Adventure photo'}
               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               loading="lazy"
@@ -612,7 +602,7 @@
             {/if}
             {#if data.user && data.user.id === data.adventure.author_id}
               <button
-                class="absolute top-2 right-2 p-1.5 rounded-full backdrop-blur-sm transition-all {media.hero_image ? 'bg-sunset-400/90 text-white shadow-md' : 'bg-black/30 text-white/60 opacity-0 group-hover:opacity-100 hover:bg-black/50'}"
+                class="absolute top-2 right-2 p-1.5 rounded-full backdrop-blur-sm transition-all {media.hero_image ? 'bg-gold-400/90 text-white shadow-md' : 'bg-black/30 text-white/60 opacity-0 group-hover:opacity-100 hover:bg-black/50'}"
                 onclick={() => toggleHeroImage(media.id, !!media.hero_image)}
                 title={media.hero_image ? 'Remove from homepage hero' : 'Feature on homepage hero'}
               >
@@ -626,13 +616,13 @@
       </div>
       {#if data.user}
         <div
-          class="mt-4 rounded-2xl border-2 border-dashed border-sand-300 p-4 text-center hover:border-ocean-300 transition-colors {uploadingMedia ? 'pointer-events-none opacity-60' : ''}"
+          class="mt-4 rounded-xl border-2 border-dashed border-cream-300 dark:border-ink-600 p-4 text-center hover:border-forest-300 transition-colors {uploadingMedia ? 'pointer-events-none opacity-60' : ''}"
           role="region"
-          ondragover={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-ocean-400', 'bg-ocean-50/50'); }}
-          ondragleave={(e) => { e.currentTarget.classList.remove('border-ocean-400', 'bg-ocean-50/50'); }}
+          ondragover={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-forest-400', 'bg-forest-50/50'); }}
+          ondragleave={(e) => { e.currentTarget.classList.remove('border-forest-400', 'bg-forest-50/50'); }}
           ondrop={(e) => {
             e.preventDefault();
-            e.currentTarget.classList.remove('border-ocean-400', 'bg-ocean-50/50');
+            e.currentTarget.classList.remove('border-forest-400', 'bg-forest-50/50');
             const dt = e.dataTransfer;
             if (dt?.files?.length) {
               const input = document.getElementById('adventure-media-upload') as HTMLInputElement;
@@ -645,11 +635,11 @@
           <label for="adventure-media-upload" class="cursor-pointer">
             {#if uploadingMedia}
               <div class="flex items-center justify-center gap-2">
-                <div class="h-4 w-4 border-2 border-ocean-300 border-t-transparent rounded-full animate-spin"></div>
-                <p class="text-sm text-ocean-600">{uploadProgress}</p>
+                <div class="h-4 w-4 border-2 border-forest-300 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-sm text-forest-600">{uploadProgress}</p>
               </div>
             {:else}
-              <div class="flex items-center justify-center gap-2 text-navy-400 hover:text-ocean-500 transition-colors">
+              <div class="flex items-center justify-center gap-2 text-ink-400 dark:text-cream-300 hover:text-forest-500 transition-colors">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
@@ -658,10 +648,10 @@
             {/if}
           </label>
           {#if uploadProgress && !uploadingMedia}
-            <p class="text-xs text-ocean-500 mt-1">{uploadProgress}</p>
+            <p class="text-xs text-forest-500 mt-1">{uploadProgress}</p>
           {/if}
           {#if uploadErrors.length > 0}
-            <div class="text-xs text-coral-400 mt-1 space-y-0.5">
+            <div class="text-xs text-terra-400 mt-1 space-y-0.5">
               {#each uploadErrors as err}<p>{err}</p>{/each}
             </div>
           {/if}
@@ -673,31 +663,31 @@
   <!-- Wave: Gallery -> Side Quests -->
   <div class="wave-divider my-2">
     <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
-      <path d="M0 16 C150 48 350 0 500 20 C650 40 850 4 1050 24 C1150 34 1180 20 1200 16 L1200 48 L0 48Z" fill="rgba(224,143,13,0.1)" />
-      <path d="M0 28 C200 44 400 8 600 28 C800 44 1000 8 1200 28 L1200 48 L0 48Z" fill="rgba(249,186,85,0.07)" />
+      <path d="M0 16 C150 48 350 0 500 20 C650 40 850 4 1050 24 C1150 34 1180 20 1200 16 L1200 48 L0 48Z" fill="rgba(217,149,74,0.1)" />
+      <path d="M0 28 C200 44 400 8 600 28 C800 44 1000 8 1200 28 L1200 48 L0 48Z" fill="rgba(217,149,74,0.07)" />
     </svg>
   </div>
 
   <!-- Side Quests -->
-  <div class="band-sunset rounded-2xl p-6 mb-4">
+  <div class="bg-gold-50 dark:bg-gold-900/30 rounded-xl p-6 mb-4">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <span class="text-2xl">🗺️</span>
           <div>
-            <h2 class="text-lg font-semibold text-navy-600">Side Quests</h2>
-            <p class="text-xs text-navy-400">Detours, stops, and little adventures along the way</p>
+            <h2 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Side Quests</h2>
+            <p class="text-xs text-ink-400 dark:text-cream-300">Detours, stops, and little adventures along the way</p>
           </div>
         </div>
         {#if subAdventures.length > 0}
-          <div class="flex rounded-lg border border-sand-200 overflow-hidden text-xs">
+          <div class="flex rounded-lg border border-cream-200 dark:border-ink-600 overflow-hidden text-xs">
             <button
-              class="px-3 py-1.5 font-medium transition-colors {sideQuestView === 'timeline' ? 'bg-ocean-500 text-white' : 'bg-white text-navy-500 hover:bg-sand-50'}"
+              class="px-3 py-1.5 font-medium transition-colors {sideQuestView === 'timeline' ? 'bg-forest-500 text-white' : 'bg-white text-ink-500 hover:bg-cream-50 dark:bg-ink-700 dark:text-cream-200'}"
               onclick={() => sideQuestView = 'timeline'}
             >
               Timeline
             </button>
             <button
-              class="px-3 py-1.5 font-medium transition-colors {sideQuestView === 'cards' ? 'bg-ocean-500 text-white' : 'bg-white text-navy-500 hover:bg-sand-50'}"
+              class="px-3 py-1.5 font-medium transition-colors {sideQuestView === 'cards' ? 'bg-forest-500 text-white' : 'bg-white text-ink-500 hover:bg-cream-50 dark:bg-ink-700 dark:text-cream-200'}"
               onclick={() => sideQuestView = 'cards'}
             >
               Cards
@@ -708,39 +698,39 @@
       {#if data.user}
         <button
           onclick={() => { if (editingSQId) cancelEditSQ(); showSideQuestForm = !showSideQuestForm; }}
-          class="text-sm text-ocean-500 hover:text-ocean-600 font-medium"
+          class="text-sm text-forest-500 hover:text-forest-600 font-medium"
         >
           {(showSideQuestForm || editingSQId) ? 'Cancel' : '+ Add Side Quest'}
         </button>
       {/if}
 
     {#if showSideQuestForm || editingSQId}
-      <form class="glass rounded-2xl p-5 mb-6 space-y-4" onsubmit={(e) => { e.preventDefault(); submitSideQuest(); }}>
+      <form class="card rounded-xl p-5 mb-6 space-y-4" onsubmit={(e) => { e.preventDefault(); submitSideQuest(); }}>
         <div class="flex items-center justify-between">
-          <h3 class="text-sm font-semibold text-navy-600">{editingSQId ? 'Edit Side Quest' : 'New Side Quest'}</h3>
+          <h3 class="text-sm font-semibold text-ink-600 dark:text-cream-100">{editingSQId ? 'Edit Side Quest' : 'New Side Quest'}</h3>
           {#if editingSQId}
-            <button type="button" class="text-xs text-navy-400 hover:text-navy-600" onclick={cancelEditSQ}>Cancel</button>
+            <button type="button" class="text-xs text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100" onclick={cancelEditSQ}>Cancel</button>
           {/if}
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label for="sqTitle" class="block text-sm font-medium text-navy-600 mb-1">Title</label>
+            <label for="sqTitle" class="block text-sm font-medium text-ink-600 dark:text-cream-100 mb-1">Title</label>
             <input id="sqTitle" type="text" bind:value={sqTitle} placeholder="e.g. Aquarium Visit" required
-              class="w-full rounded-xl border border-sand-200 bg-white px-4 py-2.5 text-sm text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100" />
+              class="input w-full px-4 py-2.5 text-sm" />
           </div>
           <div>
-            <label for="sqDay" class="block text-sm font-medium text-navy-600 mb-1">Day (optional)</label>
+            <label for="sqDay" class="block text-sm font-medium text-ink-600 dark:text-cream-100 mb-1">Day (optional)</label>
             <input id="sqDay" type="number" min="1" bind:value={sqDay} placeholder="e.g. 2"
-              class="w-full rounded-xl border border-sand-200 bg-white px-4 py-2.5 text-sm text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100" />
+              class="input w-full px-4 py-2.5 text-sm" />
           </div>
         </div>
         <div>
-          <label for="sqNote" class="block text-sm font-medium text-navy-600 mb-1">Note (optional)</label>
+          <label for="sqNote" class="block text-sm font-medium text-ink-600 dark:text-cream-100 mb-1">Note (optional)</label>
           <textarea id="sqNote" bind:value={sqNote} placeholder="A short note about this side quest..." rows="2"
-            class="w-full rounded-xl border border-sand-200 bg-white px-4 py-2.5 text-sm text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100 resize-none"></textarea>
+            class="input w-full px-4 py-2.5 text-sm resize-none"></textarea>
         </div>
         <div>
-          <label class="block text-sm font-medium text-navy-600 mb-1">Rating (optional)</label>
+          <label class="block text-sm font-medium text-ink-600 dark:text-cream-100 mb-1">Rating (optional)</label>
           <div class="flex gap-1">
             {#each Array(5) as _, i}
               <button type="button" class="text-xl transition-transform hover:scale-110"
@@ -751,35 +741,35 @@
               </button>
             {/each}
             {#if sqRating > 0}
-              <span class="ml-2 text-sm text-navy-400 self-center">{sqRating}/5</span>
+              <span class="ml-2 text-sm text-ink-400 dark:text-cream-300 self-center">{sqRating}/5</span>
             {/if}
           </div>
         </div>
         <button type="submit" disabled={submittingSQ || !sqTitle.trim()}
-          class="rounded-full bg-ocean-500 px-5 py-2 text-sm font-medium text-white hover:bg-ocean-600 disabled:opacity-50 transition-colors">
+          class="btn-primary px-5 py-2 text-sm font-medium disabled:opacity-50 transition-colors">
           {submittingSQ ? 'Saving...' : editingSQId ? 'Save Changes' : 'Add Side Quest'}
         </button>
       </form>
     {/if}
 
     {#if subAdventures.length === 0}
-      <div class="glass rounded-2xl p-8 text-center">
+      <div class="card rounded-xl p-8 text-center">
         <div class="text-3xl mb-3">🗺️</div>
-        <p class="text-navy-400 text-sm">No side quests yet. Add stops, activities, and little detours from this trip!</p>
+        <p class="text-ink-400 dark:text-cream-300 text-sm">No side quests yet. Add stops, activities, and little detours from this trip!</p>
       </div>
     {:else if sideQuestView === 'timeline'}
       <!-- Timeline View -->
       <div class="relative">
-        <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-sand-200"></div>
+        <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-cream-200 dark:bg-ink-600"></div>
         {#each Object.entries(subAdventuresByDay.grouped).sort(([a], [b]) => Number(a) - Number(b)) as [day, items]}
           <div class="relative pl-10 pb-6">
-            <div class="absolute left-2.5 top-1 h-4 w-4 rounded-full bg-ocean-500 border-2 border-white shadow-sm flex items-center justify-center">
+            <div class="absolute left-2.5 top-1 h-4 w-4 rounded-full bg-forest-500 border-2 border-white shadow-sm flex items-center justify-center">
               <span class="text-[8px] text-white font-bold">{day}</span>
             </div>
-            <p class="text-xs font-semibold text-ocean-600 uppercase tracking-wider mb-3">Day {day}</p>
+            <p class="text-xs font-semibold text-forest-600 dark:text-forest-300 uppercase tracking-wider mb-3">Day {day}</p>
             <div class="space-y-3">
               {#each items as sq (sq.id)}
-                <div class="glass rounded-2xl overflow-hidden group hover:shadow-md transition-shadow">
+                <div class="card rounded-xl overflow-hidden group hover:shadow-md transition-shadow">
                   <!-- Main row: thumbnail + content -->
                   <div class="flex">
                     <!-- Thumbnail -->
@@ -789,10 +779,10 @@
                         {#if src}
                           <img {src} alt={sq.media[0].caption || sq.title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                         {:else}
-                          <div class="w-full h-full bg-gradient-to-br from-ocean-100 to-ocean-200 flex items-center justify-center text-2xl">🗺️</div>
+                          <div class="w-full h-full bg-gradient-to-br from-cream-100 to-cream-200 dark:from-ink-600 dark:to-ink-700 flex items-center justify-center text-2xl">🗺️</div>
                         {/if}
                       {:else}
-                        <div class="w-full h-full bg-gradient-to-br from-ocean-100 to-ocean-200 flex items-center justify-center text-2xl">🗺️</div>
+                        <div class="w-full h-full bg-gradient-to-br from-cream-100 to-cream-200 dark:from-ink-600 dark:to-ink-700 flex items-center justify-center text-2xl">🗺️</div>
                       {/if}
                       {#if data.user}
                         <input type="file" id="sq-upload-{sq.id}" accept="image/*,video/*" multiple class="hidden"
@@ -814,27 +804,27 @@
                       <div class="flex items-start justify-between gap-2">
                         <div class="flex-1 min-w-0">
                           <div class="flex items-center gap-2 mb-1">
-                            <h3 class="font-semibold text-navy-600 text-sm truncate">{sq.title}</h3>
+                            <h3 class="font-semibold text-ink-600 dark:text-cream-100 text-sm truncate">{sq.title}</h3>
                             {#if sq.rating}
                               <span class="text-xs shrink-0">{Array(sq.rating).fill('🔥').join('')}</span>
                             {/if}
                           </div>
                           {#if sq.note}
-                            <p class="text-xs text-navy-400 leading-relaxed line-clamp-2">{sq.note}</p>
+                            <p class="text-xs text-ink-400 dark:text-cream-300 leading-relaxed line-clamp-2">{sq.note}</p>
                           {/if}
                         </div>
                         {#if data.user}
                           {#if deletingSQId === sq.id}
                             <div class="flex items-center gap-1.5 shrink-0">
-                              <button type="button" class="text-xs text-coral-500 hover:text-coral-700 font-medium" onclick={() => confirmDeleteSQ(sq.id)}>Yes</button>
-                              <button type="button" class="text-xs text-navy-400 hover:text-navy-600 font-medium" onclick={() => deletingSQId = null}>No</button>
+                              <button type="button" class="text-xs text-terra-500 hover:text-terra-700 font-medium" onclick={() => confirmDeleteSQ(sq.id)}>Yes</button>
+                              <button type="button" class="text-xs text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 font-medium" onclick={() => deletingSQId = null}>No</button>
                             </div>
                           {:else}
                             <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
-                              <button type="button" class="p-1 rounded-lg text-navy-300 hover:text-ocean-500 hover:bg-ocean-50 transition-colors" onclick={() => startEditSQ(sq)} title="Edit">
+                              <button type="button" class="p-1 rounded-lg text-ink-300 dark:text-cream-400 hover:text-forest-500 hover:bg-forest-50 transition-colors" onclick={() => startEditSQ(sq)} title="Edit">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                               </button>
-                              <button type="button" class="p-1 rounded-lg text-navy-300 hover:text-coral-500 hover:bg-coral-50 transition-colors" onclick={() => deleteSideQuest(sq.id)} title="Remove">
+                              <button type="button" class="p-1 rounded-lg text-ink-300 dark:text-cream-400 hover:text-terra-500 hover:bg-terra-50 transition-colors" onclick={() => deleteSideQuest(sq.id)} title="Remove">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                               </button>
                             </div>
@@ -862,11 +852,11 @@
 
         {#if subAdventuresByDay.undated.length > 0}
           <div class="relative pl-10 pb-6">
-            <div class="absolute left-2.5 top-1 h-4 w-4 rounded-full bg-sand-400 border-2 border-white shadow-sm"></div>
-            <p class="text-xs font-semibold text-navy-400 uppercase tracking-wider mb-3">Other Stops</p>
+            <div class="absolute left-2.5 top-1 h-4 w-4 rounded-full bg-cream-400 border-2 border-white shadow-sm"></div>
+            <p class="text-xs font-semibold text-ink-400 dark:text-cream-300 uppercase tracking-wider mb-3">Other Stops</p>
             <div class="space-y-3">
               {#each subAdventuresByDay.undated as sq (sq.id)}
-                <div class="glass rounded-2xl overflow-hidden group hover:shadow-md transition-shadow">
+                <div class="card rounded-xl overflow-hidden group hover:shadow-md transition-shadow">
                   <div class="flex">
                     <div class="relative w-28 h-28 sm:w-36 sm:h-32 shrink-0 overflow-hidden">
                       {#if sq.media && sq.media.length > 0}
@@ -874,10 +864,10 @@
                         {#if src}
                           <img {src} alt={sq.media[0].caption || sq.title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                         {:else}
-                          <div class="w-full h-full bg-gradient-to-br from-ocean-100 to-ocean-200 flex items-center justify-center text-2xl">🗺️</div>
+                          <div class="w-full h-full bg-gradient-to-br from-cream-100 to-cream-200 dark:from-ink-600 dark:to-ink-700 flex items-center justify-center text-2xl">🗺️</div>
                         {/if}
                       {:else}
-                        <div class="w-full h-full bg-gradient-to-br from-ocean-100 to-ocean-200 flex items-center justify-center text-2xl">🗺️</div>
+                        <div class="w-full h-full bg-gradient-to-br from-cream-100 to-cream-200 dark:from-ink-600 dark:to-ink-700 flex items-center justify-center text-2xl">🗺️</div>
                       {/if}
                       {#if data.user}
                         <input type="file" id="sq-upload-{sq.id}" accept="image/*,video/*" multiple class="hidden"
@@ -898,27 +888,27 @@
                       <div class="flex items-start justify-between gap-2">
                         <div class="flex-1 min-w-0">
                           <div class="flex items-center gap-2 mb-1">
-                            <h3 class="font-semibold text-navy-600 text-sm truncate">{sq.title}</h3>
+                            <h3 class="font-semibold text-ink-600 dark:text-cream-100 text-sm truncate">{sq.title}</h3>
                             {#if sq.rating}
                               <span class="text-xs shrink-0">{Array(sq.rating).fill('🔥').join('')}</span>
                             {/if}
                           </div>
                           {#if sq.note}
-                            <p class="text-xs text-navy-400 leading-relaxed line-clamp-2">{sq.note}</p>
+                            <p class="text-xs text-ink-400 dark:text-cream-300 leading-relaxed line-clamp-2">{sq.note}</p>
                           {/if}
                         </div>
                         {#if data.user}
                           {#if deletingSQId === sq.id}
                             <div class="flex items-center gap-1.5 shrink-0">
-                              <button type="button" class="text-xs text-coral-500 hover:text-coral-700 font-medium" onclick={() => confirmDeleteSQ(sq.id)}>Yes</button>
-                              <button type="button" class="text-xs text-navy-400 hover:text-navy-600 font-medium" onclick={() => deletingSQId = null}>No</button>
+                              <button type="button" class="text-xs text-terra-500 hover:text-terra-700 font-medium" onclick={() => confirmDeleteSQ(sq.id)}>Yes</button>
+                              <button type="button" class="text-xs text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 font-medium" onclick={() => deletingSQId = null}>No</button>
                             </div>
                           {:else}
                             <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
-                              <button type="button" class="p-1 rounded-lg text-navy-300 hover:text-ocean-500 hover:bg-ocean-50 transition-colors" onclick={() => startEditSQ(sq)} title="Edit">
+                              <button type="button" class="p-1 rounded-lg text-ink-300 dark:text-cream-400 hover:text-forest-500 hover:bg-forest-50 transition-colors" onclick={() => startEditSQ(sq)} title="Edit">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                               </button>
-                              <button type="button" class="p-1 rounded-lg text-navy-300 hover:text-coral-500 hover:bg-coral-50 transition-colors" onclick={() => deleteSideQuest(sq.id)} title="Remove">
+                              <button type="button" class="p-1 rounded-lg text-ink-300 dark:text-cream-400 hover:text-terra-500 hover:bg-terra-50 transition-colors" onclick={() => deleteSideQuest(sq.id)} title="Remove">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                               </button>
                             </div>
@@ -947,7 +937,7 @@
       <!-- Cards View -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {#each subAdventures as sq (sq.id)}
-          <div class="glass rounded-2xl overflow-hidden group hover:shadow-md transition-shadow">
+          <div class="card rounded-xl overflow-hidden group hover:shadow-md transition-shadow">
             {#if sq.media && sq.media.length > 0}
               {@const src = sqImageUrl(sq.media[0])}
               {#if src}
@@ -970,13 +960,13 @@
                 </div>
               {/if}
             {:else}
-              <div class="relative aspect-video bg-gradient-to-br from-ocean-100 to-ocean-200 flex items-center justify-center">
+              <div class="relative aspect-video bg-gradient-to-br from-cream-100 to-cream-200 dark:from-ink-600 dark:to-ink-700 flex items-center justify-center">
                 {#if data.user}
                   <input type="file" id="sq-card-upload-{sq.id}" accept="image/*,video/*" multiple class="hidden"
                     onchange={(e) => handleSQMediaUpload(sq.id, e)} disabled={sqUploading[sq.id]} />
-                  <label for="sq-card-upload-{sq.id}" class="cursor-pointer flex flex-col items-center gap-1 text-ocean-400 hover:text-ocean-500 transition-colors">
+                  <label for="sq-card-upload-{sq.id}" class="cursor-pointer flex flex-col items-center gap-1 text-forest-400 hover:text-forest-500 transition-colors">
                     {#if sqUploading[sq.id]}
-                      <div class="h-5 w-5 border-2 border-ocean-300 border-t-transparent rounded-full animate-spin"></div>
+                      <div class="h-5 w-5 border-2 border-forest-300 border-t-transparent rounded-full animate-spin"></div>
                       <span class="text-xs">{sqUploadProgress[sq.id]}</span>
                     {:else}
                       <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -994,30 +984,30 @@
               <div class="flex items-start justify-between gap-2">
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-1">
-                    <h3 class="font-semibold text-navy-600 text-sm">{sq.title}</h3>
+                    <h3 class="font-semibold text-ink-600 dark:text-cream-100 text-sm">{sq.title}</h3>
                     {#if sq.rating}
                       <span class="text-xs">{Array(sq.rating).fill('🔥').join('')}</span>
                     {/if}
                   </div>
                   {#if sq.day_number}
-                    <span class="inline-block text-[10px] font-medium text-ocean-600 bg-ocean-50 rounded-full px-2 py-0.5 mb-1">Day {sq.day_number}</span>
+                    <span class="inline-block text-[10px] font-medium text-forest-600 bg-forest-50 dark:text-forest-300 dark:bg-forest-900 rounded-full px-2 py-0.5 mb-1">Day {sq.day_number}</span>
                   {/if}
                   {#if sq.note}
-                    <p class="text-xs text-navy-400 leading-relaxed line-clamp-2">{sq.note}</p>
+                    <p class="text-xs text-ink-400 dark:text-cream-300 leading-relaxed line-clamp-2">{sq.note}</p>
                   {/if}
                 </div>
                 {#if data.user}
                   {#if deletingSQId === sq.id}
                     <div class="flex items-center gap-1.5 shrink-0">
-                      <button type="button" class="text-xs text-coral-500 hover:text-coral-700 font-medium" onclick={() => confirmDeleteSQ(sq.id)}>Yes</button>
-                      <button type="button" class="text-xs text-navy-400 hover:text-navy-600 font-medium" onclick={() => deletingSQId = null}>No</button>
+                      <button type="button" class="text-xs text-terra-500 hover:text-terra-700 font-medium" onclick={() => confirmDeleteSQ(sq.id)}>Yes</button>
+                      <button type="button" class="text-xs text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 font-medium" onclick={() => deletingSQId = null}>No</button>
                     </div>
                   {:else}
                     <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
-                      <button type="button" class="p-1 rounded-lg text-navy-300 hover:text-ocean-500 hover:bg-ocean-50 transition-colors" onclick={() => startEditSQ(sq)} title="Edit">
+                      <button type="button" class="p-1 rounded-lg text-ink-300 dark:text-cream-400 hover:text-forest-500 hover:bg-forest-50 transition-colors" onclick={() => startEditSQ(sq)} title="Edit">
                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                       </button>
-                      <button type="button" class="p-1 rounded-lg text-navy-300 hover:text-coral-500 hover:bg-coral-50 transition-colors" onclick={() => deleteSideQuest(sq.id)} title="Remove">
+                      <button type="button" class="p-1 rounded-lg text-ink-300 dark:text-cream-400 hover:text-terra-500 hover:bg-terra-50 transition-colors" onclick={() => deleteSideQuest(sq.id)} title="Remove">
                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>
@@ -1034,30 +1024,30 @@
   <!-- Wave: Side Quests -> Social -->
   <div class="wave-divider my-2">
     <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
-      <path d="M0 20 C180 44 380 4 580 24 C780 44 980 4 1200 20 L1200 48 L0 48Z" fill="rgba(232,80,91,0.1)" />
-      <path d="M0 30 C250 48 450 8 650 28 C850 44 1050 12 1200 30 L1200 48 L0 48Z" fill="rgba(239,118,129,0.07)" />
+      <path d="M0 20 C180 44 380 4 580 24 C780 44 980 4 1200 20 L1200 48 L0 48Z" fill="rgba(192,73,81,0.1)" />
+      <path d="M0 30 C250 48 450 8 650 28 C850 44 1050 12 1200 30 L1200 48 L0 48Z" fill="rgba(204,102,112,0.07)" />
     </svg>
   </div>
 
   <!-- Reactions -->
-  <div class="band-coral rounded-2xl p-6 mb-4">
+  <div class="bg-terra-50 dark:bg-terra-900/30 rounded-xl p-6 mb-4">
     <div class="flex items-center gap-3 mb-4">
       <span class="text-2xl">❤️</span>
       <div>
-        <h2 class="text-lg font-semibold text-navy-600">Reactions</h2>
-        <p class="text-xs text-navy-400">Show how this adventure made you feel</p>
+        <h2 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Reactions</h2>
+        <p class="text-xs text-ink-400 dark:text-cream-300">Show how this adventure made you feel</p>
       </div>
     </div>
     
     <div class="flex flex-wrap gap-2 mb-4">
       {#each reactionEmojis as emoji}
         <button
-          class="px-4 py-2 rounded-full border border-sand-200 hover:border-ocean-300 hover:bg-ocean-50 transition-colors text-lg"
+          class="px-4 py-2 rounded-lg border border-cream-200 dark:border-ink-600 hover:border-forest-300 hover:bg-forest-50 dark:hover:bg-forest-900/30 transition-colors text-lg"
           onclick={() => addReaction(emoji)}
         >
           {emoji}
           {#if data.reactions.filter(r => r.emoji === emoji).length > 0}
-            <span class="ml-1 text-sm text-navy-400">
+            <span class="ml-1 text-sm text-ink-400 dark:text-cream-300">
               {data.reactions.filter(r => r.emoji === emoji).length}
             </span>
           {/if}
@@ -1067,7 +1057,7 @@
 
     {#if data.user}
       <div class="flex items-center gap-2">
-        <button class="inline-flex items-center gap-2 text-sm text-ocean-500 hover:text-ocean-600 transition-colors">
+        <button class="inline-flex items-center gap-2 text-sm text-forest-500 hover:text-forest-600 transition-colors">
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
@@ -1078,12 +1068,12 @@
   </div>
 
   <!-- Comments -->
-  <div class="band-sand rounded-2xl p-6 mb-4">
+  <div class="bg-cream-50 dark:bg-ink-800 rounded-xl p-6 mb-4">
     <div class="flex items-center gap-3 mb-6">
       <span class="text-2xl">💬</span>
       <div>
-        <h2 class="text-lg font-semibold text-navy-600">Comments</h2>
-        <p class="text-xs text-navy-400">Share your thoughts and memories</p>
+        <h2 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Comments</h2>
+        <p class="text-xs text-ink-400 dark:text-cream-300">Share your thoughts and memories</p>
       </div>
     </div>
 
@@ -1092,40 +1082,40 @@
         <textarea
           bind:value={newComment}
           placeholder="Share your thoughts..."
-          class="w-full rounded-xl border border-sand-200 bg-white p-4 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100 resize-none"
+          class="input w-full p-4 resize-none"
           rows="3"
         ></textarea>
         <div class="flex justify-end mt-2">
           <button
             type="submit"
             disabled={!newComment.trim() || submittingComment}
-            class="inline-flex items-center gap-2 rounded-full bg-ocean-500 px-4 py-2 text-sm font-medium text-white hover:bg-ocean-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            class="btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {submittingComment ? 'Posting...' : 'Post Comment'}
           </button>
         </div>
       </form>
     {:else}
-      <p class="text-sm text-navy-400 mb-6">
-        <a href="/auth/login" class="text-ocean-500 hover:text-ocean-600">Sign in</a> to leave a comment.
+      <p class="text-sm text-ink-400 dark:text-cream-300 mb-6">
+        <a href="/auth/login" class="text-forest-500 hover:text-forest-600">Sign in</a> to leave a comment.
       </p>
     {/if}
 
     <!-- Comments list -->
     {#if data.comments.length === 0}
-      <p class="text-center text-navy-400 py-8">No comments yet. Be the first to share!</p>
+      <p class="text-center text-ink-400 dark:text-cream-300 py-8">No comments yet. Be the first to share!</p>
     {:else}
       <div class="space-y-4">
         {#each data.comments as comment}
-          <div class="border-l-2 border-sand-200 pl-4">
+          <div class="border-l-2 border-cream-200 dark:border-ink-600 pl-4">
             <div class="flex items-center gap-2 mb-2">
-              <div class="h-6 w-6 rounded-full bg-gradient-to-br from-ocean-400 to-ocean-500 flex items-center justify-center text-white text-xs font-medium">
+              <div class="h-6 w-6 rounded-full bg-gradient-to-br from-forest-400 to-forest-500 flex items-center justify-center text-white text-xs font-medium">
                 {comment.author?.name?.charAt(0).toUpperCase() || '?'}
               </div>
-              <span class="text-sm font-medium text-navy-600">{comment.author?.name || 'Unknown'}</span>
-              <span class="text-xs text-navy-400">{timeAgo(comment.created_at)}</span>
+              <span class="text-sm font-medium text-ink-600 dark:text-cream-100">{comment.author?.name || 'Unknown'}</span>
+              <span class="text-xs text-ink-400 dark:text-cream-300">{timeAgo(comment.created_at)}</span>
             </div>
-            <p class="text-navy-500 text-sm">{comment.content}</p>
+            <p class="text-ink-500 dark:text-cream-200 text-sm">{comment.content}</p>
           </div>
         {/each}
       </div>
@@ -1133,20 +1123,20 @@
   </div>
 
   <!-- Marshmallow Rating -->
-  <div class="band-white rounded-2xl p-6 mb-4 border-t-4 border-sunset-400">
+  <div class="bg-white dark:bg-ink-800 rounded-xl p-6 mb-4 border-t-4 border-gold-400">
     <div class="flex items-center gap-3 mb-3">
       <span class="text-2xl">🔥</span>
       <div>
-        <h2 class="text-lg font-semibold text-navy-600">Rating</h2>
-        <p class="text-xs text-navy-400">How fire was this adventure?</p>
+        <h2 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Rating</h2>
+        <p class="text-xs text-ink-400 dark:text-cream-300">How fire was this adventure?</p>
       </div>
     </div>
     {#if data.ratings.length > 0}
       <div class="flex items-center gap-3 mb-4">
         <span class="text-3xl">{data.avgRating >= 1 ? '🔥' : '🏕️'}</span>
         <div>
-          <p class="text-2xl font-bold text-navy-600">{data.avgRating}</p>
-          <p class="text-xs text-navy-400">{data.ratings.length} rating{data.ratings.length > 1 ? 's' : ''}</p>
+          <p class="text-2xl font-bold text-ink-600 dark:text-cream-100">{data.avgRating}</p>
+          <p class="text-xs text-ink-400 dark:text-cream-300">{data.ratings.length} rating{data.ratings.length > 1 ? 's' : ''}</p>
         </div>
         <div class="flex gap-0.5 ml-2">
           {#each Array(5) as _, i}
@@ -1157,7 +1147,7 @@
     {/if}
     {#if data.user}
       <div>
-        <p class="text-sm text-navy-500 mb-2">Your rating:</p>
+        <p class="text-sm text-ink-500 dark:text-cream-200 mb-2">Your rating:</p>
         <div class="flex gap-1">
           {#each Array(5) as _, i}
             <button
@@ -1171,13 +1161,13 @@
             </button>
           {/each}
           {#if myRating > 0}
-            <span class="ml-2 text-sm text-navy-400 self-center">{myRating}/5 fires</span>
+            <span class="ml-2 text-sm text-ink-400 dark:text-cream-300 self-center">{myRating}/5 fires</span>
           {/if}
         </div>
       </div>
     {:else}
-      <p class="text-sm text-navy-400">
-        <a href="/auth/login" class="text-ocean-500 hover:text-ocean-600">Sign in</a> to rate this adventure.
+      <p class="text-sm text-ink-400 dark:text-cream-300">
+        <a href="/auth/login" class="text-forest-500 hover:text-forest-600">Sign in</a> to rate this adventure.
       </p>
     {/if}
   </div>
@@ -1185,19 +1175,19 @@
   <!-- Wave: Rating -> Stories -->
   <div class="wave-divider my-2">
     <svg viewBox="0 0 1200 48" preserveAspectRatio="none" fill="none">
-      <path d="M0 24 C200 4 400 44 600 24 C800 4 1000 44 1200 24 L1200 48 L0 48Z" fill="rgba(14,124,123,0.1)" />
-      <path d="M0 32 C300 12 500 44 700 24 C900 8 1100 36 1200 32 L1200 48 L0 48Z" fill="rgba(26,166,166,0.07)" />
+      <path d="M0 24 C200 4 400 44 600 24 C800 4 1000 44 1200 24 L1200 48 L0 48Z" fill="rgba(34,97,69,0.1)" />
+      <path d="M0 32 C300 12 500 44 700 24 C900 8 1100 36 1200 32 L1200 48 L0 48Z" fill="rgba(34,97,69,0.07)" />
     </svg>
   </div>
 
   <!-- Stories / Blog -->
-  <div class="band-ocean rounded-2xl p-6 mb-4">
+  <div class="bg-forest-50 dark:bg-forest-900/30 rounded-xl p-6 mb-4">
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-3">
         <span class="text-2xl">📖</span>
         <div>
-          <h2 class="text-lg font-semibold text-navy-600">Stories & Memories</h2>
-          <p class="text-xs text-navy-400">Longer tales and favorite moments</p>
+          <h2 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Stories & Memories</h2>
+          <p class="text-xs text-ink-400 dark:text-cream-300">Longer tales and favorite moments</p>
         </div>
       </div>
       {#if data.user}
@@ -1206,7 +1196,7 @@
             <button
               onclick={generateStory}
               disabled={aiGeneratingStory}
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-ocean-500 to-coral-500 text-white hover:from-ocean-600 hover:to-coral-600 disabled:opacity-50 transition-all"
+              class="btn-accent inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium disabled:opacity-50 transition-all"
             >
               {#if aiGeneratingStory}
                 <div class="h-3 w-3 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
@@ -1221,7 +1211,7 @@
           {/if}
           <button
             onclick={() => showStoryForm = !showStoryForm}
-            class="text-sm text-ocean-500 hover:text-ocean-600 font-medium"
+            class="text-sm text-forest-500 hover:text-forest-600 font-medium"
           >
             {showStoryForm ? 'Cancel' : '+ Share a Story'}
           </button>
@@ -1232,37 +1222,37 @@
     {#if showStoryForm}
       <form class="mb-6 space-y-3" onsubmit={(e) => { e.preventDefault(); submitStory(); }}>
         <input type="text" bind:value={storyTitle} placeholder="Story title (optional)"
-          class="w-full rounded-xl border border-sand-200 bg-white px-4 py-2.5 text-sm text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100" />
+          class="input w-full px-4 py-2.5 text-sm" />
         <textarea bind:value={storyContent} placeholder="Share your memory of this adventure..." rows="4"
-          class="w-full rounded-xl border border-sand-200 bg-white px-4 py-3 text-navy-600 placeholder:text-navy-300 focus:border-ocean-300 focus:ring-2 focus:ring-ocean-100 resize-y"></textarea>
+          class="input w-full px-4 py-3 resize-y"></textarea>
         <button type="submit" disabled={submittingStory || !storyContent.trim()}
-          class="rounded-full bg-ocean-500 px-5 py-2 text-sm font-medium text-white hover:bg-ocean-600 disabled:opacity-50 transition-colors">
+          class="btn-primary px-5 py-2 text-sm font-medium disabled:opacity-50 transition-colors">
           {submittingStory ? 'Posting...' : 'Post Story'}
         </button>
       </form>
     {/if}
 
     {#if data.stories.length === 0}
-      <p class="text-sm text-navy-400 italic">No stories yet. Be the first to share a memory!</p>
+      <p class="text-sm text-ink-400 dark:text-cream-300 italic">No stories yet. Be the first to share a memory!</p>
     {:else}
       <div class="space-y-4">
         {#each data.stories as story}
-          <div class="p-4 rounded-xl bg-sand-50 border border-sand-200/50">
+          <div class="p-4 rounded-xl bg-cream-50 dark:bg-ink-700 border border-cream-200 dark:border-ink-600/50">
             <div class="flex items-center gap-2 mb-2">
               {#if story.author_avatar}
                 <img src={story.author_avatar} alt="" class="h-6 w-6 rounded-full object-cover" />
               {:else}
-                <div class="h-6 w-6 rounded-full bg-gradient-to-br from-coral-400 to-sunset-400 flex items-center justify-center text-white text-[9px] font-medium">
+                <div class="h-6 w-6 rounded-full bg-gradient-to-br from-terra-400 to-gold-400 flex items-center justify-center text-white text-[9px] font-medium">
                   {story.author_name?.charAt(0).toUpperCase()}
                 </div>
               {/if}
-              <span class="text-sm font-medium text-navy-600">{story.author_name}</span>
-              <span class="text-xs text-navy-400">{new Date(story.created_at).toLocaleDateString()}</span>
+              <span class="text-sm font-medium text-ink-600 dark:text-cream-100">{story.author_name}</span>
+              <span class="text-xs text-ink-400 dark:text-cream-300">{new Date(story.created_at).toLocaleDateString()}</span>
             </div>
             {#if story.title}
-              <h3 class="font-semibold text-navy-600 mb-1">{story.title}</h3>
+              <h3 class="font-semibold text-ink-600 dark:text-cream-100 mb-1">{story.title}</h3>
             {/if}
-            <p class="text-sm text-navy-500 whitespace-pre-wrap">{story.content}</p>
+            <p class="text-sm text-ink-500 dark:text-cream-200 whitespace-pre-wrap">{story.content}</p>
           </div>
         {/each}
       </div>
@@ -1271,11 +1261,11 @@
 
   <!-- Actions -->
   {#if data.user && data.user.id === data.adventure.author_id}
-    <div class="glass rounded-2xl p-6 mb-4 border-t-4 border-ocean-400">
+    <div class="card rounded-xl p-6 mb-4 border-t-4 border-forest-400">
       <div class="flex flex-wrap gap-3">
       <a
         href="/adventures/{data.adventure.slug}/edit"
-        class="inline-flex items-center gap-2 rounded-full border border-sand-300 bg-white px-4 py-2 text-sm font-medium text-navy-600 hover:bg-sand-50 transition-colors"
+        class="btn-secondary inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors"
       >
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -1284,7 +1274,7 @@
       </a>
       <button
         onclick={createShareLink}
-        class="inline-flex items-center gap-2 rounded-full border border-sand-300 bg-white px-4 py-2 text-sm font-medium text-navy-600 hover:bg-sand-50 transition-colors"
+        class="btn-secondary inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors"
       >
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -1299,9 +1289,9 @@
 <!-- Share Dialog -->
 {#if showShareDialog}
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-    <div class="glass rounded-3xl p-6 max-w-md w-full mx-4">
-      <h3 class="text-lg font-semibold text-navy-600 mb-4">Share Adventure</h3>
-      <p class="text-sm text-navy-400 mb-4">
+    <div class="card rounded-xl p-6 max-w-md w-full mx-4">
+      <h3 class="text-lg font-semibold text-ink-600 dark:text-cream-100 mb-4">Share Adventure</h3>
+      <p class="text-sm text-ink-400 dark:text-cream-300 mb-4">
         Copy this link to share this adventure with others:
       </p>
       <div class="flex items-center gap-2">
@@ -1309,18 +1299,18 @@
           type="text"
           value={shareLink}
           readonly
-          class="flex-1 rounded-xl border border-sand-200 bg-white px-4 py-2 text-sm text-navy-600"
+          class="input flex-1 px-4 py-2 text-sm"
         />
         <button
           onclick={copyShareLink}
-          class="rounded-xl bg-ocean-500 px-4 py-2 text-sm font-medium text-white hover:bg-ocean-600 transition-colors"
+          class="btn-primary px-4 py-2 text-sm font-medium transition-colors"
         >
           Copy
         </button>
       </div>
       <button
         onclick={() => showShareDialog = false}
-        class="w-full mt-4 rounded-xl border border-sand-200 bg-white px-4 py-2 text-sm font-medium text-navy-600 hover:bg-sand-50 transition-colors"
+        class="btn-secondary w-full mt-4 px-4 py-2 text-sm font-medium transition-colors"
       >
         Close
       </button>

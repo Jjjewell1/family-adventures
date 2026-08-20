@@ -15,7 +15,7 @@ FROM base AS runner
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV BODY_SIZE_LIMIT=104857600
-RUN mkdir -p /app/data /app/build/client/uploads
+RUN mkdir -p /app/data/uploads
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json

@@ -5,7 +5,7 @@ import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { randomBytes } from 'crypto';
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || './build/client/uploads';
+const UPLOAD_DIR = process.env.UPLOAD_DIR || './data/uploads';
 const ALLOWED_EXTENSIONS: Record<string, string[]> = {
   'jpg': ['image/jpeg'], 'jpeg': ['image/jpeg'], 'png': ['image/png'],
   'gif': ['image/gif'], 'webp': ['image/webp'],
