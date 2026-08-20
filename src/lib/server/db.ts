@@ -3,6 +3,7 @@ import { env } from '$env/dynamic/private';
 import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import { dirname } from 'path';
 import { createHmac, randomBytes } from 'crypto';
+import { detectMediaType } from '$lib/shared/utils';
 
 const DB_PATH = env.DATABASE_PATH || './data/family-adventures.db';
 
@@ -351,6 +352,24 @@ function migrateDatabase() {
       db.run('INSERT INTO sub_adventures (id, adventure_id, title, day_number, note, rating, order_index) VALUES (?, ?, ?, ?, ?, ?, ?)', [sid3, advId, 'Sunrise Beach Walk', 3, 'Got up early and had the whole beach to ourselves.', 5, 2]);
       markDirty();
     }
+  }
+
+  // Auto-reclassify misidentified media types on startup
+  try {
+    const allMedia = db.exec('SELECT id, file_path, media_type FROM adventure_media');
+    if (allMedia.length > 0) {
+      for (const row of allMedia[0].values) {
+        const [id, filePath, currentType] = row;
+        if (!filePath) continue;
+        const correctType = detectMediaType(filePath as string);
+        if (correctType !== currentType) {
+          db.run('UPDATE adventure_media SET media_type = ? WHERE id = ?', [correctType, id]);
+          markDirty();
+        }
+      }
+    }
+  } catch {
+    // Table might not exist yet
   }
 }
 
