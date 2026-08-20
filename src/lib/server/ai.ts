@@ -2,7 +2,7 @@ import { env } from '$env/dynamic/private';
 import { getConfig } from './db';
 
 const ENV_OLLAMA_URL = env.OLLAMA_URL?.trim().replace(/\/$/, '') || 'http://100.116.226.10:11434';
-const ENV_OLLAMA_MODEL = env.OLLAMA_MODEL?.trim() || 'llama3.1';
+const ENV_OLLAMA_MODEL = env.OLLAMA_MODEL?.trim() || 'hermes3:8b';
 const ENV_AI_ENABLED = env.AI_ENABLED?.trim().toLowerCase();
 
 async function getOllamaUrl(): Promise<string> {
@@ -84,6 +84,7 @@ export async function generateVision(imageBase64: string, prompt: string, system
         }
       ],
       stream: false,
+      think: false,
       options: {
         temperature: 0.3,
         num_predict: 512
@@ -99,7 +100,7 @@ export async function generateVision(imageBase64: string, prompt: string, system
 
     if (!response.ok) return null;
     const data = await response.json();
-    return data.message?.content ?? null;
+    return data.message?.content || data.message?.thinking || null;
   } catch {
     return null;
   }
@@ -148,6 +149,7 @@ export async function generateText(options: GenerateOptions): Promise<string | n
         { role: 'user', content: options.prompt }
       ],
       stream: false,
+      think: false,
       options: {
         temperature: options.temperature ?? 0.7,
         top_p: options.top_p ?? 0.9,
@@ -166,7 +168,7 @@ export async function generateText(options: GenerateOptions): Promise<string | n
 
     if (!response.ok) return null;
     const data = await response.json();
-    return data.message?.content ?? null;
+    return data.message?.content || data.message?.thinking || null;
   } catch {
     return null;
   }
@@ -186,6 +188,7 @@ export async function* streamText(options: GenerateOptions): AsyncGenerator<stri
         { role: 'user', content: options.prompt }
       ],
       stream: true,
+      think: false,
       options: {
         temperature: options.temperature ?? 0.7,
         top_p: options.top_p ?? 0.9,
@@ -222,6 +225,8 @@ export async function* streamText(options: GenerateOptions): AsyncGenerator<stri
           const parsed = JSON.parse(line);
           if (parsed.message?.content) {
             yield parsed.message.content;
+          } else if (parsed.message?.thinking) {
+            yield parsed.message.thinking;
           }
         } catch {
           // skip malformed lines
