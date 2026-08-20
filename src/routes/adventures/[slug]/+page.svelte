@@ -303,7 +303,17 @@
     aiGeneratingCaptions = false;
   }
 
-  onMount(() => { checkAIStatus(); });
+  onMount(() => {
+    checkAIStatus();
+    const handler = (e: BeforeUnloadEvent) => {
+      if (uploadingMedia) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  });
 
   function detectMediaType(file: File): string {
     const ext = file.name.split('.').pop()?.toLowerCase() || '';

@@ -38,7 +38,17 @@
   let aiSuggestedTags = $state<{ name: string; isNew: boolean }[]>([]);
   let aiError = $state('');
 
-  onMount(() => { checkAIStatus(); });
+  onMount(() => {
+    checkAIStatus();
+    const handler = (e: BeforeUnloadEvent) => {
+      if (uploadingFile) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  });
 
   const templates = [
     { id: 'beach', label: 'Beach Trip', icon: '🏖️' },
