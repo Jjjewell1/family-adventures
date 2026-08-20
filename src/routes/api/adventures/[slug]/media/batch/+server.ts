@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { getSessionUser } from '$lib/server/auth';
 import { dbRun, dbGet, dbAll } from '$lib/server/db';
 import { generateToken } from '$lib/shared/utils';
+import { detectMediaType } from '$lib/shared/utils';
 import type { Adventure } from '$lib/shared/types';
 
 export const POST: RequestHandler = async ({ params, request, cookies }) => {
@@ -34,11 +35,12 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
   for (const file of files) {
     if (!file.filePath?.trim()) continue;
     const mediaId = generateToken();
+    const mediaType = detectMediaType(file.filePath);
     await dbRun(
       `INSERT INTO adventure_media (id, adventure_id, file_path, media_type, caption, order_index) VALUES (?, ?, ?, ?, ?, ?)`,
-      mediaId, adventure.id, file.filePath.trim(), file.mediaType || 'photo', file.caption || null, nextOrder++
+      mediaId, adventure.id, file.filePath.trim(), mediaType, file.caption || null, nextOrder++
     );
-    results.push({ id: mediaId, filePath: file.filePath, mediaType: file.mediaType || 'photo' });
+    results.push({ id: mediaId, filePath: file.filePath, mediaType });
   }
 
   await dbRun(

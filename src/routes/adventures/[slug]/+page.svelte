@@ -56,6 +56,7 @@
   let aiError = $state('');
 
   import VideoThumbnail from '$lib/components/VideoThumbnail.svelte';
+  import { detectMediaType as detectType } from '$lib/shared/utils';
 
   const reactionEmojis = ['❤️', '🔥', '😊', '👏', '🌊', '✈️'];
 
@@ -317,11 +318,8 @@
     return () => window.removeEventListener('beforeunload', handler);
   });
 
-  function detectMediaType(file: File): string {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    if (['mp4', 'webm', 'mov'].includes(ext)) return 'video';
-    if (['mp3', 'wav', 'ogg'].includes(ext)) return 'audio';
-    return 'photo';
+  function detectMediaTypeFromName(file: File): string {
+    return detectType(file.name);
   }
 
   async function uploadSingleFile(file: File, retries = 2): Promise<{ filePath?: string; error?: string }> {
@@ -360,7 +358,7 @@
 
         const result = await uploadSingleFile(file);
         if (result.filePath) {
-          uploaded.push({ filePath: result.filePath, mediaType: detectMediaType(file) });
+          uploaded.push({ filePath: result.filePath, mediaType: detectMediaTypeFromName(file) });
           uploadFileProgress = { ...uploadFileProgress, [key]: { status: 'done', percent: 100 } };
         } else {
           errors.push(`${file.name}: ${result.error}`);

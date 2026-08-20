@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getSessionUser } from '$lib/server/auth';
 import { dbRun, dbGet } from '$lib/server/db';
-import { generateToken } from '$lib/shared/utils';
+import { generateToken, detectMediaType } from '$lib/shared/utils';
 import type { Adventure } from '$lib/shared/types';
 
 export const POST: RequestHandler = async ({ params, request, cookies }) => {
@@ -43,7 +43,7 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
     mediaId,
     adventure.id,
     filePath?.trim() || null,
-    mediaType || 'photo',
+    detectMediaType(filePath || 'photo.jpg'),
     caption || null,
     nextOrder
   );

@@ -18,6 +18,13 @@ export function generateToken(length: number = 32): string {
   return result;
 }
 
+export function detectMediaType(filename: string): 'photo' | 'video' | 'audio' {
+  const ext = filename.split('.').pop()?.toLowerCase() || '';
+  if (['mp4', 'webm', 'mov', 'avi', 'mkv', 'mts', 'm4v'].includes(ext)) return 'video';
+  if (['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'].includes(ext)) return 'audio';
+  return 'photo';
+}
+
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
