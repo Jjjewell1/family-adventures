@@ -49,7 +49,7 @@
   // AI settings state
   let aiEnabled = $state(data.aiConfig?.enabled ?? true);
   let aiUrl = $state(data.aiConfig?.url ?? 'http://100.116.226.10:11434');
-  let aiModel = $state(data.aiConfig?.model ?? 'hermes3:8b');
+  let aiModel = $state(data.aiConfig?.model ?? 'qwen3.5:9b');
   let aiSaving = $state(false);
   let aiMessage = $state('');
   let aiError = $state('');

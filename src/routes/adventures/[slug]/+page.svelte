@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import { pushState } from '$app/navigation';
+  import { page } from '$app/state';
   import { formatDate, timeAgo } from '$lib/shared/utils';
   import { onMount } from 'svelte';
   
@@ -403,6 +405,7 @@
       if (batchRes.ok) {
         const { media: newMedia } = await batchRes.json();
         data.adventure.media = [...(data.adventure.media || []), ...newMedia];
+        autoAnalyzeNewMedia(newMedia);
       }
     }
 
@@ -456,6 +459,8 @@
     tagSearchResults = [];
     showNewPersonInput = false;
     newPersonName = '';
+    // Shallow history entry so the browser back button closes the modal
+    pushState('', { tagging: true });
     try {
       const res = await fetch(`/api/media/${mediaId}/people`);
       if (res.ok) {
@@ -467,9 +472,19 @@
   }
 
   function closeTagging() {
+    if (!taggingMediaId) return;
     taggingMediaId = null;
     taggingPeople = [];
+    if (page.state.tagging) history.back();
   }
+
+  // Back button pressed while the tagging modal is open -> close it instead of leaving
+  $effect(() => {
+    if (taggingMediaId && !page.state.tagging) {
+      taggingMediaId = null;
+      taggingPeople = [];
+    }
+  });
 
   async function searchPeople(query: string) {
     tagSearchQuery = query;
@@ -525,8 +540,9 @@
   }
 
   // AI image analysis
-  async function analyzeMedia(mediaId: string, filePath: string) {
+  async function analyzeMedia(mediaId: string, filePath: string): Promise<boolean> {
     aiAnalyzing = { ...aiAnalyzing, [mediaId]: true };
+    let ok = false;
     try {
       const res = await fetch('/api/ai/analyze-media', {
         method: 'POST',
@@ -536,20 +552,52 @@
       if (res.ok) {
         const { analysis } = await res.json();
         if (analysis) {
-          data.adventure.media = data.adventure.media.map((m: any) =>
-            m.id === mediaId ? { ...m, ai_caption: analysis.caption, category: analysis.category, ai_tags: JSON.stringify(analysis.tags) } : m
-          );
+          const withAnalysis = (m: any) =>
+            m.id === mediaId ? { ...m, ai_caption: analysis.caption, category: analysis.category, ai_tags: JSON.stringify(analysis.tags) } : m;
+          data.adventure.media = data.adventure.media.map(withAnalysis);
+          // Sub-adventure media lives in separate arrays
+          for (const sq of subAdventures) {
+            if (sq.media?.length) sq.media = sq.media.map(withAnalysis);
+          }
+          ok = true;
         }
+      } else {
+        const { error } = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        aiError = error;
       }
-    } catch {}
+    } catch {
+      aiError = 'Could not reach the AI analyzer';
+    }
     aiAnalyzing = { ...aiAnalyzing, [mediaId]: false };
+    return ok;
   }
 
   async function analyzeAllMedia() {
     if (!data.adventure.media) return;
-    for (const media of data.adventure.media) {
-      if (media.file_path && !media.ai_caption) {
-        await analyzeMedia(media.id, media.file_path);
+    aiError = '';
+    aiGeneratingCaptions = true;
+    // Videos can't be sent to the vision model — photos only
+    const pending = data.adventure.media.filter((m: any) => m.media_type !== 'video' && m.file_path && !m.ai_caption);
+    let okCount = 0;
+    for (const media of pending) {
+      const ok = await analyzeMedia(media.id, media.file_path);
+      if (ok) okCount++;
+      else break;
+    }
+    if (pending.length === 0 && okCount === 0) {
+      aiError = 'Nothing to analyze — every photo already has an AI caption';
+    } else if (okCount > 0 && okCount < pending.length) {
+      aiError = `Analyzed ${okCount} of ${pending.length} photos before stopping`;
+    }
+    aiGeneratingCaptions = false;
+  }
+
+  // Auto-analyze photos right after upload so they get tagged without manual clicks
+  function autoAnalyzeNewMedia(newMedia: any[]) {
+    if (!aiEnabled) return;
+    for (const m of newMedia) {
+      if (m.media_type !== 'video' && m.file_path && !m.ai_caption) {
+        analyzeMedia(m.id, m.file_path);
       }
     }
   }
@@ -593,6 +641,7 @@
           const newMedia = await mediaRes.json();
           const sq = subAdventures.find((s: any) => s.id === sqId);
           if (sq) sq.media = [...(sq.media || []), newMedia];
+          autoAnalyzeNewMedia([newMedia]);
           successCount++;
         } else {
           errorCount++;

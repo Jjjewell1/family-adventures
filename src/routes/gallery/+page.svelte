@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types';
-  import { goto } from '$app/navigation';
+  import { goto, pushState } from '$app/navigation';
+  import { page } from '$app/state';
   import VideoThumbnail from '$lib/components/VideoThumbnail.svelte';
 
   let { data } = $props();
@@ -8,7 +9,7 @@
   let lightboxOpen = $state(false);
   let mediaList = $derived(data.media || []);
 
-  const categories = ['all', 'landscape', 'portrait', 'group', 'food', 'activity', 'selfie', 'other'];
+  const categories = ['all', 'beach', 'hiking', 'landmark', 'celebration', 'food', 'wildlife', 'group', 'selfie', 'other'];
   const types = ['all', 'photo', 'video'];
 
   function setFilter(key: string, value: string) {
@@ -24,12 +25,24 @@
   function openLightbox(media: any) {
     selectedMedia = media;
     lightboxOpen = true;
+    // Shallow history entry so the browser back button closes the lightbox
+    pushState('', { lightbox: true });
   }
 
   function closeLightbox() {
+    if (!lightboxOpen) return;
     lightboxOpen = false;
     selectedMedia = null;
+    if (page.state.lightbox) history.back();
   }
+
+  // Back button pressed while the lightbox is open -> close it instead of leaving
+  $effect(() => {
+    if (lightboxOpen && !page.state.lightbox) {
+      lightboxOpen = false;
+      selectedMedia = null;
+    }
+  });
 
   function navigate(direction: number) {
     if (!selectedMedia) return;

@@ -2,7 +2,8 @@ import { env } from '$env/dynamic/private';
 import { getConfig } from './db';
 
 const ENV_OLLAMA_URL = env.OLLAMA_URL?.trim().replace(/\/$/, '') || 'http://100.116.226.10:11434';
-const ENV_OLLAMA_MODEL = env.OLLAMA_MODEL?.trim() || 'hermes3:8b';
+// Must be a vision-capable model — text-only models reject image analysis requests
+const ENV_OLLAMA_MODEL = env.OLLAMA_MODEL?.trim() || 'qwen3.5:9b';
 const ENV_AI_ENABLED = env.AI_ENABLED?.trim().toLowerCase();
 
 async function getOllamaUrl(): Promise<string> {
@@ -47,6 +48,34 @@ export async function testConnection(): Promise<{ ok: boolean; models: string[];
     return { ok: true, models };
   } catch (e) {
     return { ok: false, models: [], error: e instanceof Error ? e.message : 'Connection failed' };
+  }
+}
+
+// Checks whether the configured model can actually process images.
+// Text-only models reject every photo analysis with HTTP 400.
+export async function hasVisionSupport(): Promise<{ ok: boolean; model: string; error?: string }> {
+  const url = await getOllamaUrl();
+  const model = await getOllamaModel();
+  try {
+    const response = await fetch(`${url}/api/show`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model }),
+      signal: AbortSignal.timeout(5000)
+    });
+    if (!response.ok) return { ok: false, model, error: `Model "${model}" not found on the Ollama server` };
+    const data = await response.json();
+    const capabilities: string[] = data.capabilities || [];
+    if (!capabilities.includes('vision')) {
+      return {
+        ok: false,
+        model,
+        error: `Model "${model}" cannot see images. Open Settings → AI and pick a vision model (e.g. qwen3.5:9b)`
+      };
+    }
+    return { ok: true, model };
+  } catch (e) {
+    return { ok: false, model, error: e instanceof Error ? e.message : 'Could not reach Ollama' };
   }
 }
 
@@ -98,10 +127,16 @@ export async function generateVision(imageBase64: string, prompt: string, system
       signal: AbortSignal.timeout(60_000)
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      // Surface why it failed (e.g. model lacks vision support) instead of failing silently
+      const errText = await response.text().catch(() => '');
+      console.error(`[ai] vision request failed (${model}): HTTP ${response.status} ${errText.slice(0, 300)}`);
+      return null;
+    }
     const data = await response.json();
     return data.message?.content || data.message?.thinking || null;
-  } catch {
+  } catch (e) {
+    console.error('[ai] vision request error:', e instanceof Error ? e.message : e);
     return null;
   }
 }
@@ -109,25 +144,35 @@ export async function generateVision(imageBase64: string, prompt: string, system
 export async function analyzeImage(imageBase64: string): Promise<VisionAnalysis | null> {
   const raw = await generateVision(
     imageBase64,
-    `Analyze this family adventure photo. Return ONLY valid JSON with these fields:
-- "caption": A brief, warm caption for this photo (1 sentence)
-- "category": One of "landscape", "portrait", "group", "food", "activity", "selfie", "other"
-- "tags": Array of 2-5 relevant tags (lowercase, e.g. ["beach", "sunset", "family"])
+    `Analyze this photo from a family vacation or celebration. Return ONLY valid JSON with these fields:
+- "caption": A brief, warm caption for this photo (1 sentence, family-journal tone)
+- "category": Exactly one of "beach", "hiking", "landmark", "celebration", "food", "wildlife", "group", "selfie", "other"
+  (beach = beach/pool/lake days, hiking = trails/mountains/nature walks, landmark = sightseeing/monuments/cities,
+   celebration = birthdays/holidays/parties/gatherings, food = meals/treats/dining out,
+   wildlife = animals/zoo/aquarium, group = multiple family members together, selfie = self-portrait style)
+- "tags": Array of 2-6 short lowercase tags describing the moment, focused on family travel and celebrations
+  (e.g. ["beach day", "sandcastles", "sunset"], ["birthday party", "cake", "balloons"], ["road trip", "mountain view"], ["fireworks", "4th of july"])
 - "people_count": Number of people visible (0 if none)
 
 No explanation. Just the JSON object.`,
-    'You are a photo analyst for a family adventure journal. Be warm and descriptive.'
+    'You are a photo analyst for a family adventure journal. You catalog vacations, days out, and celebrations. Be warm and descriptive.'
   );
 
   if (!raw) return null;
 
   try {
-    const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const parsed = JSON.parse(cleaned);
+    // Models sometimes wrap JSON in prose or code fences — extract the first {...} block
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    const parsed = JSON.parse(match[0]);
+    const VALID_CATEGORIES = ['beach', 'hiking', 'landmark', 'celebration', 'food', 'wildlife', 'group', 'selfie', 'other'];
+    const category = String(parsed.category || '').toLowerCase().trim();
     return {
       caption: parsed.caption || '',
-      category: parsed.category || 'other',
-      tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+      category: VALID_CATEGORIES.includes(category) ? category : 'other',
+      tags: Array.isArray(parsed.tags)
+        ? parsed.tags.map((t: unknown) => String(t).toLowerCase().trim()).filter(Boolean).slice(0, 6)
+        : [],
       people_count: typeof parsed.people_count === 'number' ? parsed.people_count : 0
     };
   } catch {

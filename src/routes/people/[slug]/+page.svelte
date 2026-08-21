@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import { pushState } from '$app/navigation';
+  import { page } from '$app/state';
 
   let { data } = $props();
   let selectedMedia = $state<any>(null);
@@ -12,12 +14,24 @@
   function openLightbox(media: any) {
     selectedMedia = media;
     lightboxOpen = true;
+    // Shallow history entry so the browser back button closes the lightbox
+    pushState('', { lightbox: true });
   }
 
   function closeLightbox() {
+    if (!lightboxOpen) return;
     lightboxOpen = false;
     selectedMedia = null;
+    if (page.state.lightbox) history.back();
   }
+
+  // Back button pressed while the lightbox is open -> close it instead of leaving
+  $effect(() => {
+    if (lightboxOpen && !page.state.lightbox) {
+      lightboxOpen = false;
+      selectedMedia = null;
+    }
+  });
 
   function navigate(direction: number) {
     if (!selectedMedia) return;
