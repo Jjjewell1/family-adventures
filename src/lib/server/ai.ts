@@ -116,7 +116,8 @@ export async function generateVision(imageBase64: string, prompt: string, system
       think: false,
       options: {
         temperature: 0.3,
-        num_predict: 512
+        // Enough headroom that verbose models don't truncate the JSON mid-object
+        num_predict: 900
       }
     };
 
