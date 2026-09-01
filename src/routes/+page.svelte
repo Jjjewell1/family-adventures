@@ -58,7 +58,7 @@
     {/if}
 
     <!-- Hero Content -->
-    <div class="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-16 w-full">
+    <div class="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 pb-16 w-full">
       <div class="max-w-xl space-y-5 {visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} transition-all duration-1000 ease-out">
         <div class="flex items-center gap-3">
           <div class="h-px w-12 bg-gold-400/60"></div>
@@ -96,7 +96,7 @@
   </div>
 
   <!-- Stats Bar -->
-  <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8">
     <div class="card -mt-10 relative z-10 p-6 md:p-8 grid grid-cols-2 md:grid-cols-4 gap-6 {statVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} transition-all duration-700 ease-out">
       <div class="text-center group">
         <div class="relative inline-block">
@@ -131,7 +131,7 @@
 
   <!-- Recent Snapshots Mosaic -->
   {#if heroImages.length > 0}
-    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-14 {mosaicVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} transition-all duration-700 ease-out">
+    <div class="mx-auto px-4 sm:px-6 lg:px-8 py-14 {mosaicVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} transition-all duration-700 ease-out">
       <div class="flex items-baseline justify-between mb-6">
         <div class="flex items-center gap-3">
           <div class="h-8 w-8 rounded-full bg-forest-100 dark:bg-forest-900 flex items-center justify-center">
@@ -172,7 +172,7 @@
   {/if}
 
   <!-- Features Section -->
-  <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-16 {featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} transition-all duration-700 ease-out">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8 pb-16 {featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} transition-all duration-700 ease-out">
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <a href="/adventures" class="group card p-6 border-t-2 border-forest-400 hover:border-forest-500 transition-all duration-300 hover:shadow-lg hover:shadow-forest-500/5 hover:-translate-y-0.5">
         <div class="relative">
@@ -238,7 +238,7 @@
   </div>
 
   <!-- Wave divider -->
-  <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-8">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8 pb-8">
     <div class="flex items-center gap-4">
       <div class="flex-1 h-px bg-gradient-to-r from-transparent via-cream-300 to-transparent dark:via-ink-600"></div>
       <div class="flex items-center gap-2">

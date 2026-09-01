@@ -102,7 +102,7 @@
 <div class="min-h-screen flex flex-col">
   <!-- Navigation -->
   <nav class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-cream-200 dark:bg-ink-800/95 dark:border-ink-600">
-    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex h-14 items-center justify-between">
         <a href="/" class="flex items-center gap-2.5">
           <img src={data.site?.logoUrl || '/logo.png'} alt="Family Adventures" class="h-7 w-7 rounded-lg object-cover" />
@@ -264,13 +264,13 @@
   </nav>
 
   <!-- Main content -->
-  <main class="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 lg:px-8 py-8">
+  <main class="flex-1 w-full px-4 sm:px-6 lg:px-8 py-8">
     {@render children()}
   </main>
 
   <!-- Footer -->
   <footer class="border-t border-cream-200 mt-auto dark:border-ink-600">
-    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-5">
+    <div class="mx-auto px-4 sm:px-6 lg:px-8 py-5">
       <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-ink-400 dark:text-ink-300">
         <div class="flex items-center gap-2">
           <img src={data.site?.logoUrl || '/logo.png'} alt="Family Adventures" class="h-4 w-4 rounded object-cover" />
