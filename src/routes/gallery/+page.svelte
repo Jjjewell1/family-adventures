@@ -131,11 +131,21 @@
             {/if}
             <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
               <div class="absolute bottom-3 left-3 right-3">
-                {#if media.caption}
-                  <p class="text-white text-sm font-medium truncate">{media.caption}</p>
+                {#if media.caption || media.ai_caption}
+                  <p class="text-white text-sm font-medium truncate">{media.caption || media.ai_caption}</p>
                 {/if}
                 {#if media.adventure_title}
                   <p class="text-white/70 text-xs truncate">{media.adventure_title}</p>
+                {/if}
+                {#if media.ai_tags}
+                  {@const tags = JSON.parse(media.ai_tags)}
+                  {#if tags.length > 0}
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      {#each tags.slice(0, 3) as tag}
+                        <span class="px-1.5 py-0.5 text-[9px] rounded-full bg-white/20 text-white/70">{tag}</span>
+                      {/each}
+                    </div>
+                  {/if}
                 {/if}
                 {#if media.tagged_people}
                   <p class="text-white/60 text-[10px] truncate mt-0.5">{media.tagged_people}</p>
@@ -198,15 +208,23 @@
         />
       {/if}
 
-      {#if selectedMedia.caption || selectedMedia.adventure_title}
+      {#if selectedMedia.caption || selectedMedia.ai_caption}
         <div class="mt-4 text-center">
-          {#if selectedMedia.caption}
-            <p class="text-white text-lg">{selectedMedia.caption}</p>
-          {/if}
+          <p class="text-white text-lg">{selectedMedia.caption || selectedMedia.ai_caption}</p>
           {#if selectedMedia.adventure_title}
             <p class="text-white/60 text-sm mt-1">
               from <a href="/adventures/{selectedMedia.adventure_slug}" class="text-forest-300 hover:text-forest-200">{selectedMedia.adventure_title}</a>
             </p>
+          {/if}
+          {#if selectedMedia.ai_tags}
+            {@const tags = JSON.parse(selectedMedia.ai_tags)}
+            {#if tags.length > 0}
+              <div class="flex flex-wrap justify-center gap-1.5 mt-3">
+                {#each tags as tag}
+                  <span class="px-2 py-0.5 text-xs rounded-full bg-white/10 text-white/80">{tag}</span>
+                {/each}
+              </div>
+            {/if}
           {/if}
         </div>
       {/if}

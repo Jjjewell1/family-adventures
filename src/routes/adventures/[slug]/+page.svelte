@@ -857,6 +857,16 @@
             {#if media.caption || media.ai_caption}
               <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                 <p class="absolute bottom-3 left-3 right-3 text-white text-sm">{media.caption || media.ai_caption}</p>
+                {#if media.ai_tags}
+                  {@const tags = JSON.parse(media.ai_tags)}
+                  {#if tags.length > 0}
+                    <div class="absolute bottom-9 left-3 right-3 flex flex-wrap gap-1">
+                      {#each tags.slice(0, 3) as tag}
+                        <span class="px-1.5 py-0.5 text-[9px] rounded-full bg-white/20 text-white/70">{tag}</span>
+                      {/each}
+                    </div>
+                  {/if}
+                {/if}
               </div>
             {/if}
             {#if media.category}
