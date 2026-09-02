@@ -699,24 +699,26 @@
   {/if}
 </svelte:head>
 
-<article class="max-w-4xl mx-auto">
-  <!-- Back button -->
-  <a href="/adventures" class="inline-flex items-center gap-2 text-sm text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 mb-6 transition-colors">
-    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-    </svg>
-    Back to Adventures
-  </a>
+<article>
+  <div class="max-w-4xl mx-auto">
+    <!-- Back button -->
+    <a href="/adventures" class="inline-flex items-center gap-2 text-sm text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 mb-6 transition-colors">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Back to Adventures
+    </a>
 
-  {#if aiError}
-    <div class="mb-6 p-4 rounded-xl bg-gold-50 dark:bg-gold-900/30 border border-gold-200 dark:border-gold-800 text-gold-700 dark:text-gold-300 text-sm">
-      {aiError}
-      <button class="ml-2 underline" onclick={() => aiError = ''}>Dismiss</button>
-    </div>
-  {/if}
+    {#if aiError}
+      <div class="mb-6 p-4 rounded-xl bg-gold-50 dark:bg-gold-900/30 border border-gold-200 dark:border-gold-800 text-gold-700 dark:text-gold-300 text-sm">
+        {aiError}
+        <button class="ml-2 underline" onclick={() => aiError = ''}>Dismiss</button>
+      </div>
+    {/if}
+  </div>
 
   <!-- Hero -->
-  <div class="relative rounded-2xl overflow-hidden mb-8">
+  <div class="relative overflow-hidden mb-8 -mx-4 sm:-mx-6 lg:-mx-8">
     {#if data.adventure.cover_file_path}
       <img
         src={data.adventure.cover_file_path}
@@ -779,20 +781,22 @@
   </div>
 
   <!-- Description -->
-  {#if data.adventure.description}
-    <div class="card rounded-xl p-6 mb-4 border-t-4 border-terra-400">
-      <p class="text-lg text-ink-500 dark:text-cream-200 leading-relaxed">{data.adventure.description}</p>
-    </div>
-  {/if}
-
-  <!-- Content -->
-  {#if data.adventure.content}
-    <div class="bg-cream-50 dark:bg-ink-800 rounded-xl p-6 mb-4">
-      <div class="prose prose-lg max-w-none">
-        {@html data.adventure.content}
+  <div class="max-w-4xl mx-auto">
+    {#if data.adventure.description}
+      <div class="card rounded-xl p-6 mb-4 border-t-4 border-terra-400">
+        <p class="text-lg text-ink-500 dark:text-cream-200 leading-relaxed">{data.adventure.description}</p>
       </div>
-    </div>
-  {/if}
+    {/if}
+
+    <!-- Content -->
+    {#if data.adventure.content}
+      <div class="bg-cream-50 dark:bg-ink-800 rounded-xl p-6 mb-4">
+        <div class="prose prose-lg max-w-none">
+          {@html data.adventure.content}
+        </div>
+      </div>
+    {/if}
+  </div>
 
   <!-- Wave: Story -> Gallery -->
   <div class="wave-divider my-2">
@@ -804,8 +808,9 @@
 
   <!-- Media Gallery -->
   {#if data.adventure.media && data.adventure.media.length > 0}
-    <div class="bg-forest-50 dark:bg-forest-900/30 rounded-xl p-6 mb-4">
-      <div class="flex items-center justify-between mb-4">
+    <div class="bg-forest-50 dark:bg-forest-900/30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-6 mb-4">
+      <div class="max-w-6xl mx-auto">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
         <div class="flex items-center gap-3">
           <span class="text-2xl">📸</span>
           <div>
@@ -964,6 +969,7 @@
           {/if}
         </div>
       {/if}
+      </div>
     </div>
   {/if}
 
@@ -976,8 +982,9 @@
   </div>
 
   <!-- Side Quests -->
-  <div class="bg-gold-50 dark:bg-gold-900/30 rounded-xl p-6 mb-4">
-      <div class="flex items-center justify-between mb-4">
+  <div class="bg-gold-50 dark:bg-gold-900/30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-6 mb-4">
+      <div class="max-w-6xl mx-auto">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
         <div class="flex items-center gap-3">
           <span class="text-2xl">🗺️</span>
           <div>
@@ -1326,6 +1333,7 @@
         {/each}
       </div>
     {/if}
+      </div>
   </div>
 
   <!-- Wave: Side Quests -> Social -->
@@ -1336,6 +1344,7 @@
     </svg>
   </div>
 
+  <div class="max-w-4xl mx-auto">
   <!-- Reactions -->
   <div class="bg-terra-50 dark:bg-terra-900/30 rounded-xl p-6 mb-4">
     <div class="flex items-center gap-3 mb-4">
@@ -1591,6 +1600,7 @@
       </div>
     </div>
   {/if}
+  </div>
 </article>
 
 <!-- Share Dialog -->

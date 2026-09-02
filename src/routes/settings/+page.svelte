@@ -383,10 +383,10 @@
   </div>
 
   <!-- Tabs -->
-  <div class="flex gap-1 p-1 card rounded-2xl">
+  <div class="flex flex-wrap gap-1 p-1 card rounded-2xl">
     {#each tabs as tab}
       <button
-        class="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all {activeTab === tab.id
+        class="flex-1 min-w-[120px] px-3 sm:px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all {activeTab === tab.id
           ? 'bg-forest-500 text-white shadow-sm'
           : 'text-ink-500 hover:bg-cream-100 dark:text-cream-200 dark:hover:bg-ink-600'}"
         onclick={() => activeTab = tab.id}

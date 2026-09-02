@@ -110,7 +110,7 @@
         </a>
 
         <!-- Desktop nav -->
-        <div class="hidden md:flex items-center gap-0.5">
+        <div class="hidden lg:flex items-center gap-0.5">
           {#each [
             { href: '/adventures', label: 'Adventures' },
             { href: '/gallery', label: 'Gallery' },
@@ -193,7 +193,7 @@
 
           <!-- Mobile menu button -->
           <button
-            class="md:hidden p-1.5 rounded-lg text-ink-500 hover:bg-cream-100 dark:hover:bg-ink-700"
+            class="lg:hidden p-1.5 rounded-lg text-ink-500 hover:bg-cream-100 dark:hover:bg-ink-700"
             onclick={() => mobileMenuOpen = !mobileMenuOpen}
           >
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,7 +209,7 @@
 
       <!-- Mobile menu -->
       {#if mobileMenuOpen}
-        <div class="md:hidden pb-4 border-t border-cream-200 dark:border-ink-600 pt-3 space-y-0.5">
+        <div class="lg:hidden pb-4 border-t border-cream-200 dark:border-ink-600 pt-3 space-y-0.5">
           {#each [
             { href: '/adventures', label: 'Adventures' },
             { href: '/gallery', label: 'Gallery' },
