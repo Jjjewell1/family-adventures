@@ -675,7 +675,7 @@
               <VideoThumbnail src={m.file_path} alt={m.caption || 'Video'} class="w-full h-full object-cover" />
             {:else}
               <img
-                src={m.file_path}
+                src={`/api/media/image?path=${encodeURIComponent(m.file_path)}&w=480`}
                 alt={m.caption || 'Adventure photo'}
                 class="w-full h-full object-cover"
                 loading="lazy"

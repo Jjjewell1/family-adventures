@@ -97,7 +97,7 @@
         {#each data.adventure.media as media}
           <div class="relative aspect-square rounded-xl overflow-hidden group">
             <img
-              src={media.file_path}
+              src={`/api/media/image?path=${encodeURIComponent(media.file_path)}&w=480`}
               alt={media.caption || 'Adventure photo'}
               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               loading="lazy"

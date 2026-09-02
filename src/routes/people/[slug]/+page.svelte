@@ -177,7 +177,7 @@
         <div class="break-inside-avoid rounded-xl overflow-hidden group relative">
           <button class="w-full" onclick={() => openLightbox(media)}>
             <img
-              src={media.file_path}
+              src={`/api/media/image?path=${encodeURIComponent(media.file_path)}&w=480`}
               alt={media.caption || media.adventure_title || 'Photo'}
               class="w-full object-cover transition-transform duration-300 group-hover:scale-105"
               loading="lazy"

@@ -848,7 +848,7 @@
               <VideoThumbnail src={media.file_path} alt={media.caption || 'Video'} class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
             {:else}
               <img
-                src={media.file_path}
+                src={`/api/media/image?path=${encodeURIComponent(media.file_path)}&w=720`}
                 alt={media.caption || 'Adventure photo'}
                 class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"

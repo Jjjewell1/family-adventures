@@ -141,7 +141,7 @@
               <!-- Photo thumbnail -->
               {#if item.action_type === 'uploaded_photo' && item.media_file_path}
                 <div class="mt-2">
-                  <img src={item.media_file_path} alt="" class="h-24 w-24 rounded-lg object-cover border border-cream-200" />
+                  <img src={`/api/media/image?path=${encodeURIComponent(item.media_file_path)}&w=160`} alt="" class="h-24 w-24 rounded-lg object-cover border border-cream-200" />
                 </div>
               {/if}
 

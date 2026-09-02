@@ -123,7 +123,7 @@
               <VideoThumbnail src={media.file_path} alt={media.caption || 'Video'} class="w-full object-cover transition-transform duration-300 group-hover:scale-105 aspect-square" />
             {:else}
               <img
-                src={media.file_path}
+                src={`/api/media/image?path=${encodeURIComponent(media.file_path)}&w=480`}
                 alt={media.caption || 'Gallery photo'}
                 class="w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"

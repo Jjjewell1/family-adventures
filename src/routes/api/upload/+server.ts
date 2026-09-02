@@ -1,9 +1,10 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getSessionUser } from '$lib/server/auth';
-import { writeFile, mkdir, access } from 'fs/promises';
+import { writeFile, mkdir, access, unlink } from 'fs/promises';
 import { join } from 'path';
 import { randomBytes } from 'crypto';
+import { optimizeImageOnUpload } from '$lib/server/image';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || './data/uploads';
 const ALLOWED_EXTENSIONS: Record<string, string[]> = {
@@ -72,7 +73,25 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       const buffer = Buffer.from(await file.arrayBuffer());
       await writeFile(filepath, buffer);
 
-      results.push({ filePath: `/uploads/${filename}`, filename });
+      // Optimize images for the web (resize + recompress). Videos/audio and
+      // formats we can't decode (e.g. HEIC without a plugin) are left untouched.
+      const IMAGE_EXT = /\.(jpe?g|png|webp|gif|heic|heif|bmp|tiff?)$/i;
+      let storedFilename = filename;
+      if (IMAGE_EXT.test(filename)) {
+        const destBase = join(UPLOAD_DIR, `${timestamp}-${random}-o`);
+        const optimized = await optimizeImageOnUpload(filepath, destBase);
+        if (optimized) {
+          // Swap to the optimized file and drop the raw original to avoid orphans
+          const optimizedPath = join(UPLOAD_DIR, optimized);
+          const exists = await access(optimizedPath).then(() => true).catch(() => false);
+          if (exists) {
+            await unlink(filepath).catch(() => {});
+          }
+          storedFilename = optimized;
+        }
+      }
+
+      results.push({ filePath: `/uploads/${storedFilename}`, filename: storedFilename });
     } catch (e) {
       results.push({ filePath: '', filename: file.name, error: 'Failed to write file' });
     }
