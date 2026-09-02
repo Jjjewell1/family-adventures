@@ -9,16 +9,17 @@ export const load: LayoutServerLoad = async ({ cookies, url }) => {
   const siteDescription = await getConfig('site_description') || "Our family's collection of adventures, memories, and shared moments";
   const logoFilename = await getConfig('logo_filename');
 
-  // Build logo URL — if we have an uploaded logo, use it with cache-busting;
-  // otherwise fall back to the static /logo.png
+  // Build logo URL — if we have an uploaded logo, use it; otherwise fall back to the static /logo.png.
+  // Filenames are already versioned (branding/logo-<timestamp>.png) and /uploads/ is served with an
+  // immutable cache header, so no per-request cache-busting query is needed here.
   const logoUrl = logoFilename
-    ? `/uploads/${logoFilename}?v=${Date.now()}`
+    ? `/uploads/${logoFilename}`
     : '/logo.png';
   const faviconUrl = logoFilename
-    ? `/uploads/${logoFilename.replace('logo-', 'favicon-').replace('/branding/', '/branding/')}?v=${Date.now()}`
+    ? `/uploads/${logoFilename.replace('logo-', 'favicon-').replace('/branding/', '/branding/')}`
     : '/favicon.png';
   const ogImageUrl = logoFilename
-    ? `/uploads/${logoFilename.replace('logo-', 'og-').replace('/branding/', '/branding/')}?v=${Date.now()}`
+    ? `/uploads/${logoFilename.replace('logo-', 'og-').replace('/branding/', '/branding/')}`
     : '/og-image.png';
 
   return {
