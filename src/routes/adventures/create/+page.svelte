@@ -343,9 +343,9 @@
 
       <!-- Template -->
       <div>
-        <label class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
+        <p class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
           Adventure Type
-        </label>
+        </p>
         <div class="grid grid-cols-4 gap-2">
           {#each templates as template}
             <button
@@ -389,9 +389,9 @@
 
       <!-- Mood -->
       <div>
-        <label class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
+        <p class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
           Mood
-        </label>
+        </p>
         <div class="flex flex-wrap gap-2">
           {#each moods as m}
             <button
@@ -412,9 +412,9 @@
       {#if data.tags.length > 0 || aiEnabled}
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <label class="block text-sm font-medium text-ink-600 dark:text-cream-200">
+            <p class="block text-sm font-medium text-ink-600 dark:text-cream-200">
               Tags
-            </label>
+            </p>
             {#if aiEnabled}
               <button
                 type="button"
@@ -475,9 +475,9 @@
 
       <!-- Visibility -->
       <div>
-        <label class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
+        <p class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
           Visibility
-        </label>
+        </p>
         <div class="flex gap-4">
           <label class="flex items-center gap-2 cursor-pointer">
             <input type="radio" bind:group={visibility} value="private" class="accent-forest-500" />

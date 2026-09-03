@@ -14,7 +14,7 @@
   } = $props();
 
   let searchInput: HTMLInputElement;
-  let dropdownEl: HTMLDivElement;
+  let dropdownEl = $state<HTMLDivElement>();
   let mapEl: HTMLDivElement;
   let results: any[] = $state([]);
   let searching = $state(false);

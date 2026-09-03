@@ -8,6 +8,8 @@
   let { data } = $props();
   let showShareDialog = $state(false);
   let shareLink = $state('');
+  let sharePasscode = $state('');
+  let shareSaved = $state(false);
   let newComment = $state('');
   let submittingComment = $state(false);
   let myRating = $state(data.ratings?.find((r: any) => r.author_id === data.user?.id)?.score || 0);
@@ -115,13 +117,32 @@
     const response = await fetch('/api/share', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adventureId: data.adventure.id })
+      body: JSON.stringify({
+        adventureId: data.adventure.id,
+        passcode: sharePasscode.trim() || undefined
+      })
     });
 
     if (response.ok) {
       const result = await response.json();
       shareLink = `${window.location.origin}/share/${result.token}`;
+      shareSaved = false;
       showShareDialog = true;
+    }
+  }
+
+  async function saveSharePasscode() {
+    const response = await fetch('/api/share', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        adventureId: data.adventure.id,
+        passcode: sharePasscode.trim() || undefined
+      })
+    });
+    if (response.ok) {
+      shareSaved = true;
+      setTimeout(() => { shareSaved = false; }, 2000);
     }
   }
 
@@ -220,8 +241,10 @@
     window.location.reload();
   }
 
-  function sqImageUrl(media: any) {
-    return media.file_path || '';
+  function sqImageUrl(media: any, w = 720) {
+    return media.file_path
+      ? `/api/media/image?path=${encodeURIComponent(media.file_path)}&w=${w}`
+      : '';
   }
 
   async function checkAIStatus() {
@@ -681,8 +704,8 @@
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   {#if data.adventure.location_name}
-    <meta property="og:latitude" content={data.adventure.lat} />
-    <meta property="og:longitude" content={data.adventure.lng} />
+    <meta property="og:latitude" content={String(data.adventure.lat)} />
+    <meta property="og:longitude" content={String(data.adventure.lng)} />
   {/if}
   {#if data.adventure.start_date}
     <meta property="article:published_time" content={data.adventure.start_date} />
@@ -721,7 +744,7 @@
   <div class="relative overflow-hidden mb-8 -mx-4 sm:-mx-6 lg:-mx-8">
     {#if data.adventure.cover_file_path}
       <img
-        src={data.adventure.cover_file_path}
+        src={`/api/media/image?path=${encodeURIComponent(data.adventure.cover_file_path)}&w=1600`}
         alt={data.adventure.title}
         class="w-full h-64 md:h-96 object-cover"
       />
@@ -1054,7 +1077,7 @@
             class="input w-full px-4 py-2.5 text-sm resize-none"></textarea>
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 dark:text-cream-100 mb-1">Rating (optional)</label>
+          <p class="block text-sm font-medium text-ink-600 dark:text-cream-100 mb-1">Rating (optional)</p>
           <div class="flex gap-1">
             {#each Array(5) as _, i}
               <button type="button" class="text-xl transition-transform hover:scale-110"
@@ -1161,7 +1184,7 @@
                   {#if sq.media && sq.media.length > 1}
                     <div class="flex gap-1.5 px-3 pb-3 overflow-x-auto">
                       {#each sq.media.slice(1) as m}
-                        {@const src = sqImageUrl(m)}
+                        {@const src = sqImageUrl(m, 160)}
                         {#if src}
                           <img {src} alt={m.caption || sq.title} class="h-14 w-14 rounded-lg object-cover shrink-0" loading="lazy" />
                         {/if}
@@ -1244,7 +1267,7 @@
                   {#if sq.media && sq.media.length > 1}
                     <div class="flex gap-1.5 px-3 pb-3 overflow-x-auto">
                       {#each sq.media.slice(1) as m}
-                        {@const src = sqImageUrl(m)}
+                        {@const src = sqImageUrl(m, 160)}
                         {#if src}
                           <img {src} alt={m.caption || sq.title} class="h-14 w-14 rounded-lg object-cover shrink-0" loading="lazy" />
                         {/if}
@@ -1619,9 +1642,9 @@
     <div class="card rounded-xl p-6 max-w-md w-full mx-4">
       <h3 class="text-lg font-semibold text-ink-600 dark:text-cream-100 mb-4">Share Adventure</h3>
       <p class="text-sm text-ink-400 dark:text-cream-300 mb-4">
-        Copy this link to share this adventure with others:
+        Send this link to family. They can view the adventure, add photos, comment, and share their own story.
       </p>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 mb-4">
         <input
           type="text"
           value={shareLink}
@@ -1635,6 +1658,29 @@
           Copy
         </button>
       </div>
+
+      <label for="sharePasscode" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
+        Passcode (optional but recommended)
+      </label>
+      <div class="flex items-center gap-2 mb-1">
+        <input
+          id="sharePasscode"
+          type="text"
+          bind:value={sharePasscode}
+          placeholder="e.g. Beach2024"
+          class="input flex-1 px-4 py-2 text-sm"
+        />
+        <button
+          onclick={saveSharePasscode}
+          class="btn-secondary px-4 py-2 text-sm font-medium transition-colors"
+        >
+          {shareSaved ? 'Saved' : 'Save'}
+        </button>
+      </div>
+      <p class="text-xs text-ink-400 dark:text-cream-300 mb-4">
+        Anyone with this passcode can post photos, comments, and stories. The link itself stays viewable by anyone.
+      </p>
+
       <button
         onclick={() => showShareDialog = false}
         class="btn-secondary w-full mt-4 px-4 py-2 text-sm font-medium transition-colors"
@@ -1646,12 +1692,13 @@
 {/if}
 
 <!-- Tag People Modal -->
+<svelte:window onkeydown={(e) => { if (e.key === 'Escape') closeTagging(); }} />
 {#if taggingMediaId}
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onclick={closeTagging}>
-    <div class="card rounded-xl p-6 max-w-md w-full mx-4" onclick={(e) => e.stopPropagation()}>
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="button" tabindex="-1" aria-label="Close" onclick={closeTagging} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') closeTagging(); }}>
+    <div class="card rounded-xl p-6 max-w-md w-full mx-4" role="dialog" aria-label="Tag People" tabindex="0" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Tag People</h3>
-        <button onclick={closeTagging} class="text-ink-400 hover:text-ink-600">
+        <button onclick={closeTagging} class="text-ink-400 hover:text-ink-600" aria-label="Close">
           <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
       </div>
@@ -1671,7 +1718,7 @@
                   <div class="h-5 w-5 rounded-full bg-forest-200 dark:bg-forest-700 flex items-center justify-center text-[10px] font-bold text-forest-700 dark:text-forest-200">{person.person_name?.charAt(0).toUpperCase()}</div>
                 {/if}
                 <a href="/people/{person.person_slug}" class="text-sm font-medium text-forest-700 dark:text-forest-300 hover:underline">{person.person_name}</a>
-                <button onclick={() => untagPerson(person.person_id)} class="text-forest-400 hover:text-red-500 transition-colors">
+                <button onclick={() => untagPerson(person.person_id)} class="text-forest-400 hover:text-red-500 transition-colors" aria-label="Untag {person.person_name}">
                   <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
@@ -1686,7 +1733,6 @@
               bind:value={newPersonName}
               placeholder="Enter name..."
               class="input flex-1 px-3 py-2 text-sm"
-              autofocus
             />
             <button type="submit" class="btn-primary text-xs px-3 py-2" disabled={creatingPerson || !newPersonName.trim()}>
               {creatingPerson ? '...' : 'Add'}

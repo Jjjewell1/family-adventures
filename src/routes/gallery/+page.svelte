@@ -165,6 +165,7 @@
   <div 
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
     onclick={closeLightbox}
+    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') closeLightbox(); }}
     role="dialog"
     tabindex="-1"
   >
@@ -198,6 +199,7 @@
           class="max-w-full max-h-[80vh] rounded-xl"
           src={selectedMedia.file_path}
         >
+          <track kind="captions" />
           Your browser does not support the video tag.
         </video>
       {:else}

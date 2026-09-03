@@ -5,6 +5,10 @@ const ONESIGNAL_REST_API_KEY = env.ONESIGNAL_REST_API_KEY;
 
 const ONE_SIGNAL_API = 'https://api.onesignal.com/notifications';
 
+// Where public pages live (used only to build absolute notification URLs). Falls
+// back to the deployed origin or a relative path so this never throws.
+const SITE_URL = env.SITE_URL || env.PUBLIC_SITE_URL || env.ORIGIN || '';
+
 function isConfigured(): boolean {
   return !!(ONESIGNAL_APP_ID && ONESIGNAL_REST_API_KEY);
 }
@@ -61,6 +65,7 @@ export async function notifyNewAdventure(adventure: {
   authorName: string;
   siteUrl?: string;
 }): Promise<void> {
+  const { siteUrl = SITE_URL } = adventure;
   const url = siteUrl ? `${siteUrl}/adventures/${adventure.slug}` : `/adventures/${adventure.slug}`;
 
   await sendNotification({
@@ -77,6 +82,7 @@ export async function notifyNewComment(comment: {
   content: string;
   siteUrl?: string;
 }): Promise<void> {
+  const { siteUrl = SITE_URL } = comment;
   const url = siteUrl
     ? `${siteUrl}/adventures/${comment.adventureSlug}`
     : `/adventures/${comment.adventureSlug}`;
@@ -96,6 +102,7 @@ export async function notifyNewFamilyMember(member: {
   name: string;
   siteUrl?: string;
 }): Promise<void> {
+  const { siteUrl = SITE_URL } = member;
   const url = siteUrl ? `${siteUrl}/feed` : '/feed';
 
   await sendNotification({
@@ -111,6 +118,7 @@ export async function notifyFeedItem(item: {
   adventureTitle?: string;
   siteUrl?: string;
 }): Promise<void> {
+  const { siteUrl = SITE_URL } = item;
   const url = siteUrl ? `${siteUrl}/feed` : '/feed';
   let body = `${item.userName} `;
 

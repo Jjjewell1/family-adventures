@@ -13,6 +13,12 @@
 
   const currentPath = $derived($page.url.pathname);
 
+  // Keep the browser theme-color bar in sync with the active theme
+  $effect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', isDark ? '#1A1A17' : '#2D7A52');
+  });
+
   function toggleTheme() {
     isDark = !isDark;
     document.documentElement.classList.toggle('dark', isDark);

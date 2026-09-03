@@ -6,7 +6,7 @@ import { resolve as pathResolve } from 'path';
 const UPLOAD_DIR = pathResolve(process.env.UPLOAD_DIR || './data/uploads');
 
 export const handleError: HandleServerError = ({ error, event }) => {
-  console.error(`[ERROR] ${event.method} ${event.url.pathname}:`, error);
+  console.error(`[ERROR] ${event.request.method} ${event.url.pathname}:`, error);
   return { message: 'Internal Error' };
 };
 

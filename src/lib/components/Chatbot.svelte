@@ -6,8 +6,8 @@
   let messages = $state<{ role: 'user' | 'assistant'; content: string }[]>([]);
   let streaming = $state(false);
   let streamContent = $state('');
-  let inputEl: HTMLInputElement;
-  let messagesEl: HTMLDivElement;
+  let inputEl = $state<HTMLInputElement>();
+  let messagesEl = $state<HTMLDivElement>();
   let aiEnabled = $state(false);
 
   onMount(async () => {

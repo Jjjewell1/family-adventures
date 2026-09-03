@@ -500,9 +500,9 @@
 
       <!-- Template -->
       <div>
-        <label class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
+        <p class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
           Adventure Type
-        </label>
+        </p>
         <div class="grid grid-cols-4 gap-2">
           {#each templates as template}
             <button
@@ -540,7 +540,7 @@
 
       <!-- Mood -->
       <div>
-        <label class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">Mood</label>
+        <p class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">Mood</p>
         <div class="flex flex-wrap gap-2">
           {#each moods as m}
             <button
@@ -561,7 +561,7 @@
       {#if data.tags.length > 0 || aiEnabled}
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <label class="block text-sm font-medium text-ink-600 dark:text-cream-200">Tags</label>
+            <p class="block text-sm font-medium text-ink-600 dark:text-cream-200">Tags</p>
             {#if aiEnabled}
               <button type="button" onclick={suggestTags} disabled={aiSuggestingTags} class="btn-accent text-xs px-3 py-1">
                 {#if aiSuggestingTags}
@@ -613,7 +613,7 @@
 
       <!-- Visibility -->
       <div>
-        <label class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">Visibility</label>
+        <p class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">Visibility</p>
         <div class="flex gap-4">
           <label class="flex items-center gap-2 cursor-pointer">
             <input type="radio" bind:group={visibility} value="private" class="accent-forest-500" />
@@ -670,12 +670,14 @@
     {#if media.length > 0}
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {#each media as m}
+          {@const path = m.file_path}
+          {#if path}
           <div class="relative aspect-square rounded-xl overflow-hidden group">
             {#if m.media_type === 'video'}
-              <VideoThumbnail src={m.file_path} alt={m.caption || 'Video'} class="w-full h-full object-cover" />
+              <VideoThumbnail src={path} alt={m.caption || 'Video'} class="w-full h-full object-cover" />
             {:else}
               <img
-                src={`/api/media/image?path=${encodeURIComponent(m.file_path)}&w=480`}
+                src={`/api/media/image?path=${encodeURIComponent(path)}&w=480`}
                 alt={m.caption || 'Adventure photo'}
                 class="w-full h-full object-cover"
                 loading="lazy"
@@ -717,6 +719,7 @@
               </svg>
             </button>
           </div>
+          {/if}
         {/each}
       </div>
     {:else}

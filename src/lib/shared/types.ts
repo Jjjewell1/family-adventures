@@ -3,10 +3,11 @@ export interface User {
   name: string;
   email: string;
   avatar_url: string | null;
-  role: 'admin' | 'member';
+  role: 'admin' | 'member' | 'guest';
   provider: string;
   provider_id: string | null;
   approved: number;
+  password_hash: string | null;
   created_at: string;
 }
 

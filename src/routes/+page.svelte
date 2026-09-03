@@ -13,7 +13,16 @@
   let featuresVisible = $state(false);
 
   function imageUrl(img: { file_path: string | null }) {
-    return img.file_path || '';
+    return img.file_path
+      ? `/api/media/image?path=${encodeURIComponent(img.file_path)}&w=1600`
+      : '';
+  }
+
+  // Smaller tiles for the mosaic grid (thumbnails)
+  function thumbUrl(img: { file_path: string | null }) {
+    return img.file_path
+      ? `/api/media/image?path=${encodeURIComponent(img.file_path)}&w=600`
+      : '';
   }
 
   onMount(() => {
@@ -44,7 +53,7 @@
           <div
             class="absolute inset-0 transition-all duration-[1400ms] ease-in-out {i === heroIndex && fade ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}"
           >
-            <img {src} alt="" class="h-full w-full object-cover" loading={i === 0 ? 'eager' : 'lazy'} />
+            <img {src} alt="" class="h-full w-full object-cover" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} />
           </div>
         {/if}
       {/each}
@@ -148,7 +157,7 @@
       </div>
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         {#each heroImages as img, i}
-          {@const src = imageUrl(img)}
+          {@const src = thumbUrl(img)}
           {#if src}
             <a
               href="/adventures/{img.slug}"

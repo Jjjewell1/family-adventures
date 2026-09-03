@@ -83,6 +83,32 @@ export async function loginWithPassword(email: string, password: string): Promis
   return user;
 }
 
+// Find-or-create a lightweight "guest" contributor for a shared adventure.
+// Guests have no email/password; they are identified by the display name they
+// choose on the share page. Reusing the users table lets every existing
+// contribution endpoint (upload, comments, stories) work for guests unchanged,
+// while still attributing posts to their chosen name.
+export async function findOrCreateGuestUser(name: string): Promise<User> {
+  const cleanName = name.trim();
+  const guestUser = await dbGet(
+    `SELECT * FROM users WHERE role = 'guest' AND name = ? COLLATE NOCASE`,
+    cleanName
+  ) as User | undefined;
+
+  if (guestUser) return guestUser;
+
+  const userId = generateToken();
+  const username = 'guest_' + cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 40) + '_' + generateToken(4);
+  const email = `guest-${userId}@family-adventures.local`;
+
+  await dbRun(`
+    INSERT INTO users (id, username, email, name, password_hash, role, provider, approved)
+    VALUES (?, ?, ?, ?, NULL, 'guest', 'local', 1)
+  `, userId, username, email, cleanName);
+
+  return await dbGet('SELECT * FROM users WHERE id = ?', userId) as User;
+}
+
 export async function createUser(email: string, name: string, password: string, role: string = 'member'): Promise<User> {
   const userId = generateToken();
   const passwordHash = hashPassword(password);

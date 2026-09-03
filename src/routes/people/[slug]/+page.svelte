@@ -118,7 +118,7 @@
     <div class="flex-1">
       {#if editing}
         <form onsubmit={(e) => { e.preventDefault(); saveName(); }} class="flex items-center gap-2">
-          <input type="text" bind:value={editName} class="input flex-1" autofocus />
+          <input type="text" bind:value={editName} class="input flex-1" />
           <button type="submit" class="btn-primary text-xs" disabled={saving}>Save</button>
           <button type="button" class="btn-secondary text-xs" onclick={() => editing = false}>Cancel</button>
         </form>
@@ -223,12 +223,14 @@
   <div
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
     onclick={closeLightbox}
+    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') closeLightbox(); }}
     role="dialog"
     tabindex="-1"
   >
     <button
       class="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
       onclick={closeLightbox}
+      aria-label="Close lightbox"
     >
       <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -236,14 +238,16 @@
     </button>
 
     {#if data.photos.length > 1}
-      <button class="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10" onclick={(e) => { e.stopPropagation(); navigate(-1); }}>
+      <button class="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10" onclick={(e) => { e.stopPropagation(); navigate(-1); }} aria-label="Previous photo">
         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
       </button>
     {/if}
 
-    <div class="max-w-4xl max-h-[90vh] mx-4" onclick={(e) => e.stopPropagation()}>
+    <div class="max-w-4xl max-h-[90vh] mx-4" role="dialog" aria-label="Media viewer" tabindex="0" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
       {#if selectedMedia.media_type === 'video'}
-        <video controls class="max-w-full max-h-[80vh] rounded-xl" src={selectedMedia.file_path} />
+        <video controls class="max-w-full max-h-[80vh] rounded-xl" src={selectedMedia.file_path}>
+          <track kind="captions" />
+        </video>
       {:else}
         <img src={selectedMedia.file_path} alt={selectedMedia.caption || 'Photo'} class="max-w-full max-h-[80vh] rounded-xl object-contain" />
       {/if}
@@ -262,7 +266,7 @@
     </div>
 
     {#if data.photos.length > 1}
-      <button class="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10" onclick={(e) => { e.stopPropagation(); navigate(1); }}>
+      <button class="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10" onclick={(e) => { e.stopPropagation(); navigate(1); }} aria-label="Next photo">
         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
       </button>
     {/if}

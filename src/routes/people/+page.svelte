@@ -69,7 +69,7 @@
           <div class="relative aspect-square bg-cream-100 overflow-hidden">
             {#if person.avatar_file_path}
               <img
-                src={person.avatar_file_path}
+                src={`/api/media/image?path=${encodeURIComponent(person.avatar_file_path)}&w=480`}
                 alt={person.name}
                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
@@ -95,8 +95,8 @@
 </div>
 
 {#if showAddModal}
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onclick={() => showAddModal = false}>
-    <div class="card p-6 w-full max-w-sm mx-4" onclick={(e) => e.stopPropagation()}>
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="button" tabindex="-1" aria-label="Close" onclick={() => showAddModal = false} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') showAddModal = false; }}>
+    <div class="card p-6 w-full max-w-sm mx-4" role="dialog" aria-label="Add person" tabindex="0" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
       <h2 class="text-lg font-display font-semibold text-ink-800 dark:text-cream-100 mb-4">Add Person</h2>
       {#if error}
         <div class="mb-4 p-3 rounded-lg bg-terra-50 border border-terra-200 text-terra-600 text-sm">{error}</div>
@@ -107,7 +107,6 @@
           bind:value={newName}
           placeholder="Person's name"
           class="input w-full mb-4"
-          autofocus
         />
         <div class="flex justify-end gap-3">
           <button type="button" class="btn-secondary" onclick={() => showAddModal = false}>Cancel</button>

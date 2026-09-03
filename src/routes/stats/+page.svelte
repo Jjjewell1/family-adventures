@@ -5,10 +5,13 @@
   const stateColors: Record<string, string> = {};
   const ALL_ABBRS = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
-  let maxCount = 1;
-  for (const val of Object.values(data.byYear)) if (val > maxCount) maxCount = val;
-  for (const val of Object.values(data.byType)) if (val > maxCount) maxCount = val;
-  for (const val of Object.values(data.byMood)) if (val > maxCount) maxCount = val;
+  const maxCount = $derived(
+    Math.max(1,
+      ...Object.values(data.byYear),
+      ...Object.values(data.byType),
+      ...Object.values(data.byMood)
+    )
+  );
 </script>
 
 <div class="max-w-4xl mx-auto space-y-8 animate-in">

@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getSessionUser } from '$lib/server/auth';
+import { getSessionUser, hashPassword } from '$lib/server/auth';
 import { dbRun, dbGet } from '$lib/server/db';
 import { generateToken } from '$lib/shared/utils';
 
@@ -11,7 +11,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 
   const body = await request.json();
-  const { adventureId } = body;
+  const { adventureId, passcode } = body;
 
   if (!adventureId) {
     return json({ error: 'Adventure ID is required' }, { status: 400 });
@@ -27,15 +27,34 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     return json({ error: 'Unauthorized' }, { status: 403 });
   }
 
-  const token = generateToken();
-  const id = generateToken();
+  // Reuse an existing share link for this adventure rather than creating duplicates
+  let share = await dbGet(
+    'SELECT * FROM public_shares WHERE adventure_id = ? LIMIT 1',
+    adventureId
+  ) as any;
 
-  await dbRun(`
-    INSERT INTO public_shares (id, adventure_id, share_token)
-    VALUES (?, ?, ?)
-  `, id, adventureId, token);
+  if (!share) {
+    share = { id: generateToken(), share_token: generateToken() };
+    await dbRun(`
+      INSERT INTO public_shares (id, adventure_id, share_token)
+      VALUES (?, ?, ?)
+    `, share.id, adventureId, share.share_token);
+  }
 
-  return json({ token });
+  // Optionally set/replace the contribution passcode (hashed, matching how the
+  // read-only view stays open while contributions require the passcode)
+  if (passcode) {
+    await dbRun(
+      'UPDATE public_shares SET password_hash = ? WHERE id = ?',
+      hashPassword(String(passcode)), share.id
+    );
+  } else if (share.password_hash) {
+    // keep existing passcode
+  } else {
+    await dbRun('UPDATE public_shares SET password_hash = NULL WHERE id = ?', share.id);
+  }
+
+  return json({ token: share.share_token, hasPasscode: Boolean(passcode) });
 };
 
 export const GET: RequestHandler = async ({ url }) => {

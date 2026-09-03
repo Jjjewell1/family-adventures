@@ -66,7 +66,7 @@
         const popupContent = `
           <div class="p-2 min-w-[200px]">
             ${adventure.cover_file_path ? `
-              <img src="${escapeHtml(adventure.cover_file_path)}" 
+              <img src="/api/media/image?path=${escapeHtml(encodeURIComponent(adventure.cover_file_path))}&amp;w=480" 
                    alt="${escapeHtml(adventure.title)}" 
                    class="w-full h-24 object-cover rounded-lg mb-2" />
             ` : ''}
@@ -168,7 +168,7 @@
             <div class="h-12 w-12 rounded-xl bg-forest-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
               {#if adventure.cover_file_path}
                 <img
-                  src={adventure.cover_file_path}
+                  src={`/api/media/image?path=${encodeURIComponent(adventure.cover_file_path)}&w=160`}
                   alt={adventure.title}
                   class="w-full h-full object-cover rounded-xl"
                 />

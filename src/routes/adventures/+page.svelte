@@ -14,7 +14,7 @@
 
   const filteredAdventures = $derived(
     data.adventures.filter((a: any) => {
-      if (filterTag && !a.tags?.some(t => t.id === filterTag)) return false;
+      if (filterTag && !a.tags?.some((t: { id: string }) => t.id === filterTag)) return false;
       if (filterYear && a.start_date && new Date(a.start_date).getFullYear() !== filterYear) return false;
       return true;
     })
@@ -122,7 +122,7 @@
           <div class="relative h-44 bg-cream-100 overflow-hidden">
             {#if adventure.cover_file_path}
               <img
-                src={adventure.cover_file_path}
+                src={`/api/media/image?path=${encodeURIComponent(adventure.cover_file_path)}&w=600`}
                 alt={adventure.title}
                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"

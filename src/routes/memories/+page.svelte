@@ -55,7 +55,7 @@
                   <div class="h-20 w-20 rounded-xl bg-cream-100 flex-shrink-0 overflow-hidden">
                     {#if adventure.cover_file_path}
                       <img
-                        src={adventure.cover_file_path}
+                        src={`/api/media/image?path=${encodeURIComponent(adventure.cover_file_path)}&w=160`}
                         alt={adventure.title}
                         class="w-full h-full object-cover"
                       />
@@ -102,7 +102,7 @@
             <div class="flex-1 min-w-0">
               <p class="font-medium text-ink-700 truncate">{anniversary.title}</p>
               <p class="text-sm text-ink-400">
-                {anniversary.yearsAgo} year{anniversary.yearsAgo !== 1 ? 's' : ''} ago • {formatDate(anniversary.start_date)}
+                {anniversary.yearsAgo} year{anniversary.yearsAgo !== 1 ? 's' : ''} ago • {anniversary.start_date ? formatDate(anniversary.start_date) : ''}
               </p>
             </div>
             <a 

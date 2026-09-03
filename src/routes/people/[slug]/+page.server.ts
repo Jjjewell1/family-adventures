@@ -1,4 +1,5 @@
 import type { PageServerLoad } from './$types';
+import { error } from '@sveltejs/kit';
 import { dbGet, dbAll } from '$lib/server/db';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -12,7 +13,7 @@ export const load: PageServerLoad = async ({ params }) => {
   `, params.slug);
 
   if (!person) {
-    return { status: 404 };
+    throw error(404, 'Person not found');
   }
 
   const photos = await dbAll(`
@@ -35,5 +36,5 @@ export const load: PageServerLoad = async ({ params }) => {
     ORDER BY a.start_date DESC
   `, person.id);
 
-  return { person, photos, adventures };
+  return { person, photos: photos ?? [], adventures: adventures ?? [] };
 };
