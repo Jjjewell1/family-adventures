@@ -13,6 +13,7 @@
   let newComment = $state('');
   let submittingComment = $state(false);
   let myRating = $state(data.ratings?.find((r: any) => r.author_id === data.user?.id)?.score || 0);
+  let shareUsers = $state<Array<{id:string; name:string; email:string; phone:string | null; contact_method:string | null}>>([]);
   let hoverRating = $state(0);
   let showStoryForm = $state(false);
   let storyTitle = $state('');
@@ -127,6 +128,23 @@
       const result = await response.json();
       shareLink = `${window.location.origin}/share/${result.token}`;
       shareSaved = false;
+
+      // Fetch family members to show in the share dialog
+      try {
+        const usersRes = await fetch('/api/users', {
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const allUsers = await usersRes.json();
+        // Filter out guests and the current user, keep active family members
+        const me = data.user?.id;
+        shareUsers = allUsers
+          .filter((u: any) => u.role !== 'guest' && u.id !== me)
+          .map((u: any) => ({ id: u.id, name: u.name, email: u.email || u.username, phone: u.phone, contact_method: u.contact_method }));
+      } catch (e) {
+        console.error('Failed to fetch users for share', e);
+        shareUsers = [];
+      }
+
       showShareDialog = true;
     }
   }
@@ -1680,6 +1698,37 @@
       <p class="text-xs text-ink-400 dark:text-cream-300 mb-4">
         Anyone with this passcode can post photos, comments, and stories. The link itself stays viewable by anyone.
       </p>
+      {#if shareUsers.length > 0}
+        <div class="mt-3 space-y-2 text-xs">
+          <p class="font-medium text-ink-600 dark:text-cream-200 mb-1">Send to family:</p>
+          {#each shareUsers as user}
+            <div class="flex items-center gap-2 px-2 py-1 rounded border forested-200/10 dark:forested-300/10">
+              <span class="font-medium">{user.name}</span>
+              {#if user.phone}
+                <button
+                  class="btn-secondary text-xs px-2 py-1 rounded"
+                  onclick={() => {
+                    const msg = encodeURIComponent(`Check out our adventure "${data.adventure.title}": ${shareLink}`);
+                    window.open(`sms:${user.phone}?body=${msg}`, '_blank');
+                  }}
+                >
+                  SMS
+                </button>
+              {/if}
+              <button
+                class="btn-tertiary text-xs px-2 py-1 rounded"
+                onclick={() => {
+                  const msg = `Check out our adventure "${data.adventure.title}": ${shareLink}`;
+                  navigator.clipboard.writeText(msg);
+                  alert('Copied link message to clipboard!');
+                }}
+              >
+                Message
+              </button>
+            </div>
+          {/each}
+        </div>
+      {/if}
 
       <button
         onclick={() => showShareDialog = false}

@@ -9,7 +9,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
   if (!user) return json({ error: 'Unauthorized' }, { status: 401 });
   if (user.role !== 'admin') return json({ error: 'Forbidden' }, { status: 403 });
 
-  const users = await dbAll('SELECT id, username, email, name, role, created_at FROM users ORDER BY created_at ASC');
+  const users = await dbAll('SELECT id, username, email, name, role, phone, contact_method, created_at FROM users ORDER BY created_at ASC');
   return json(users);
 };
 

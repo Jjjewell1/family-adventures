@@ -185,6 +185,14 @@ function migrateDatabase() {
       db.run("ALTER TABLE users ADD COLUMN approved INTEGER DEFAULT 1");
       markDirty();
     }
+    if (!userCols.includes('phone')) {
+      db.run("ALTER TABLE users ADD COLUMN phone TEXT");
+      markDirty();
+    }
+    if (!userCols.includes('contact_method')) {
+      db.run("ALTER TABLE users ADD COLUMN contact_method TEXT DEFAULT 'sms'");
+      markDirty();
+    }
   }
 
   // Create missing tables (added after initial DB creation)

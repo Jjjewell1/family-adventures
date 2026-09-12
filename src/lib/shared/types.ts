@@ -9,6 +9,8 @@ export interface User {
   approved: number;
   password_hash: string | null;
   created_at: string;
+  phone: string | null;
+  contact_method: string | null;
 }
 
 export interface Adventure {
