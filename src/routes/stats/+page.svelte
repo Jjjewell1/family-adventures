@@ -54,8 +54,6 @@
           class="w-full aspect-square rounded-lg flex items-center justify-center text-[10px] font-bold transition-all"
           class:bg-forest-500={data.statesVisited.includes(abbr)}
           class:text-white={data.statesVisited.includes(abbr)}
-          class:bg-cream-100={!data.statesVisited.includes(abbr)}
-          class:text-ink-300={!data.statesVisited.includes(abbr)}
           title={abbr}
         >
           {abbr}
@@ -72,8 +70,8 @@
       <div class="space-y-2">
         {#each Object.entries(data.byYear).sort(([a],[b]) => b.localeCompare(a)) as [year, count]}
           <div class="flex items-center gap-3">
-            <span class="text-sm text-ink-500 w-12 text-right">{year}</span>
-            <div class="flex-1 h-6 bg-cream-100 rounded-full overflow-hidden">
+            <span class="text-sm text-ink-500 dark:text-cream-400 w-12 text-right">{year}</span>
+            <div class="flex-1 h-6 bg-cream-100 dark:bg-ink-700 rounded-full overflow-hidden">
               <div class="h-full bg-forest-500 rounded-full flex items-center pl-2"
                 style="width: {Math.max((count / maxCount) * 100, 8)}%">
                 <span class="text-[10px] font-medium text-white">{count}</span>
@@ -93,8 +91,8 @@
       <div class="space-y-2">
         {#each Object.entries(data.byType).sort(([,a],[,b]) => b - a) as [type, count]}
           <div class="flex items-center gap-3">
-            <span class="text-sm text-ink-500 w-24 text-right truncate">{type}</span>
-            <div class="flex-1 h-6 bg-cream-100 rounded-full overflow-hidden">
+            <span class="text-sm text-ink-500 dark:text-cream-400 w-24 text-right truncate">{type}</span>
+            <div class="flex-1 h-6 bg-cream-100 dark:bg-ink-700 rounded-full overflow-hidden">
               <div class="h-full bg-terra-500 rounded-full flex items-center pl-2"
                 style="width: {Math.max((count / maxCount) * 100, 8)}%">
                 <span class="text-[10px] font-medium text-white">{count}</span>
@@ -115,7 +113,7 @@
         {#each Object.entries(data.byMood).sort(([,a],[,b]) => b - a) as [mood, count]}
           <div class="flex items-center gap-3">
             <span class="text-sm text-ink-500 w-20 text-right">{mood}</span>
-            <div class="flex-1 h-6 bg-cream-100 rounded-full overflow-hidden">
+            <div class="flex-1 h-6 bg-cream-100 dark:bg-ink-700 rounded-full overflow-hidden">
               <div class="h-full bg-gold-500 rounded-full flex items-center pl-2"
                 style="width: {Math.max((count / maxCount) * 100, 8)}%">
                 <span class="text-[10px] font-medium text-white">{count}</span>
@@ -139,7 +137,7 @@
               {author.charAt(0).toUpperCase()}
             </div>
             <span class="text-sm text-ink-700 flex-1">{author}</span>
-            <span class="badge bg-cream-100 text-ink-500">{count}</span>
+            <span class="badge bg-cream-100 dark:bg-ink-700 text-ink-500">{count}</span>
           </div>
         {/each}
       </div>

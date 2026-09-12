@@ -119,9 +119,9 @@
 
               <!-- Comment preview -->
               {#if item.action_type === 'commented' && meta.commentId}
-                <div class="mt-2 px-3 py-2 rounded-lg bg-cream-50 border border-cream-200 text-xs text-ink-500 italic">
-                  "{meta.content || 'view comment →'}"
-                </div>
+<div class="mt-2 px-3 py-2 rounded-lg bg-cream-50 dark:bg-ink-700/50 border border-cream-200 dark:border-ink-600 text-xs text-ink-500 dark:text-cream-400 italic">
+                   "{meta.content || 'view comment →'}"
+                 </div>
               {/if}
 
               <!-- Reaction emoji display -->
@@ -133,7 +133,7 @@
               {#if item.action_type === 'rated' && meta.score}
                 <div class="mt-1 flex gap-0.5">
                   {#each Array(5) as _, i}
-                    <span class="text-sm {i < meta.score ? 'text-gold-500' : 'text-cream-300'}">★</span>
+                    <span class="text-sm {i < meta.score ? 'text-gold-500' : 'text-cream-300 dark:text-cream-600'}">★</span>
                   {/each}
                 </div>
               {/if}
@@ -141,15 +141,15 @@
               <!-- Photo thumbnail -->
               {#if item.action_type === 'uploaded_photo' && item.media_file_path}
                 <div class="mt-2">
-                  <img src={`/api/media/image?path=${encodeURIComponent(item.media_file_path)}&w=160`} alt="" class="h-24 w-24 rounded-lg object-cover border border-cream-200" />
+                  <img src={`/api/media/image?path=${encodeURIComponent(item.media_file_path)}&w=160`} alt="" class="h-24 w-24 rounded-lg object-cover border border-cream-200 dark:border-ink-600" />
                 </div>
               {/if}
 
               <!-- Joined celebration -->
               {#if item.action_type === 'joined'}
-                <div class="mt-2 px-3 py-2 rounded-lg bg-cream-50 border border-cream-200 text-xs text-forest-600">
-                  🎊 Everyone welcome {item.target_user_name || 'a new member'}!
-                </div>
+<div class="mt-2 px-3 py-2 rounded-lg bg-cream-50 dark:bg-ink-700/50 border border-cream-200 dark:border-ink-600 text-xs text-forest-600 dark:text-cream-400">
+                   🎊 Everyone welcome {item.target_user_name || 'a new member'}!
+                 </div>
               {/if}
 
               <!-- Action icon -->

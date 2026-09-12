@@ -24,7 +24,7 @@
 
   {#if data.memories.length === 0}
     <div class="text-center py-16 card">
-      <div class="h-16 w-16 mx-auto rounded-full bg-cream-100 flex items-center justify-center mb-4">
+      <div class="h-16 w-16 mx-auto rounded-full bg-cream-100 dark:bg-ink-700 flex items-center justify-center mb-4">
         <svg class="h-8 w-8 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -50,7 +50,7 @@
               {#each yearGroup.adventures as adventure}
                 <a 
                   href="/adventures/{adventure.slug}"
-                  class="flex gap-4 p-4 rounded-2xl hover:bg-cream-50 transition-colors group"
+                  class="flex gap-4 p-4 rounded-2xl hover:bg-cream-50 dark:hover:bg-white/5 transition-colors group"
                 >
                   <div class="h-20 w-20 rounded-xl bg-cream-100 flex-shrink-0 overflow-hidden">
                     {#if adventure.cover_file_path}
@@ -95,7 +95,7 @@
       <h2 class="text-lg font-semibold text-ink-700 mb-4">Upcoming Anniversaries</h2>
       <div class="space-y-3">
         {#each data.upcomingAnniversaries as anniversary}
-          <div class="flex items-center gap-4 p-3 rounded-xl bg-cream-50">
+          <div class="flex items-center gap-4 p-3 rounded-xl bg-cream-50 dark:bg-ink-700">
             <div class="h-12 w-12 rounded-xl bg-gold-500 flex items-center justify-center flex-shrink-0">
               <span class="text-2xl">🎂</span>
             </div>

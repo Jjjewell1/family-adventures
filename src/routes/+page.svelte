@@ -68,12 +68,12 @@
 
     <!-- Hero Content -->
     <div class="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 pb-16 w-full">
-      <div class="max-w-xl space-y-5 {visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} transition-all duration-1000 ease-out">
+      <div class="glass-strong rounded-3xl p-6 md:p-10 max-w-xl space-y-5 shadow-2xl {visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} transition-all duration-1000 ease-out">
         <div class="flex items-center gap-3">
           <div class="h-px w-12 bg-gold-400/60"></div>
-          <span class="text-xs font-medium text-gold-300/80 uppercase tracking-[0.2em]">Family Adventures</span>
+          <span class="text-xs font-medium text-gold-600/90 dark:text-gold-400 uppercase tracking-[0.2em]">Family Adventures</span>
         </div>
-        <h1 class="text-4xl md:text-5xl lg:text-6xl font-display font-semibold text-white leading-[1.1]">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-display font-semibold text-white leading-[1.1] drop-shadow-lg">
           Every journey<br/>tells a <span class="relative inline-block">
             <span class="italic text-gold-300">story</span>
             <svg class="absolute -bottom-1 left-0 w-full h-3 text-gold-400/40" viewBox="0 0 120 12" preserveAspectRatio="none">
@@ -81,7 +81,7 @@
             </svg>
           </span>
         </h1>
-        <p class="text-base md:text-lg text-white/70 max-w-md leading-relaxed">
+        <p class="text-base md:text-lg text-white/75 max-w-md leading-relaxed">
           Our family's collection of adventures, photos, and memories — all in one beautiful place.
         </p>
         <div class="flex flex-wrap gap-3 pt-1">
@@ -140,7 +140,7 @@
 
   <!-- Recent Snapshots Mosaic -->
   {#if heroImages.length > 0}
-    <div class="mx-auto px-4 sm:px-6 lg:px-8 py-14 {mosaicVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} transition-all duration-700 ease-out">
+    <div class="glass-strong rounded-2xl p-4 sm:p-6 md:p-8 mx-auto max-w-2xl">
       <div class="flex items-baseline justify-between mb-6">
         <div class="flex items-center gap-3">
           <div class="h-8 w-8 rounded-full bg-forest-100 dark:bg-forest-900 flex items-center justify-center">

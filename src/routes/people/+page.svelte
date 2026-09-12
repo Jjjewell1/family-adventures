@@ -54,8 +54,8 @@
 
   {#if data.people.length === 0}
     <div class="card-flat text-center py-16">
-      <div class="h-14 w-14 mx-auto rounded-full bg-cream-100 flex items-center justify-center mb-4">
-        <svg class="h-7 w-7 text-ink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="h-14 w-14 mx-auto rounded-full bg-cream-100 dark:bg-ink-700 flex items-center justify-center mb-4">
+        <svg class="h-7 w-7 text-ink-300 dark:text-cream-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       </div>
@@ -66,7 +66,7 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
       {#each data.people as person}
         <a href="/people/{person.slug}" class="card overflow-hidden group cursor-pointer">
-          <div class="relative aspect-square bg-cream-100 overflow-hidden">
+          <div class="relative aspect-square bg-cream-100 dark:bg-ink-700 overflow-hidden">
             {#if person.avatar_file_path}
               <img
                 src={`/api/media/image?path=${encodeURIComponent(person.avatar_file_path)}&w=480`}

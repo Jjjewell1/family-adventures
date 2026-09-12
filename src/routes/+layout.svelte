@@ -110,8 +110,12 @@
   <!-- Full-screen animated beach background (decorative, fixed behind all content) -->
   <BeachScene className="fixed inset-0 z-0" fullscreen />
 
+  <!-- Readability overlay: deepens the beach so content pops, vignette at edges -->
+  <div class="pointer-events-none fixed inset-0 z-[1] bg-[linear-gradient(180deg,rgba(13,18,15,0.62)_0%,rgba(13,18,15,0.38)_35%,rgba(13,18,15,0.46)_72%,rgba(10,15,12,0.72)_100%)]"
+       aria-hidden="true"></div>
+
   <!-- Navigation -->
-  <nav class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-cream-200 dark:bg-ink-800/95 dark:border-ink-600">
+  <nav class="sticky top-0 z-40 bg-white/60 dark:bg-ink-900/55 backdrop-blur-xl border-b border-white/40 dark:border-white/10">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="flex h-14 items-center justify-between">
         <a href="/" class="flex items-center gap-2.5">
@@ -274,12 +278,12 @@
   </nav>
 
   <!-- Main content -->
-  <main class="relative flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main class="relative z-[2] flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     {@render children()}
   </main>
 
   <!-- Footer -->
-  <footer class="relative border-t border-cream-200 mt-auto dark:border-ink-600">
+  <footer class="relative z-[2] mt-auto bg-white/40 dark:bg-black/25 backdrop-blur-md border-t border-white/40 dark:border-white/10">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5">
       <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-ink-400 dark:text-ink-300">
         <div class="flex items-center gap-2">

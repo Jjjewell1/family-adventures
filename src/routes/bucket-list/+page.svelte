@@ -36,7 +36,7 @@
   ];
 
   const statuses = [
-    { id: 'wishlist', label: 'Wishlist', color: 'bg-cream-100 text-ink-500' },
+    { id: 'wishlist', label: 'Wishlist', color: 'bg-cream-100 dark:bg-ink-700 text-ink-500 dark:text-cream-400' },
     { id: 'next_up', label: 'Next Up', color: 'bg-forest-50 text-forest-600' },
     { id: 'planning', label: 'Planning', color: 'bg-gold-50 text-gold-600' },
     { id: 'booked', label: 'Booked', color: 'bg-terra-50 text-terra-600' }
@@ -297,7 +297,7 @@
   {/if}
 
   {#if aiError}
-    <div class="p-4 rounded-lg bg-gold-50 border border-gold-200 text-gold-700 text-sm">
+    <div class="p-4 rounded-lg bg-gold-50 dark:bg-ink-700 border border-gold-200 dark:border-ink-600 text-gold-700 dark:text-cream-200 text-sm">
       {aiError}
       <button class="ml-2 underline" onclick={() => aiError = ''}>Dismiss</button>
     </div>
@@ -418,7 +418,7 @@
                   </button>
                   {#if data.user && data.user.role === 'admin'}
                     <select value={item.status} onchange={(e) => updateStatus(item.id, (e.target as HTMLSelectElement).value)}
-                      class="text-xs rounded-md border border-cream-200 bg-white px-2 py-1 text-ink-500 focus:outline-none dark:bg-ink-700 dark:border-ink-600 dark:text-cream-200">
+                      class="input text-xs px-2 py-1">
                       {#each statuses as s}
                         <option value={s.id}>{s.label}</option>
                       {/each}

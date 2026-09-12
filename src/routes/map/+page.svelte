@@ -142,7 +142,7 @@
 
   <!-- Map Container -->
   <div class="card-flat overflow-hidden animate-in">
-    <div class="flex items-center gap-4 px-4 py-2 border-b border-cream-200 text-xs">
+    <div class="flex items-center gap-4 px-4 py-2 border-b border-white/40 dark:border-white/10 text-xs animate-in">
       <span class="flex items-center gap-1.5">
         <span class="h-3 w-3 rounded-full bg-forest-500"></span>
         <span class="text-ink-500">Been There</span>
@@ -163,7 +163,7 @@
         {#each data.adventuresWithoutCoords as adventure}
           <a 
             href="/adventures/{adventure.slug}"
-            class="flex items-center gap-3 p-3 rounded-xl hover:bg-cream-50 transition-colors"
+            class="flex items-center gap-3 p-3 rounded-xl hover:bg-cream-50/50 dark:hover:bg-white/5"
           >
             <div class="h-12 w-12 rounded-xl bg-forest-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
               {#if adventure.cover_file_path}

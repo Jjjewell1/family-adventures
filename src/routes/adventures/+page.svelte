@@ -52,7 +52,7 @@
         <div class="flex items-center gap-2">
           <span class="text-xs font-medium text-ink-400 uppercase tracking-wide">Year</span>
           <button
-            class="badge {filterYear === null ? 'bg-forest-500 text-white' : 'bg-cream-100 text-ink-500 hover:bg-cream-200'}"
+            class="badge {filterYear === null ? 'bg-forest-500 text-white' : 'bg-cream-100 dark:bg-ink-700 text-ink-500 dark:text-cream-400 hover:bg-cream-200 dark:hover:bg-ink-600'}"
             onclick={() => filterYear = null}
           >
             All
@@ -72,7 +72,7 @@
         <div class="flex items-center gap-2">
           <span class="text-xs font-medium text-ink-400 uppercase tracking-wide">Tag</span>
           <button
-            class="badge {filterTag === null ? 'bg-forest-500 text-white' : 'bg-cream-100 text-ink-500 hover:bg-cream-200'}"
+            class="badge {filterTag === null ? 'bg-forest-500 text-white' : 'bg-cream-100 dark:bg-ink-700 text-ink-500 dark:text-cream-400 hover:bg-cream-200 dark:hover:bg-ink-600'}"
             onclick={() => filterTag = null}
           >
             All
@@ -94,7 +94,7 @@
   <!-- Adventures Grid -->
   {#if filteredAdventures.length === 0}
     <div class="card-flat text-center py-16">
-      <div class="h-14 w-14 mx-auto rounded-full bg-cream-100 flex items-center justify-center mb-4">
+      <div class="h-14 w-14 mx-auto rounded-full bg-cream-100 dark:bg-ink-700 flex items-center justify-center mb-4">
         <svg class="h-7 w-7 text-ink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -119,7 +119,7 @@
           class="card overflow-hidden cursor-pointer group"
         >
           <!-- Cover Image -->
-          <div class="relative h-44 bg-cream-100 overflow-hidden">
+          <div class="relative h-44 bg-cream-100 dark:bg-ink-700 overflow-hidden">
             {#if adventure.cover_file_path}
               <img
                 src={`/api/media/image?path=${encodeURIComponent(adventure.cover_file_path)}&w=600`}

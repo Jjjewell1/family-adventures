@@ -106,7 +106,7 @@
 
   <!-- Person header -->
   <div class="flex flex-col sm:flex-row items-start gap-6">
-    <div class="w-24 h-24 rounded-2xl overflow-hidden bg-cream-100 flex-shrink-0">
+    <div class="w-24 h-24 rounded-2xl overflow-hidden bg-cream-100 dark:bg-ink-700 flex-shrink-0">
       {#if data.person?.avatar_file_path}
         <img src={data.person.avatar_file_path} alt={data.person.name} class="w-full h-full object-cover" />
       {:else}
