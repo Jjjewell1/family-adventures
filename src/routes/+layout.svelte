@@ -39,6 +39,7 @@
   }
 
   onMount(() => {
+    setupAuroraParallax();
     const saved = localStorage.getItem('theme');
     if (saved === 'dark') {
       isDark = true;
@@ -76,6 +77,53 @@
       });
     }
   });
+
+  // Gentle parallax drift on the animated aurora background, reacting to the
+  // mouse position and current scroll depth. Respects reduced-motion preference.
+  function setupAuroraParallax() {
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const blobs = Array.from(document.querySelectorAll<HTMLElement>('.aurora-blob'));
+    if (blobs.length === 0) return;
+
+    const inner = blobs.map((b) => b.querySelector<HTMLElement>('.aurora-blob-inner'));
+    let targetX = 0, targetY = 0, scrollY = 0;
+    let currentX = 0, currentY = 0, currentScroll = 0;
+    let raf = 0;
+
+    const onMouse = (e: MouseEvent) => {
+      // Normalized -1..1 from the viewport center
+      targetX = (e.clientX / window.innerWidth - 0.5) * 2;
+      targetY = (e.clientY / window.innerHeight - 0.5) * 2;
+    };
+    const onScroll = () => { scrollY = window.scrollY; };
+
+    const tick = () => {
+      currentX += (targetX - currentX) * 0.05;
+      currentY += (targetY - currentY) * 0.05;
+      currentScroll += (scrollY - currentScroll) * 0.08;
+
+      blobs.forEach((b, i) => {
+        if (!b) return;
+        const depth = (i + 1) * 0.5; // blob 1 shallow, blob 2/3 deeper
+        const tx = currentX * 22 * depth;
+        const ty = currentY * 14 * depth + currentScroll * 0.12 * depth;
+        b.style.transform = `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0)`;
+      });
+      raf = requestAnimationFrame(tick);
+    };
+
+    window.addEventListener('mousemove', onMouse, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    tick();
+
+    return () => {
+      window.removeEventListener('mousemove', onMouse);
+      window.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }
 </script>
 
 <svelte:head>
@@ -106,6 +154,19 @@
 </svelte:head>
 
 <div class="min-h-screen flex flex-col">
+  <!-- Animated aurora background (decorative, behind all content) -->
+  <div class="aurora" aria-hidden="true">
+    <div class="aurora-blob aurora-blob-1">
+      <div class="aurora-blob-inner"></div>
+    </div>
+    <div class="aurora-blob aurora-blob-2">
+      <div class="aurora-blob-inner"></div>
+    </div>
+    <div class="aurora-blob aurora-blob-3">
+      <div class="aurora-blob-inner"></div>
+    </div>
+  </div>
+
   <!-- Navigation -->
   <nav class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-cream-200 dark:bg-ink-800/95 dark:border-ink-600">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
