@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  let { className = '', interactive = true } = $props();
+  let { className = '', interactive = true, fullscreen = false } = $props();
 
   let container: HTMLDivElement;
   let canvas: HTMLCanvasElement;
@@ -639,11 +639,16 @@
   // Canvas + lifecycle
   // ---------------------------------------------------------------
   function resize() {
-    const parent = container?.parentElement;
-    if (!parent) return;
-    const rect = parent.getBoundingClientRect();
-    W = Math.max(1, rect.width);
-    H = Math.max(1, rect.height);
+    if (fullscreen) {
+      W = Math.max(1, window.innerWidth);
+      H = Math.max(1, window.innerHeight);
+    } else {
+      const parent = container?.parentElement;
+      if (!parent) return;
+      const rect = parent.getBoundingClientRect();
+      W = Math.max(1, rect.width);
+      H = Math.max(1, rect.height);
+    }
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     if (canvas) {
       canvas.width = Math.round(W * dpr);
@@ -677,6 +682,8 @@
     };
     const ro = new ResizeObserver(() => resize());
     if (container?.parentElement) ro.observe(container.parentElement);
+    const onWinResize = () => resize();
+    if (fullscreen) window.addEventListener('resize', onWinResize);
 
     const io = new IntersectionObserver((entries) => {
       isVisible = entries[0]?.isIntersecting ?? true;
@@ -707,6 +714,7 @@
       ro.disconnect();
       io.disconnect();
       window.removeEventListener('pointermove', onPointer);
+      if (fullscreen) window.removeEventListener('resize', onWinResize);
       container.removeEventListener('pointerleave', onLeave);
     };
   });

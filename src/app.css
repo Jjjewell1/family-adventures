@@ -114,65 +114,6 @@ body::before {
   z-index: 0;
 }
 
-/* ==============================
-   ANIMATED AURORA BACKGROUND
-   Soft drifting color fields that move subtly with the mouse and scroll.
-   The outer .aurora-blob is translated by JS parallax; the inner element
-   carries the slow CSS drift animation so the two transforms never clash.
-   ============================== */
-.aurora {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.aurora-blob {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 55vmax;
-  height: 55vmax;
-  border-radius: 50%;
-  filter: blur(60px);
-  will-change: transform;
-}
-.aurora-blob-1 {
-  top: -18vmax;
-  left: -12vmax;
-  background: radial-gradient(circle at 35% 35%, rgba(45, 122, 82, 0.30), transparent 65%);
-}
-.aurora-blob-2 {
-  top: 20vmax;
-  right: -14vmax;
-  left: auto;
-  background: radial-gradient(circle at 60% 40%, rgba(217, 85, 48, 0.22), transparent 65%);
-}
-.aurora-blob-3 {
-  bottom: -16vmax;
-  left: 20vmax;
-  top: auto;
-  background: radial-gradient(circle at 50% 50%, rgba(217, 166, 46, 0.18), transparent 60%);
-}
-.aurora-blob-inner {
-  position: absolute;
-  inset: 0;
-  animation: auroraDrift 24s ease-in-out infinite alternate;
-}
-.aurora-blob-1 .aurora-blob-inner { animation-duration: 28s; }
-.aurora-blob-2 .aurora-blob-inner { animation-duration: 22s; animation-delay: -8s; }
-.aurora-blob-3 .aurora-blob-inner { animation-duration: 32s; animation-delay: -16s; }
-@keyframes auroraDrift {
-  0%   { transform: translate3d(-3%, -2%, 0) scale(1); }
-  50%  { transform: translate3d(4%, 3%, 0) scale(1.12); }
-  100% { transform: translate3d(-2%, 4%, 0) scale(0.96); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .aurora-blob-inner {
-    animation: none;
-  }
-}
-
 /* Cards */
 .card {
   background: white;
