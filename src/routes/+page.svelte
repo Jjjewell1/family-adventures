@@ -1,22 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import BeachScene from '$lib/components/BeachScene.svelte';
 
   let { data } = $props();
 
   const heroImages = $derived(data.heroImages || []);
   const stats = $derived(data.stats || { total_adventures: 0, total_contributors: 0, total_photos: 0, total_videos: 0 });
-  let heroIndex = $state(0);
-  let fade = $state(true);
   let visible = $state(false);
   let statVisible = $state(false);
   let mosaicVisible = $state(false);
   let featuresVisible = $state(false);
-
-  function imageUrl(img: { file_path: string | null }) {
-    return img.file_path
-      ? `/api/media/image?path=${encodeURIComponent(img.file_path)}&w=1600`
-      : '';
-  }
 
   // Smaller tiles for the mosaic grid (thumbnails)
   function thumbUrl(img: { file_path: string | null }) {
@@ -30,41 +23,18 @@
     setTimeout(() => { statVisible = true; }, 300);
     setTimeout(() => { mosaicVisible = true; }, 600);
     setTimeout(() => { featuresVisible = true; }, 900);
-
-    if (heroImages.length <= 1) return;
-    const interval = setInterval(() => {
-      fade = false;
-      setTimeout(() => {
-        heroIndex = (heroIndex + 1) % heroImages.length;
-        fade = true;
-      }, 600);
-    }, 5000);
-    return () => clearInterval(interval);
   });
 </script>
 
 <div class="-mx-4 sm:-mx-6 lg:-mx-8 -mt-8">
   <!-- Hero Section -->
-  <div class="relative h-[65vh] min-h-[480px] flex items-end overflow-hidden bg-ink-800">
-    {#if heroImages.length > 0}
-      {#each heroImages.slice(0, 6) as img, i}
-        {@const src = imageUrl(img)}
-        {#if src}
-          <div
-            class="absolute inset-0 transition-all duration-[1400ms] ease-in-out {i === heroIndex && fade ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}"
-          >
-            <img {src} alt="" class="h-full w-full object-cover" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} />
-          </div>
-        {/if}
-      {/each}
-      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10"></div>
-      <div class="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent"></div>
-    {:else}
-      <div class="absolute inset-0 bg-gradient-to-br from-forest-800 via-forest-700 to-ink-800"></div>
-      <!-- Decorative circles for empty state -->
-      <div class="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-forest-600/20 blur-3xl"></div>
-      <div class="absolute bottom-1/3 right-1/4 w-96 h-96 rounded-full bg-terra-500/10 blur-3xl"></div>
-    {/if}
+  <div class="relative h-[65vh] min-h-[480px] flex items-end overflow-hidden bg-gradient-to-b from-[#f6e3c2] via-[#f3bd8f] to-[#3f736f]">
+    <!-- Animated beach: sky, sun, rolling waves, surfer, sailboat (canvas) -->
+    <BeachScene className="absolute inset-0" />
+
+    <!-- Readability scrims over the animated background -->
+    <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-black/10"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent"></div>
 
     <!-- Hero Content -->
     <div class="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 pb-16 w-full">
