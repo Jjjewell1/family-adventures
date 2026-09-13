@@ -28,10 +28,17 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     LIMIT 50
   `);
 
-  const people = await dbAll(`SELECT name, photo_count FROM people ORDER BY photo_count DESC LIMIT 30`);
+  const people = await dbAll(`
+    SELECT p.name, COUNT(DISTINCT mp.media_id) as photo_count
+    FROM people p
+    LEFT JOIN media_people mp ON mp.person_id = p.id
+    GROUP BY p.id
+    ORDER BY photo_count DESC
+    LIMIT 30
+  `);
 
   const bucketItems = await dbAll(`
-    SELECT title, category, priority FROM bucket_list WHERE status = 'todo' ORDER BY priority DESC LIMIT 20
+    SELECT title, category FROM bucket_list WHERE status = 'wishlist' ORDER BY created_at DESC LIMIT 20
   `);
 
   const totalStats = await dbGet(`
@@ -47,7 +54,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   ).join('\n');
 
   const peopleList = people.map((p: any) => `- ${p.name} (${p.photo_count} photos)`).join('\n');
-  const bucketList = bucketItems.map((b: any) => `- ${b.title} [${b.category || 'general'}] (priority: ${b.priority})`).join('\n');
+  const bucketList = bucketItems.map((b: any) => `- ${b.title} [${b.category || 'general'}]`).join('\n');
 
   const systemPrompt = `You are a friendly, knowledgeable assistant for the Jewell family adventure journal at adventures.jewellcore.com. You know about their trips, photos, people, and bucket list. Be warm, conversational, and helpful — like a knowledgeable family friend.
 
