@@ -17,6 +17,7 @@
     "@types/leaflet": "^1.9.22",
     "@types/node": "^26.4.1",
     "@types/sql.js": "^1.4.11",
+    "@vite-pwa/sveltekit": "^1.1.0",
     "svelte": "^5.15.0",
     "svelte-check": "^4.1.0",
     "tailwindcss": "^4.0.0",

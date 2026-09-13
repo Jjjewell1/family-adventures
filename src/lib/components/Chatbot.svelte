@@ -115,7 +115,7 @@
   <!-- Toggle Button -->
   <button
     onclick={toggle}
-    class="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg shadow-forest-500/20 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-xl hover:shadow-forest-500/30
+    class="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full shadow-lg shadow-forest-500/20 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-xl hover:shadow-forest-500/30 lg:bottom-6
       {open ? 'bg-ink-700 dark:bg-cream-200 rotate-0' : 'bg-forest-500 hover:bg-forest-600'}"
     aria-label="Chat assistant"
   >
@@ -138,7 +138,7 @@
 
   <!-- Chat Panel -->
   {#if open}
-    <div class="fixed bottom-24 right-6 z-50 w-[380px] max-w-[calc(100vw-3rem)] rounded-2xl shadow-2xl shadow-black/10 overflow-hidden border border-cream-200 dark:border-ink-600
+    <div class="fixed bottom-32 right-6 z-50 w-[380px] max-w-[calc(100vw-3rem)] rounded-2xl shadow-2xl shadow-black/10 overflow-hidden border border-cream-200 dark:border-ink-600 lg:bottom-24
       {open ? 'animate-in' : ''} bg-white dark:bg-ink-800">
       <!-- Header -->
       <div class="bg-gradient-to-r from-forest-600 to-forest-500 px-5 py-4">
