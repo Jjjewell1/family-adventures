@@ -823,7 +823,7 @@
               type="text"
               id="aiModel"
               bind:value={aiModel}
-              placeholder={aiProvider === 'gemini' ? 'gemini-2.5-flash' : 'qwen3.5:9b'}
+              placeholder={aiProvider === 'gemini' ? 'gemini-3.6-flash' : 'qwen3.5:9b'}
               class="input w-full"
             />
             <p class="text-xs text-ink-400 dark:text-cream-300 mt-1">Click "Test Connection" to load available models</p>

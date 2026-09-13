@@ -18,7 +18,10 @@ const ENV_OLLAMA_URL = env.OLLAMA_URL?.trim().replace(/\/$/, '') || 'http://100.
 const ENV_OLLAMA_MODEL = env.OLLAMA_MODEL?.trim() || 'qwen3.5:9b';
 const ENV_AI_ENABLED = env.AI_ENABLED?.trim().toLowerCase();
 const GEMINI_API_KEY = env.GEMINI_API_KEY?.trim();
-const ENV_GEMINI_MODEL = env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
+// Current stable default for new keys. Older models (e.g. gemini-2.5-flash)
+// still appear in the /models list but 404 on actual generation for new
+// accounts, so calls fall back to this default.
+const ENV_GEMINI_MODEL = env.GEMINI_MODEL?.trim() || 'gemini-3.6-flash';
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 
@@ -31,6 +34,22 @@ async function getOllamaUrl(): Promise<string> {
 
 async function getConfiguredModel(): Promise<string | null> {
   return await getConfig('ai_model');
+}
+
+// Model resolution that is provider-aware: a model name saved while another
+// provider was active (e.g. an ollama name like "qwen3.5:9b") would 404 against
+// the Gemini API, so Gemini ignores non-Gemini names and uses its default.
+function looksLikeGeminiModel(name: string): boolean {
+  return /^(gemini|gemma)/i.test(name);
+}
+
+async function resolveModel(provider: Provider): Promise<string> {
+  const configured = await getConfiguredModel();
+  if (configured) {
+    if (provider === 'gemini' && !looksLikeGeminiModel(configured)) return ENV_GEMINI_MODEL;
+    return configured;
+  }
+  return provider === 'gemini' ? ENV_GEMINI_MODEL : ENV_OLLAMA_MODEL;
 }
 
 export async function getProvider(): Promise<Provider> {
@@ -55,12 +74,11 @@ export async function getAIConfig(): Promise<{
   geminiKeySet: boolean;
 }> {
   const provider = await getProvider();
-  const defaultModel = provider === 'gemini' ? ENV_GEMINI_MODEL : ENV_OLLAMA_MODEL;
   return {
     enabled: await isAIEnabled(),
     provider,
     url: await getOllamaUrl(),
-    model: (await getConfiguredModel()) || defaultModel,
+    model: await resolveModel(provider),
     geminiKeySet: !!GEMINI_API_KEY
   };
 }
@@ -116,6 +134,7 @@ export async function testConnection(): Promise<{ ok: boolean; models: string[];
       const models = (data.models || [])
         .map((m: { name: string }) => m.name.replace(/^models\//, ''))
         .filter((n: string) => /(flash|pro|nano|light)/i.test(n))
+        .sort((a: string, b: string) => b.localeCompare(a))
         .slice(0, 60);
       return { ok: true, models };
     } catch (e) {
@@ -141,7 +160,7 @@ export async function hasVisionSupport(): Promise<{ ok: boolean; model: string; 
     if (!GEMINI_API_KEY) {
       return { ok: false, model: 'gemini', error: 'GEMINI_API_KEY is not set in the Coolify environment' };
     }
-    const model = (await getConfiguredModel()) || ENV_GEMINI_MODEL;
+    const model = await resolveModel('gemini');
     return { ok: true, model };
   }
 
@@ -215,9 +234,12 @@ function buildGeminiBody(
   return body;
 }
 
-async function geminiNonStream(body: GeminiRequest, model: string): Promise<{ ok: boolean; text?: string; error?: string }> {
-  if (!GEMINI_API_KEY) return { ok: false, error: 'GEMINI_API_KEY is not set' };
-  const url = `${GEMINI_BASE}/models/${model}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+async function geminiGenerateOnce(
+  body: GeminiRequest,
+  model: string,
+  apiKey: string
+): Promise<{ ok: boolean; text?: string; error?: string }> {
+  const url = `${GEMINI_BASE}/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -225,15 +247,33 @@ async function geminiNonStream(body: GeminiRequest, model: string): Promise<{ ok
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(120_000)
     });
-    if (!res.ok) return { ok: false, error: `Gemini HTTP ${res.status}` };
+    if (!res.ok) {
+      let error = `Gemini HTTP ${res.status}`;
+      try {
+        const errData = await res.json();
+        if (errData?.error?.message) error = errData.error.message;
+      } catch { /* keep status fallback */ }
+      return { ok: false, error };
+    }
     const data = await res.json();
     const text = (data.candidates?.[0]?.content?.parts || [])
-      .map((p: { text?: string }) => p.text || '')
+      .map((p: { text?: string; thought?: boolean }) => (p.thought ? '' : p.text || ''))
       .join('');
     return text ? { ok: true, text } : { ok: false, error: 'Gemini returned an empty response' };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Gemini request failed' };
   }
+}
+
+async function geminiNonStream(body: GeminiRequest, model: string): Promise<{ ok: boolean; text?: string; error?: string }> {
+  if (!GEMINI_API_KEY) return { ok: false, error: 'GEMINI_API_KEY is not set' };
+  const result = await geminiGenerateOnce(body, model, GEMINI_API_KEY!);
+  // Retired/preview models (still in the /models list) 404 for new keys — retry
+  // with the provider default once before giving up.
+if (!result.ok && model !== ENV_GEMINI_MODEL && /(no longer available|cannot be found|not found)/i.test(result.error || '')) {
+      return await geminiGenerateOnce(body, ENV_GEMINI_MODEL, GEMINI_API_KEY!);
+    }
+  return result;
 }
 
 export interface VisionAnalysis {
@@ -252,7 +292,7 @@ export async function generateVision(
   if (!(await isAIEnabled())) return null;
 
   if ((await getProvider()) === 'gemini') {
-    const model = (await getConfiguredModel()) || ENV_GEMINI_MODEL;
+    const model = await resolveModel('gemini');
     const { ok, text, error } = await geminiNonStream(
       buildGeminiBody(prompt, system, { base64: imageBase64, mimeType }, { temperature: 0.3, num_predict: 900 }),
       model
@@ -350,7 +390,7 @@ export async function generateText(options: GenerateOptions): Promise<string | n
   if (!(await isAIEnabled())) return null;
 
   if ((await getProvider()) === 'gemini') {
-    const model = (await getConfiguredModel()) || ENV_GEMINI_MODEL;
+    const model = await resolveModel('gemini');
     const { ok, text } = await geminiNonStream(
       buildGeminiBody(options.prompt, options.system, undefined, {
         temperature: options.temperature,
@@ -404,23 +444,43 @@ export async function* streamText(options: GenerateOptions): AsyncGenerator<stri
 
   if ((await getProvider()) === 'gemini') {
     if (!GEMINI_API_KEY) return;
-    const model = (await getConfiguredModel()) || ENV_GEMINI_MODEL;
-    const url = `${GEMINI_BASE}/models/${model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(GEMINI_API_KEY)}`;
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          buildGeminiBody(options.prompt, options.system, undefined, {
-            temperature: options.temperature,
-            top_p: options.top_p,
-            num_predict: options.num_predict,
-            format: options.format
-          })
-        ),
-        signal: AbortSignal.timeout(120_000)
-      });
-      if (!response.ok || !response.body) return;
+    const model = await resolveModel('gemini');
+    const attempts = model === ENV_GEMINI_MODEL ? [model] : [model, ENV_GEMINI_MODEL];
+
+    for (const attemptModel of attempts) {
+      const url = `${GEMINI_BASE}/models/${attemptModel}:streamGenerateContent?alt=sse&key=${encodeURIComponent(GEMINI_API_KEY)}`;
+      let response: Response;
+      try {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            buildGeminiBody(options.prompt, options.system, undefined, {
+              temperature: options.temperature,
+              top_p: options.top_p,
+              num_predict: options.num_predict,
+              format: options.format
+            })
+          ),
+          signal: AbortSignal.timeout(120_000)
+        });
+      } catch {
+        console.error('[ai] gemini stream fetch failed');
+        return;
+      }
+
+      // A configured model the key can no longer use 404s here — retry with the
+      // provider default once. But never silently drop a streaming output that
+      // already started; a failed response is only visible before any bytes.
+      if (!response.ok) {
+        if (attemptModel !== ENV_GEMINI_MODEL) {
+          console.error(`[ai] gemini stream model ${attemptModel} unavailable (HTTP ${response.status}), falling back to ${ENV_GEMINI_MODEL}`);
+          continue;
+        }
+        console.error(`[ai] gemini stream failed: HTTP ${response.status}`);
+        return;
+      }
+      if (!response.body) return;
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -438,7 +498,7 @@ export async function* streamText(options: GenerateOptions): AsyncGenerator<stri
           try {
             const parsed = JSON.parse(json);
             const text = (parsed.candidates?.[0]?.content?.parts || [])
-              .map((p: { text?: string }) => p.text || '')
+              .map((p: { text?: string; thought?: boolean }) => (p.thought ? '' : p.text || ''))
               .join('');
             if (text) yield text;
           } catch {
@@ -446,8 +506,7 @@ export async function* streamText(options: GenerateOptions): AsyncGenerator<stri
           }
         }
       }
-    } catch {
-      // stream failed silently
+      return;
     }
     return;
   }
