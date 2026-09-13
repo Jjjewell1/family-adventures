@@ -33,6 +33,12 @@
   let uploadFileProgress = $state<Record<string, { status: 'pending'|'uploading'|'done'|'error'; percent: number }>>({});
   let failedFiles = $state<File[]>([]);
 
+  // Long-press media options menu (mobile)
+  let menuMedia = $state<any | null>(null);
+  let holdTimer: ReturnType<typeof setTimeout> | null = null;
+  let longPressFired = false;
+  let pressStart = { x: 0, y: 0 };
+
   // AI state
   let aiEnabled = $state(false);
   let aiGeneratingDescription = $state(false);
@@ -195,6 +201,33 @@
   function isThumbnail(m: any) {
     if (m.file_path && coverFilePath) return m.file_path === coverFilePath;
     return false;
+  }
+
+  function startHold(e: PointerEvent, m: any) {
+    if (e.pointerType !== 'touch') return;
+    longPressFired = false;
+    pressStart = { x: e.clientX, y: e.clientY };
+    stopHold();
+    holdTimer = setTimeout(() => {
+      holdTimer = null;
+      longPressFired = true;
+      try { navigator.vibrate?.(12); } catch { /* no-op */ }
+      menuMedia = m;
+    }, 500);
+  }
+
+  function moveHold(e: PointerEvent) {
+    if (e.pointerType !== 'touch') return;
+    if (Math.hypot(e.clientX - pressStart.x, e.clientY - pressStart.y) > 10) {
+      stopHold();
+    }
+  }
+
+  function stopHold() {
+    if (holdTimer) {
+      clearTimeout(holdTimer);
+      holdTimer = null;
+    }
   }
 
   async function handleSave() {
@@ -672,7 +705,14 @@
         {#each media as m}
           {@const path = m.file_path}
           {#if path}
-          <div class="relative aspect-square rounded-xl overflow-hidden group">
+          <div
+            class="relative aspect-square rounded-xl overflow-hidden group select-none [-webkit-touch-callout:none]"
+            onpointerdown={(e) => startHold(e, m)}
+            onpointerup={stopHold}
+            onpointercancel={stopHold}
+            onpointermove={moveHold}
+            oncontextmenu={(e) => e.preventDefault()}
+          >
             {#if m.media_type === 'video'}
               <VideoThumbnail src={path} alt={m.caption || 'Video'} class="w-full h-full object-cover" />
             {:else}
@@ -718,6 +758,14 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
+            <div
+              class="pointer-events-none absolute bottom-2 right-2 hidden h-7 w-7 items-center justify-center rounded-full bg-ink-800/60 text-cream-100 backdrop-blur-sm [@media(pointer:coarse)]:flex"
+              title="Hold for options"
+            >
+              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 8a2 2 0 100-4 2 2 0 000 4zm0 6a2 2 0 100-4 2 2 0 000 4zm0 6a2 2 0 100-4 2 2 0 000 4z" />
+              </svg>
+            </div>
           </div>
           {/if}
         {/each}
@@ -807,6 +855,61 @@
     </div>
   </div>
 </div>
+
+<!-- Long-press media options menu -->
+{#if menuMedia}
+  {@const _mm = menuMedia}
+  <div class="fixed inset-0 z-[92]" role="dialog" aria-modal="true" aria-label="Photo options">
+    <button
+      type="button"
+      tabindex="-1"
+      aria-label="Close menu"
+      class="absolute inset-0 h-full w-full cursor-default bg-ink-900/50 backdrop-blur-sm"
+      onclick={() => (menuMedia = null)}
+    ></button>
+    <div class="absolute inset-x-0 bottom-0 mx-auto max-w-lg rounded-t-3xl border-t border-cream-200 bg-cream-50 p-2 pb-[max(10px,env(safe-area-inset-bottom))] shadow-[0_-12px_40px_rgba(30,26,21,0.3)] dark:border-ink-600 dark:bg-ink-800">
+      <div class="mx-auto mb-1 h-1 w-10 rounded-full bg-ink-200/70 dark:bg-ink-600"></div>
+      <p class="px-4 pb-1 pt-2 text-xs font-medium uppercase tracking-wide text-ink-400">Photo options</p>
+      {#if isThumbnail(_mm)}
+        <div class="flex items-center gap-3 rounded-xl px-4 py-3 text-forest-600 dark:text-forest-400">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="text-sm font-medium">Current thumbnail</span>
+        </div>
+      {:else}
+        <button
+          type="button"
+          class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left hover:bg-forest-50 dark:hover:bg-ink-700"
+          onclick={() => { setThumbnail(_mm); menuMedia = null; }}
+        >
+          <svg class="h-5 w-5 text-forest-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span class="text-sm font-medium text-ink-700 dark:text-cream-100">Set as thumbnail</span>
+        </button>
+      {/if}
+      <button
+        type="button"
+        class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left hover:bg-terra-50 dark:hover:bg-ink-700"
+        onclick={() => { removeMedia(_mm.id); menuMedia = null; }}
+      >
+        <svg class="h-5 w-5 text-terra-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        <span class="text-sm font-medium text-terra-600 dark:text-terra-400">Remove photo</span>
+      </button>
+      <div class="mx-2 my-1 h-px bg-cream-200 dark:bg-ink-600"></div>
+      <button
+        type="button"
+        class="w-full rounded-xl px-4 py-3 text-center text-sm font-medium text-ink-500 hover:bg-ink-100/60 dark:text-cream-300 dark:hover:bg-ink-700"
+        onclick={() => (menuMedia = null)}
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+{/if}
 
 <!-- Delete Confirmation Dialog -->
 {#if showDeleteConfirm}
