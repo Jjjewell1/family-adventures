@@ -704,7 +704,7 @@
       smY += (mouseY - smY) * 0.06;
       mouseX = smX;
       mouseY = smY;
-      if (isVisible) draw();
+      if (document.visibilityState === 'visible' && isVisible) draw();
       raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);

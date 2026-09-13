@@ -50,7 +50,7 @@
     <div class="flex flex-wrap gap-4">
       {#if years.length > 0}
         <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-ink-400 uppercase tracking-wide">Year</span>
+          <span class="text-xs font-medium text-cream-100/80 uppercase tracking-wide dark:text-cream-100/80">Year</span>
           <button
             class="badge {filterYear === null ? 'bg-forest-500 text-white' : 'bg-cream-100 dark:bg-ink-700 text-ink-500 dark:text-cream-400 hover:bg-cream-200 dark:hover:bg-ink-600'}"
             onclick={() => filterYear = null}
@@ -70,7 +70,7 @@
 
       {#if data.tags.length > 0}
         <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-ink-400 uppercase tracking-wide">Tag</span>
+          <span class="text-xs font-medium text-cream-100/80 uppercase tracking-wide dark:text-cream-100/80">Tag</span>
           <button
             class="badge {filterTag === null ? 'bg-forest-500 text-white' : 'bg-cream-100 dark:bg-ink-700 text-ink-500 dark:text-cream-400 hover:bg-cream-200 dark:hover:bg-ink-600'}"
             onclick={() => filterTag = null}

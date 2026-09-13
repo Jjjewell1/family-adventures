@@ -148,11 +148,11 @@
             </svg>
           </div>
           <div>
-            <h2 class="text-xl md:text-2xl font-display font-bold text-ink-800 dark:text-cream-100">Recent Snapshots</h2>
-            <p class="text-sm text-ink-500 dark:text-ink-300 capitalize">Discover your latest adventures</p>
+            <h2 class="text-xl md:text-2xl font-display font-bold text-cream-50 dark:text-cream-100">Recent Snapshots</h2>
+            <p class="text-sm text-cream-200/90 capitalize">Discover your latest adventures</p>
           </div>
         </div>
-        <a href="/adventures" class="group hidden sm:inline-flex items-center gap-2 shrink-0 px-4 py-2 rounded-full bg-cream-100 hover:bg-cream-200 border border-cream-200 dark:bg-ink-800 dark:border-ink-700 dark:hover:bg-ink-700 text-ink-600 dark:text-cream-200 font-medium text-sm transition-all duration-300">
+        <a href="/adventures" class="group hidden sm:inline-flex items-center gap-2 shrink-0 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-cream-100 backdrop-blur-sm hover:bg-white/20 hover:border-white/30 dark:text-cream-200 font-medium text-sm transition-all duration-300">
           View all adventures
           <svg class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -187,9 +187,9 @@
   <!-- Features Section -->
   <div class="mx-auto px-4 sm:px-6 lg:px-8 pb-16 {featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} transition-all duration-700 ease-out">
     <div class="flex items-center gap-6 mb-5">
-      <div class="flex-1 h-px bg-gradient-to-r from-transparent to-cream-300 dark:to-ink-700"></div>
-      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-ink-400 dark:text-ink-300">What's inside</p>
-      <div class="flex-1 h-px bg-gradient-to-l from-transparent to-cream-300 dark:to-ink-700"></div>
+      <div class="flex-1 h-px bg-gradient-to-r from-transparent to-white/25 dark:to-white/20"></div>
+      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-cream-100/85">What's inside</p>
+      <div class="flex-1 h-px bg-gradient-to-l from-transparent to-white/25 dark:to-white/20"></div>
     </div>
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <a href="/adventures" class="group card p-6 border-t-2 border-forest-400 hover:border-forest-500 transition-all duration-300 hover:shadow-lg hover:shadow-forest-500/5 hover:-translate-y-0.5">
@@ -258,13 +258,13 @@
   <!-- Closing rule -->
   <div class="mx-auto px-4 sm:px-6 lg:px-8 pb-8">
     <div class="flex items-center gap-4">
-      <div class="flex-1 h-px bg-gradient-to-r from-transparent via-cream-300 to-transparent dark:via-ink-600"></div>
+      <div class="flex-1 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent dark:via-white/20"></div>
       <div class="flex items-center gap-2">
         <div class="h-2 w-2 rounded-full bg-forest-400 dark:bg-forest-700"></div>
         <div class="h-1.5 w-1.5 rounded-full bg-terra-400 dark:bg-terra-700"></div>
         <div class="h-2 w-2 rounded-full bg-gold-400 dark:bg-gold-700"></div>
       </div>
-      <div class="flex-1 h-px bg-gradient-to-r from-transparent via-cream-300 to-transparent dark:via-ink-600"></div>
+      <div class="flex-1 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent dark:via-white/20"></div>
     </div>
   </div>
 </div>

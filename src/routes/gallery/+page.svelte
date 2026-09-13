@@ -75,7 +75,7 @@
   {#if data.media.length > 0}
     <div class="flex flex-wrap items-center gap-3">
       <div class="flex items-center gap-1.5">
-        <span class="text-xs font-medium text-ink-400 uppercase tracking-wide">Type</span>
+        <span class="text-xs font-medium text-cream-100/80 uppercase tracking-wide dark:text-cream-100/80">Type</span>
         {#each types as t}
           <button
             class="badge transition-colors {(data.currentType || 'all') === t ? 'bg-forest-500 text-white' : 'bg-cream-100 text-ink-500 hover:bg-cream-200 dark:bg-ink-700 dark:text-cream-300'}"
@@ -87,7 +87,7 @@
       </div>
       <div class="h-4 w-px bg-cream-200 dark:bg-ink-600"></div>
       <div class="flex items-center gap-1.5 flex-wrap">
-        <span class="text-xs font-medium text-ink-400 uppercase tracking-wide">Category</span>
+        <span class="text-xs font-medium text-cream-100/80 uppercase tracking-wide dark:text-cream-100/80">Category</span>
         {#each categories as cat}
           <button
             class="badge transition-colors {(data.currentCategory || 'all') === cat ? 'bg-forest-500 text-white' : 'bg-cream-100 text-ink-500 hover:bg-cream-200 dark:bg-ink-700 dark:text-cream-300'}"

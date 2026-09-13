@@ -2,6 +2,7 @@
   import '../app.css';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
+  import { afterNavigate } from '$app/navigation';
   import InstallBanner from '$lib/components/InstallBanner.svelte';
   import Chatbot from '$lib/components/Chatbot.svelte';
   import BeachScene from '$lib/components/BeachScene.svelte';
@@ -12,6 +13,7 @@
   let scrolled = $state(false);
   let oneSignalReady = $state(false);
   let isSubscribed = $state(false);
+  let pageReady = $state(true);
 
   const currentPath = $derived($page.url.pathname);
 
@@ -126,6 +128,21 @@
 
     return () => window.removeEventListener('scroll', onScroll);
   });
+
+  // Screen-level transition: scroll to top and fade the new page in on SPA
+  // navigation. Reduces visual noise from the swapped DOM—and the instant
+  // scroll-to-top is essential for long pages navigated mid-scroll.
+  let firstNav = true;
+  afterNavigate(() => {
+    const isFirst = firstNav;
+    firstNav = false;
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+    }
+    if (isFirst) return;
+    pageReady = false;
+    requestAnimationFrame(() => requestAnimationFrame(() => (pageReady = true)));
+  });
 </script>
 
 <svelte:head>
@@ -156,10 +173,12 @@
 </svelte:head>
 
 <div class="min-h-screen flex flex-col">
+  <a href="#main" class="skip-link">Skip to main content</a>
+
   <!-- Animated ocean background (generated BeachScene) behind all content -->
   <div class="fixed inset-0 -z-10 overflow-hidden bg-[#7BA79E]" aria-hidden="true">
     <BeachScene className="h-full w-full" fullscreen interactive={false} />
-    <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/65 dark:from-black/60 dark:via-black/40 dark:to-black/75"></div>
+    <div class="absolute inset-0 pointer-events-none bg-gradient-to-b from-forest-900/55 via-forest-900/40 to-black/80 dark:from-black/65 dark:via-black/55 dark:to-black/85"></div>
   </div>
 
   <!-- Floating navigation (desktop only — mobile uses the bottom tab bar) -->
@@ -169,7 +188,7 @@
         <div class="flex h-14 items-center justify-between gap-3">
           <a href="/" class="flex items-center gap-2.5 shrink-0">
             <img src={data.site?.logoUrl || '/logo.png'} alt="Family Adventures" class="h-8 w-8 rounded-xl object-cover ring-2 ring-white/60" />
-            <span class="text-base font-display font-bold text-ink-800 hidden sm:block dark:text-cream-100">Family Adventures</span>
+            <span class="text-lg font-display font-bold tracking-tight text-ink-800 hidden sm:block dark:text-cream-100">Family Adventures</span>
           </a>
 
           <!-- Desktop nav -->
@@ -279,25 +298,27 @@
     <button type="button" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-[60] lg:hidden" onclick={() => moreOpen = false}></button>
   {/if}
 
-  <!-- Main content -->
-  <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 lg:pt-8 pt-[max(2rem,env(safe-area-inset-top))] pb-32 lg:pb-12">
+<!-- Main content -->
+  <main id="main" aria-label="Page content" class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 lg:pt-8 pt-[max(2rem,env(safe-area-inset-top))] pb-32 lg:pb-12 transition-opacity duration-300 ease-out {pageReady ? 'opacity-100' : 'opacity-0'}">
     {@render children()}
   </main>
 
   <!-- Footer -->
-  <footer class="border-t border-cream-200 mt-auto dark:border-ink-700 hidden lg:block">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-ink-400 dark:text-ink-300">
-        <div class="flex items-center gap-2">
-          <img src={data.site?.logoUrl || '/logo.png'} alt="Family Adventures" class="h-4 w-4 rounded object-cover" />
-          <span class="font-medium text-ink-500 dark:text-cream-300">Family Adventures</span>
-          <span class="hidden sm:inline">— the stories, places, and people we love.</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <a href="/adventures" class="hover:text-ink-600 transition-colors dark:hover:text-cream-200">Adventures</a>
-          <a href="/gallery" class="hover:text-ink-600 transition-colors dark:hover:text-cream-200">Gallery</a>
-          <a href="/feed" class="hover:text-ink-600 transition-colors dark:hover:text-cream-200">Feed</a>
-          <a href="/map" class="hover:text-ink-600 transition-colors dark:hover:text-cream-200">Map</a>
+  <footer class="mt-auto hidden lg:block">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-8">
+      <div class="glass rounded-2xl px-5 py-4">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-ink-500 dark:text-ink-300">
+          <div class="flex items-center gap-2">
+            <img src={data.site?.logoUrl || '/logo.png'} alt="Family Adventures" class="h-4 w-4 rounded object-cover" />
+            <span class="font-medium text-ink-600 dark:text-cream-200">Family Adventures</span>
+            <span class="hidden sm:inline">— the stories, places, and people we love.</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <a href="/adventures" class="hover:text-ink-700 transition-colors dark:hover:text-cream-100">Adventures</a>
+            <a href="/gallery" class="hover:text-ink-700 transition-colors dark:hover:text-cream-100">Gallery</a>
+            <a href="/feed" class="hover:text-ink-700 transition-colors dark:hover:text-cream-100">Feed</a>
+            <a href="/map" class="hover:text-ink-700 transition-colors dark:hover:text-cream-100">Map</a>
+          </div>
         </div>
       </div>
     </div>
