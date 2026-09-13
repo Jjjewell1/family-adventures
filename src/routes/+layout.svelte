@@ -4,6 +4,7 @@
   import { page } from '$app/stores';
   import InstallBanner from '$lib/components/InstallBanner.svelte';
   import Chatbot from '$lib/components/Chatbot.svelte';
+  import BeachScene from '$lib/components/BeachScene.svelte';
   import { env } from '$env/dynamic/public';
   let { children, data } = $props();
   let moreOpen = $state(false);
@@ -89,7 +90,6 @@
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    setupAuroraParallax();
     const saved = localStorage.getItem('theme');
     if (saved === 'dark') {
       isDark = true;
@@ -126,51 +126,6 @@
 
     return () => window.removeEventListener('scroll', onScroll);
   });
-
-  // Gentle parallax drift on the background blobs, reacting to the mouse
-  // position and current scroll depth. Respects reduced-motion preference.
-  function setupAuroraParallax() {
-    if (typeof window === 'undefined') return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    const blobs = Array.from(document.querySelectorAll<HTMLElement>('.aurora-blob'));
-    if (blobs.length === 0) return;
-
-    let targetX = 0, targetY = 0, scrollY = 0;
-    let currentX = 0, currentY = 0, currentScroll = 0;
-    let raf = 0;
-
-    const onMouse = (e: MouseEvent) => {
-      targetX = (e.clientX / window.innerWidth - 0.5) * 2;
-      targetY = (e.clientY / window.innerHeight - 0.5) * 2;
-    };
-    const onScroll = () => { scrollY = window.scrollY; };
-
-    const tick = () => {
-      currentX += (targetX - currentX) * 0.05;
-      currentY += (targetY - currentY) * 0.05;
-      currentScroll += (scrollY - currentScroll) * 0.08;
-
-      blobs.forEach((b, i) => {
-        if (!b) return;
-        const depth = (i + 1) * 0.5;
-        const tx = currentX * 16 * depth;
-        const ty = currentY * 10 * depth + currentScroll * 0.08 * depth;
-        b.style.transform = `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0)`;
-      });
-      raf = requestAnimationFrame(tick);
-    };
-
-    window.addEventListener('mousemove', onMouse, { passive: true });
-    window.addEventListener('scroll', onScroll, { passive: true });
-    tick();
-
-    return () => {
-      window.removeEventListener('mousemove', onMouse);
-      window.removeEventListener('scroll', onScroll);
-      cancelAnimationFrame(raf);
-    };
-  }
 </script>
 
 <svelte:head>
@@ -201,17 +156,10 @@
 </svelte:head>
 
 <div class="min-h-screen flex flex-col">
-  <!-- Warm topographic backdrop (decorative, behind all content) -->
-  <div class="aurora" aria-hidden="true">
-    <div class="aurora-blob aurora-blob-1">
-      <div class="aurora-blob-inner"></div>
-    </div>
-    <div class="aurora-blob aurora-blob-2">
-      <div class="aurora-blob-inner"></div>
-    </div>
-    <div class="aurora-blob aurora-blob-3">
-      <div class="aurora-blob-inner"></div>
-    </div>
+  <!-- Animated ocean background (generated BeachScene) behind all content -->
+  <div class="fixed inset-0 -z-10 overflow-hidden bg-[#7BA79E]" aria-hidden="true">
+    <BeachScene className="h-full w-full" fullscreen interactive={false} />
+    <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/65 dark:from-black/60 dark:via-black/40 dark:to-black/75"></div>
   </div>
 
   <!-- Floating navigation (desktop only — mobile uses the bottom tab bar) -->
