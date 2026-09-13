@@ -214,8 +214,8 @@
     </div>
   </div>
 
-  <!-- Floating navigation -->
-  <header class="safe-top sticky top-0 {moreOpen ? 'z-[80]' : 'z-40'}">
+  <!-- Floating navigation (desktop only — mobile uses the bottom tab bar) -->
+  <header class="safe-top sticky top-0 hidden lg:block {moreOpen ? 'z-[80]' : 'z-40'}">
     <div class="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 pt-3 pb-2">
       <nav class="glass-strong rounded-2xl px-3 sm:px-4 transition-shadow duration-300 {scrolled ? 'shadow-[0_12px_40px_rgba(62,48,32,0.16)]' : 'shadow-[0_4px_16px_rgba(62,48,32,0.06)]'}">
         <div class="flex h-14 items-center justify-between gap-3">
@@ -332,7 +332,7 @@
   {/if}
 
   <!-- Main content -->
-  <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-32 lg:pb-12">
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 lg:pt-8 pt-[max(2rem,env(safe-area-inset-top))] pb-32 lg:pb-12">
     {@render children()}
   </main>
 
@@ -355,56 +355,52 @@
     </div>
   </footer>
 
-  <!-- Mobile bottom tab bar -->
-  <nav class="lg:hidden safe-bottom fixed bottom-0 inset-x-0 z-50">
-    <div class="mx-auto max-w-lg px-3 pb-3">
-      <div class="flex items-end justify-around rounded-[22px] glass-strong px-2 pt-2 pb-2 shadow-[0_12px_40px_rgba(62,48,32,0.22)]">
+  <!-- Mobile bottom tab bar (flush, premium glass) -->
+  <nav class="lg:hidden fixed inset-x-0 bottom-0 z-50" aria-label="Main navigation">
+    <div class="glass-strong border-t border-cream-200/50 dark:border-ink-700/50 shadow-[0_-8px_30px_rgba(30,26,21,0.08)] dark:shadow-[0_-8px_30px_rgba(0,0,0,0.25)] overflow-visible">
+      <div class="mx-auto max-w-lg flex items-end justify-around px-1 pt-2 pb-[max(6px,env(safe-area-inset-bottom))]">
         {#each bottomNav as item}
-          <a href={item.href} class="flex flex-1 flex-col items-center gap-0.5 py-1 rounded-xl transition-colors {isActive(item.href) ? 'text-forest-600 dark:text-forest-300' : 'text-ink-400 dark:text-ink-300'}"
+          <a href={item.href}
+            class="relative flex flex-1 flex-col items-center gap-0.5 py-1.5 rounded-xl transition-all duration-200 {isActive(item.href) ? 'bg-forest-500/10 text-forest-600 dark:text-forest-300 font-semibold' : 'text-ink-400 dark:text-ink-300 hover:text-ink-600 dark:hover:text-cream-200'}"
             aria-current={isActive(item.href) ? 'page' : undefined}
           >
-            <svg class="h-[22px] w-[22px]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <svg class="h-[22px] w-[22px]" fill="none" stroke="currentColor" stroke-width={isActive(item.href) ? '2.2' : '1.6'} viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d={iconFor(item.icon).d} />
             </svg>
-            <span class="text-[10px] font-medium leading-none">{item.label}</span>
-            {#if isActive(item.href)}
-              <span class="h-1 w-1 rounded-full bg-forest-500 dark:bg-forest-300"></span>
-            {/if}
+            <span class="text-[10px] leading-none">{item.label}</span>
           </a>
         {/each}
 
         {#if data.user}
-          <a href="/adventures/create" class="relative flex flex-1 flex-col items-center py-1" aria-label="New adventure">
-            <span class="absolute -top-3 h-12 w-12 rounded-full bg-forest-500 text-white flex items-center justify-center shadow-lg shadow-forest-500/30 ring-4 ring-cream-100">
+          <a href="/adventures/create" class="relative flex flex-1 flex-col items-center -mt-4" aria-label="New adventure">
+            <span class="h-12 w-12 rounded-full bg-gradient-to-br from-forest-500 via-forest-600 to-forest-700 text-white flex items-center justify-center shadow-[0_6px_25px_rgba(59,111,84,0.5)] ring-[3px] ring-cream-50 dark:ring-ink-900 transition-transform active:scale-95">
               <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
               </svg>
             </span>
-            <span class="mt-6 text-[10px] font-medium leading-none text-forest-600 dark:text-forest-300">New</span>
+            <span class="mt-2 text-[10px] font-medium leading-none text-forest-600 dark:text-forest-300">New</span>
           </a>
         {:else}
-          <a href="/auth/login" class="relative flex flex-1 flex-col items-center py-1" aria-label="Sign in">
-            <span class="absolute -top-3 h-12 w-12 rounded-full bg-terra-500 text-white flex items-center justify-center shadow-lg shadow-terra-500/30 ring-4 ring-cream-100">
+          <a href="/auth/login" class="relative flex flex-1 flex-col items-center -mt-4" aria-label="Sign in">
+            <span class="h-12 w-12 rounded-full bg-gradient-to-br from-terra-500 via-terra-600 to-terra-700 text-white flex items-center justify-center shadow-[0_6px_25px_rgba(206,80,52,0.45)] ring-[3px] ring-cream-50 dark:ring-ink-900 transition-transform active:scale-95">
               <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 8a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2" />
               </svg>
             </span>
-            <span class="mt-6 text-[10px] font-medium leading-none text-terra-600 dark:text-terra-300">Sign In</span>
+            <span class="mt-2 text-[10px] font-medium leading-none text-terra-600 dark:text-terra-300">Sign In</span>
           </a>
         {/if}
 
         <button
           onclick={() => moreOpen = !moreOpen}
-          class="flex flex-1 flex-col items-center gap-0.5 py-1 rounded-xl transition-colors {moreOpen ? 'text-forest-600 dark:text-forest-300' : 'text-ink-400 dark:text-ink-300'}"
+          class="relative flex flex-1 flex-col items-center gap-0.5 py-1.5 rounded-xl transition-all duration-200 {moreOpen ? 'bg-forest-500/10 text-forest-600 dark:text-forest-300 font-semibold' : 'text-ink-400 dark:text-ink-300 hover:text-ink-600 dark:hover:text-cream-200'}"
           aria-label="More menu"
+          aria-expanded={moreOpen}
         >
-          <svg class="h-[22px] w-[22px]" fill="currentColor" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <svg class="h-[22px] w-[22px]" fill="currentColor" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={iconFor('more').d} />
           </svg>
-          <span class="text-[10px] font-medium leading-none">More</span>
-          {#if moreOpen}
-            <span class="h-1 w-1 rounded-full bg-forest-500 dark:bg-forest-300"></span>
-          {/if}
+          <span class="text-[10px] leading-none">More</span>
         </button>
       </div>
     </div>
