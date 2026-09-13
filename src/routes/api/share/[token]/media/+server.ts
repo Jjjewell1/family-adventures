@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { getSessionUser } from '$lib/server/auth';
 import { dbRun, dbGet } from '$lib/server/db';
 import { generateToken, detectMediaType } from '$lib/shared/utils';
+import { enqueueAnalysis } from '$lib/server/ai';
 
 // Attaches guest-uploaded files to a shared adventure. Unlike the owner-gated
 // media endpoints, this accepts files from any authenticated guest who reached
@@ -34,6 +35,7 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
   let nextOrder = (maxOrder?.max_idx ?? -1) + 1;
 
   const results: { id: string; filePath: string; mediaType: string }[] = [];
+  const photoIds: string[] = [];
 
   for (const file of files) {
     if (!file.filePath?.trim()) continue;
@@ -45,7 +47,12 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
       mediaId, share.adventure_id, file.filePath.trim(), mediaType, file.caption || null, nextOrder++
     );
     results.push({ id: mediaId, filePath: file.filePath, mediaType });
+    if (mediaType === 'photo') photoIds.push(mediaId);
   }
+
+  // New photos label themselves in the background (serialized so batch uploads
+  // don't hit provider rate limits). Runs when AI is enabled and configured.
+  enqueueAnalysis(photoIds);
 
   return json({ media: results });
 };

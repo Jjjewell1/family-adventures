@@ -48,14 +48,24 @@
 
   // AI settings state
   let aiEnabled = $state(data.aiConfig?.enabled ?? true);
+  let aiProvider = $state<'ollama' | 'gemini'>(data.aiConfig?.provider ?? 'ollama');
   let aiUrl = $state(data.aiConfig?.url ?? 'http://100.116.226.10:11434');
   let aiModel = $state(data.aiConfig?.model ?? 'qwen3.5:9b');
+  let geminiKeySet = $state(data.aiConfig?.geminiKeySet ?? false);
   let aiSaving = $state(false);
   let aiMessage = $state('');
   let aiError = $state('');
   let aiTesting = $state(false);
   let aiTestResult = $state<{ ok: boolean; models: string[]; error?: string } | null>(null);
   let aiModels = $state<string[]>([]);
+
+  // Photo categorization (backfill) state
+  let categorizeStatus = $state<{
+    running: boolean; queued: number; job?: { startedAt: number; total: number; done: number; ok: number; failed: number; skipped: number }
+  } | null>(null);
+  let categorizeError = $state('');
+  let categorizeWaiting = $state(false);
+  let categorizeTimer: ReturnType<typeof setInterval> | null = null;
 
   async function loadLogoHistory() {
     try {
@@ -328,7 +338,7 @@
       const res = await fetch('/api/ai/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: aiEnabled, url: aiUrl, model: aiModel })
+        body: JSON.stringify({ enabled: aiEnabled, provider: aiProvider, url: aiUrl, model: aiModel })
       });
       const result = await res.json();
       if (res.ok && result.success) {
@@ -340,6 +350,45 @@
       aiError = 'An error occurred';
     }
     aiSaving = false;
+  }
+
+  function startCategorizePolling() {
+    stopCategorizePolling();
+    categorizeTimer = setInterval(pollCategorize, 3000);
+  }
+  function stopCategorizePolling() {
+    if (categorizeTimer) {
+      clearInterval(categorizeTimer);
+      categorizeTimer = null;
+    }
+  }
+
+  async function pollCategorize() {
+    try {
+      const res = await fetch('/api/ai/categorize-missing');
+      if (res.ok) categorizeStatus = await res.json();
+    } catch {
+      // polling is best-effort; ignore transient failures
+    }
+  }
+
+  async function handleCategorizeMissing() {
+    categorizeError = '';
+    categorizeWaiting = true;
+    try {
+      const res = await fetch('/api/ai/categorize-missing', { method: 'POST' });
+      const result = await res.json();
+      if (!res.ok) {
+        categorizeError = result.error || 'Failed to start categorization';
+        return;
+      }
+      startCategorizePolling();
+      pollCategorize();
+    } catch {
+      categorizeError = 'An error occurred';
+    } finally {
+      categorizeWaiting = false;
+    }
   }
 
   async function handleTestAI() {
@@ -717,29 +766,56 @@
         </div>
 
         <div>
-          <label for="aiUrl" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-2">Ollama Server URL</label>
-          <input
-            type="text"
-            id="aiUrl"
-            bind:value={aiUrl}
-            placeholder="http://100.116.226.10:11434"
+          <label for="aiProvider" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-2">AI Provider</label>
+          <select
+            id="aiProvider"
+            bind:value={aiProvider}
             class="input w-full"
-          />
+          >
+            <option value="ollama">Ollama (local)</option>
+            <option value="gemini">Google Gemini (API)</option>
+          </select>
+          <p class="text-xs text-ink-400 dark:text-cream-300 mt-1">
+            {aiProvider === 'gemini'
+              ? 'Uses your GEMINI_API_KEY server secret — no data stored in the site database'
+              : 'Runs on your home Ollama server — no API key needed'}
+          </p>
         </div>
+
+        {#if aiProvider === 'ollama'}
+          <div>
+            <label for="aiUrl" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-2">Ollama Server URL</label>
+            <input
+              type="text"
+              id="aiUrl"
+              bind:value={aiUrl}
+              placeholder="http://100.116.226.10:11434"
+              class="input w-full"
+            />
+          </div>
+        {:else}
+          <div class="flex items-center justify-between p-4 rounded-lg bg-cream-50 border border-cream-200/50 dark:bg-ink-800 dark:border-ink-600">
+            <div class="flex items-center gap-3">
+              <span class="h-2 w-2 rounded-full {geminiKeySet ? 'bg-forest-500' : 'bg-terra-500'}"></span>
+              <div>
+                <p class="text-sm font-medium text-ink-600 dark:text-cream-200">Gemini API Key</p>
+                <p class="text-xs text-ink-400 dark:text-cream-300 mt-0.5">
+                  {geminiKeySet ? 'Configured — set via the GEMINI_API_KEY environment variable' : 'Not set — add GEMINI_API_KEY to the app environment'}
+                </p>
+              </div>
+            </div>
+          </div>
+        {/if}
 
         <div>
           <label for="aiModel" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-2">Model</label>
           {#if aiModels.length > 0}
-            <select
-              id="aiModel"
-              bind:value={aiModel}
-              class="input w-full"
-            >
+            <select id="aiModel" bind:value={aiModel} class="input w-full">
               {#each aiModels as model}
                 <option value={model}>{model}</option>
               {/each}
               {#if aiModel && !aiModels.includes(aiModel)}
-                <option value={aiModel}>{aiModel} (not installed)</option>
+                <option value={aiModel}>{aiModel} (set manually)</option>
               {/if}
             </select>
           {:else}
@@ -747,7 +823,7 @@
               type="text"
               id="aiModel"
               bind:value={aiModel}
-              placeholder="gpt-oss:20b"
+              placeholder={aiProvider === 'gemini' ? 'gemini-2.5-flash' : 'qwen3.5:9b'}
               class="input w-full"
             />
             <p class="text-xs text-ink-400 dark:text-cream-300 mt-1">Click "Test Connection" to load available models</p>
@@ -801,6 +877,54 @@
         </div>
       {/if}
 
+      <div class="p-5 rounded-lg border border-cream-200/50 bg-cream-50 dark:bg-ink-800 dark:border-ink-600">
+        <h3 class="text-sm font-semibold text-ink-600 dark:text-cream-200 mb-1">Photo categorization</h3>
+        <p class="text-xs text-ink-400 dark:text-cream-300">
+          Photos upload with no category until AI looks at them. New uploads are analyzed automatically; run the
+          button below to categorize the backlog. Processing is serialized (one photo at a time) so provider rate
+          limits aren't hit &mdash; a few hundred photos take 15&ndash;25 minutes. Safe to stop and restart anytime.
+        </p>
+
+        {#if categorizeError}
+          <div class="mt-3 p-4 rounded-lg bg-terra-50 border border-terra-200 text-terra-600 text-sm">{categorizeError}</div>
+        {/if}
+
+        <div class="mt-3 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            disabled={categorizeWaiting || (categorizeStatus?.running ?? false)}
+            onclick={handleCategorizeMissing}
+            class="btn-primary inline-flex items-center justify-center gap-2"
+          >
+            {categorizeStatus?.running ? 'Categorizing…' : (categorizeWaiting ? 'Starting…' : 'Categorize photos')}
+          </button>
+
+          {#if categorizeStatus && categorizeStatus.queued > 0 && !categorizeStatus.running}
+            <span class="text-xs text-ink-400 dark:text-cream-300">
+              {categorizeStatus.queued} photo{categorizeStatus.queued === 1 ? '' : 's'} in queue
+            </span>
+          {/if}
+
+          {#if categorizeStatus?.job && categorizeStatus.job.total > 0}
+            <span class="text-xs font-medium text-ink-500 dark:text-cream-200">
+              {categorizeStatus.running ? 'Running: ' : 'Last batch: '}{categorizeStatus.job.done} / {categorizeStatus.job.total}
+              ({categorizeStatus.job.ok} done, {categorizeStatus.job.failed} failed, {categorizeStatus.job.skipped} skipped)
+            </span>
+            <div class="w-full h-2 rounded-full bg-cream-200 dark:bg-ink-600 overflow-hidden">
+              <div
+                class="h-full rounded-full bg-forest-500 transition-all duration-700"
+                style="width: {Math.round((categorizeStatus.job.done / categorizeStatus.job.total) * 100)}%"
+              ></div>
+            </div>
+            {#if !categorizeStatus.running}
+              <button type="button" onclick={stopCategorizePolling} class="text-xs text-ink-400 hover:text-ink-600 dark:hover:text-cream-200">
+                Stop refreshing
+              </button>
+            {/if}
+          {/if}
+        </div>
+      </div>
+
       <div class="p-5 rounded-lg bg-cream-50 border border-cream-200/50 dark:bg-ink-800 dark:border-ink-600">
         <h3 class="text-sm font-semibold text-ink-600 dark:text-cream-200 mb-2">What AI can do</h3>
         <ul class="text-sm text-ink-400 dark:text-cream-300 space-y-1.5">
@@ -833,7 +957,10 @@
             <span><strong class="text-ink-600 dark:text-cream-200">Trip planning</strong> — Create itineraries and packing lists</span>
           </li>
         </ul>
-        <p class="text-xs text-ink-400 dark:text-cream-300 mt-3">All AI processing runs locally via Ollama — no data leaves your network.</p>
+        <p class="text-xs text-ink-400 dark:text-cream-300 mt-3">
+          Ollama runs locally on your home server. Gemini runs through Google's API using your GEMINI_API_KEY server
+          secret — neither stores your photos or prompts in the site database.
+        </p>
       </div>
     </div>
   {/if}

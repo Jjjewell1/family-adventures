@@ -4,6 +4,7 @@ import { getSessionUser } from '$lib/server/auth';
 import { dbRun, dbGet } from '$lib/server/db';
 import { generateToken, detectMediaType } from '$lib/shared/utils';
 import type { Adventure } from '$lib/shared/types';
+import { enqueueAnalysis } from '$lib/server/ai';
 
 export const POST: RequestHandler = async ({ params, request, cookies }) => {
   const user = await getSessionUser(cookies);
@@ -49,6 +50,10 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
   );
 
   const media = await dbGet('SELECT * FROM adventure_media WHERE id = ?', mediaId);
+
+  // New photos label themselves in the background (serialized so batch uploads
+  // don't hit provider rate limits). Runs when AI is enabled and configured.
+  if (media?.media_type === 'photo') enqueueAnalysis([mediaId]);
 
   await dbRun(
     'INSERT INTO activity_feed (id, user_id, adventure_id, action_type, metadata) VALUES (?, ?, ?, ?, ?)',

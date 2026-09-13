@@ -5,6 +5,7 @@ import { dbRun, dbGet, dbAll } from '$lib/server/db';
 import { generateToken } from '$lib/shared/utils';
 import { detectMediaType } from '$lib/shared/utils';
 import type { Adventure } from '$lib/shared/types';
+import { enqueueAnalysis } from '$lib/server/ai';
 
 export const POST: RequestHandler = async ({ params, request, cookies }) => {
   const user = await getSessionUser(cookies);
@@ -31,6 +32,7 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
   let nextOrder = (maxOrder?.max_idx ?? -1) + 1;
 
   const results: { id: string; filePath: string; mediaType: string }[] = [];
+  const photoIds: string[] = [];
 
   for (const file of files) {
     if (!file.filePath?.trim()) continue;
@@ -41,7 +43,12 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
       mediaId, adventure.id, file.filePath.trim(), mediaType, file.caption || null, nextOrder++
     );
     results.push({ id: mediaId, filePath: file.filePath, mediaType });
+    if (mediaType === 'photo') photoIds.push(mediaId);
   }
+
+  // New photos label themselves in the background (serialized so batch uploads
+  // don't hit provider rate limits). Runs when AI is enabled and configured.
+  enqueueAnalysis(photoIds);
 
   await dbRun(
     'INSERT INTO activity_feed (id, user_id, adventure_id, action_type, metadata) VALUES (?, ?, ?, ?, ?)',
