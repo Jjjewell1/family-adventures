@@ -9,6 +9,15 @@
   let statVisible = $state(false);
   let mosaicVisible = $state(false);
   let featuresVisible = $state(false);
+  let heroIndex = $state(0);
+  let fade = $state(true);
+
+  // Full-bleed image for the rotating hero background
+  function imageUrl(img: { file_path: string | null }) {
+    return img.file_path
+      ? `/api/media/image?path=${encodeURIComponent(img.file_path)}&w=1600`
+      : '';
+  }
 
   // Smaller tiles for the mosaic grid (thumbnails)
   function thumbUrl(img: { file_path: string | null }) {
@@ -22,16 +31,39 @@
     setTimeout(() => { statVisible = true; }, 300);
     setTimeout(() => { mosaicVisible = true; }, 600);
     setTimeout(() => { featuresVisible = true; }, 900);
+
+    if (heroImages.length <= 1) return;
+    const interval = setInterval(() => {
+      fade = false;
+      setTimeout(() => {
+        heroIndex = (heroIndex + 1) % heroImages.length;
+        fade = true;
+      }, 700);
+    }, 5000);
+    return () => clearInterval(interval);
   });
 </script>
 
 <div class="-mx-4 sm:-mx-6 lg:-mx-8 -mt-8">
   <!-- Hero Section -->
   <div class="relative h-[62vh] min-h-[460px] flex items-end overflow-hidden bg-gradient-to-br from-forest-800 via-forest-700 to-forest-900">
-    <!-- Subtle topographic lines over the deep forest -->
-    <div class="absolute inset-0 opacity-20" style="background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-opacity='0.35' stroke-width='1'%3E%3Cpath d='M20 140c40-30 90-30 130 0s90 30 130 0'/%3E%3Cpath d='M30 160c40-24 80-24 110 0'/%3E%3Cpath d='M40 180c30-20 70-20 100 0'/%3E%3Cpath d='M90 110c30-18 70-18 110 0'/%3E%3Cpath d='M110 90c30-14 50-14 70 0'/%3E%3Cpath d='M60 200c40-16 80-16 120 0'/%3E%3C/g%3E%3C/svg%3E&quot;);background-repeat:repeat;"></div>
-    <div class="absolute inset-0 bg-gradient-to-t from-forest-900/70 via-transparent to-transparent"></div>
-    <div class="absolute inset-0 bg-gradient-to-r from-forest-900/40 to-transparent"></div>
+    {#if heroImages.length > 0}
+      <!-- Rotating featured pictures -->
+      {#each heroImages.slice(0, 6) as img, i}
+        {@const src = imageUrl(img)}
+        {#if src}
+          <div class="absolute inset-0 transition-all duration-[1400ms] ease-in-out {i === heroIndex && fade ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}">
+            <img {src} alt="" class="h-full w-full object-cover" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} />
+          </div>
+        {/if}
+      {/each}
+    {/if}
+    <!-- Legibility scrim -->
+    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-black/10"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-forest-900/45 to-transparent"></div>
+    <div class="absolute inset-0 bg-forest-900/20"></div>
+    <!-- Subtle topographic lines -->
+    <div class="absolute inset-0 opacity-10" style="background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-opacity='0.35' stroke-width='1'%3E%3Cpath d='M20 140c40-30 90-30 130 0s90 30 130 0'/%3E%3Cpath d='M30 160c40-24 80-24 110 0'/%3E%3Cpath d='M40 180c30-20 70-20 100 0'/%3E%3Cpath d='M90 110c30-18 70-18 110 0'/%3E%3Cpath d='M110 90c30-14 50-14 70 0'/%3E%3Cpath d='M60 200c40-16 80-16 120 0'/%3E%3C/g%3E%3C/svg%3E&quot;);background-repeat:repeat;"></div>
 
     <!-- Floating decorative dots -->
     <div class="absolute top-20 right-10 h-3 w-3 rounded-full bg-gold-400/40 {visible ? 'animate-bounce' : ''}" style="animation-delay: 1s; animation-duration: 3s;"></div>
