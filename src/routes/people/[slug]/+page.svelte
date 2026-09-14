@@ -10,6 +10,10 @@
   let editName = $state('');
   let saving = $state(false);
   let error = $state('');
+  let menuMedia = $state<any>(null);
+  let longPressFired = $state(false);
+  let pressStart = $state({ x: 0, y: 0 });
+  let holdTimer: ReturnType<typeof setTimeout> | null = null;
 
   function openLightbox(media: any) {
     selectedMedia = media;
@@ -88,6 +92,51 @@
       });
       data.photos = data.photos.filter((p: any) => p.id !== mediaId);
     } catch {}
+  }
+
+  function isAvatar(m: any) {
+    return m.file_path === data.person?.avatar_file_path;
+  }
+
+  async function setAvatar(m: any) {
+    if (!m.file_path) return;
+    try {
+      const res = await fetch(`/api/people/${data.person.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatarFilePath: m.file_path })
+      });
+      if (res.ok) {
+        data.person.avatar_file_path = m.file_path;
+      }
+    } catch {}
+  }
+
+  function startHold(e: PointerEvent, m: any) {
+    if (e.pointerType !== 'touch') return;
+    longPressFired = false;
+    pressStart = { x: e.clientX, y: e.clientY };
+    stopHold();
+    holdTimer = setTimeout(() => {
+      holdTimer = null;
+      longPressFired = true;
+      try { navigator.vibrate?.(12); } catch { /* no-op */ }
+      menuMedia = m;
+    }, 500);
+  }
+
+  function moveHold(e: PointerEvent) {
+    if (e.pointerType !== 'touch') return;
+    if (Math.hypot(e.clientX - pressStart.x, e.clientY - pressStart.y) > 10) {
+      stopHold();
+    }
+  }
+
+  function stopHold() {
+    if (holdTimer) {
+      clearTimeout(holdTimer);
+      holdTimer = null;
+    }
   }
 </script>
 
@@ -174,7 +223,13 @@
   {#if data.photos?.length > 0}
     <div class="columns-2 md:columns-3 lg:columns-4 gap-3 space-y-3">
       {#each data.photos as media}
-        <div class="break-inside-avoid rounded-xl overflow-hidden group relative">
+        <div class="break-inside-avoid rounded-xl overflow-hidden group relative"
+          onpointerdown={(e) => startHold(e, media)}
+          onpointerup={stopHold}
+          onpointercancel={stopHold}
+          onpointermove={moveHold}
+          oncontextmenu={(e) => { e.preventDefault(); startHold(e as unknown as PointerEvent, media); }}
+        >
           <button class="w-full" onclick={() => openLightbox(media)}>
             <img
               src={`/api/media/image?path=${encodeURIComponent(media.file_path)}&w=480`}
@@ -182,6 +237,14 @@
               class="w-full object-cover transition-transform duration-300 group-hover:scale-105"
               loading="lazy"
             />
+            {#if isAvatar(media)}
+              <div class="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-forest-500/90 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z" />
+                </svg>
+                Avatar
+              </div>
+            {/if}
             <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
               <div class="absolute bottom-3 left-3 right-3">
                 {#if media.caption}
@@ -216,6 +279,33 @@
     </div>
   {/if}
 </div>
+
+<!-- Context menu for setting avatar -->
+{#if menuMedia && data.user}
+  <div class="fixed inset-0 z-50" onclick={() => menuMedia = null} role="button" tabindex="-1" aria-label="Close">
+    <div class="fixed bottom-0 left-0 right-0 mx-4 md:mx-auto md:max-w-sm mb-4 md:mb-0 md:bottom-4 md:left-1/2 md:-translate-x-1/2 animate-slide-up">
+      <div class="card p-4 rounded-t-2xl md:rounded-xl shadow-[0_-20px_40px_rgba(0,0,0,0.3)]">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-medium text-ink-600 dark:text-cream-200">Photo actions</h3>
+          <button class="h-8 w-8 rounded-full bg-ink-100 dark:bg-ink-800 flex items-center justify-center" onclick={() => menuMedia = null} aria-label="Close">
+            <svg class="h-4 w-4 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+        <img src={`/api/media/image?path=${encodeURIComponent(menuMedia.file_path)}&w=480`} alt="" class="w-full h-48 object-cover rounded-lg mb-4" />
+        <div class="flex flex-col gap-2">
+          <button class="btn-primary w-full text-left flex items-center gap-3" onclick={() => { setAvatar(menuMedia); menuMedia = null; }}>
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z" /></svg>
+            <span class="font-medium">Set as avatar</span>
+          </button>
+          <button class="btn-secondary w-full text-left flex items-center gap-3 text-terra-500 hover:text-terra-600" onclick={() => { removeTag(menuMedia.id); menuMedia = null; }}>
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <span class="font-medium">Remove from person</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+{/if}
 
 <!-- Lightbox -->
 <svelte:window onkeydown={handleKeydown} />
