@@ -1,7 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import type { PageData } from './$types';
-  import { onMount } from 'svelte';
+import { onMount } from 'svelte';
 
   let { data }: { data: PageData } = $props();
 
@@ -11,8 +11,13 @@
   let profileName = $state(data.user.name || '');
   let profileEmail = $state(data.user.email || '');
   let profileSaving = $state(false);
-  let profileMessage = $state('');
   let profileError = $state('');
+  let profileMessage = $state('');
+
+  // Load face recognition stats on mount
+  onMount(() => {
+    loadFaceRecStats();
+  });
 
   // Password form state
   let oldPassword = $state('');
@@ -66,6 +71,14 @@
   let categorizeError = $state('');
   let categorizeWaiting = $state(false);
   let categorizeTimer: ReturnType<typeof setInterval> | null = null;
+
+  // Face recognition state
+  let faceRecRunning = $state(false);
+  let faceRecError = $state('');
+  let faceRecStats = $state<{
+    totalPhotos: number; photosWithFaces: number; totalFaces: number;
+    peopleWithReferences: number; aiTags: number
+  } | null>(null);
 
   async function loadLogoHistory() {
     try {
@@ -388,6 +401,37 @@
       categorizeError = 'An error occurred';
     } finally {
       categorizeWaiting = false;
+    }
+  }
+
+  async function handleFaceRecognition() {
+    faceRecError = '';
+    faceRecRunning = true;
+    try {
+      const res = await fetch('/api/ai/tag-people', { method: 'POST' });
+      const result = await res.json();
+      if (!res.ok) {
+        faceRecError = result.error || 'Face recognition failed';
+        return;
+      }
+      // Refresh stats after completion
+      await loadFaceRecStats();
+    } catch {
+      faceRecError = 'An error occurred';
+    } finally {
+      faceRecRunning = false;
+    }
+  }
+
+  async function loadFaceRecStats() {
+    try {
+      const res = await fetch('/api/ai/tag-people');
+      const data = await res.json();
+      if (data.success && data.stats) {
+        faceRecStats = data.stats;
+      }
+    } catch {
+      // ignore
     }
   }
 
@@ -927,6 +971,38 @@
                 Stop refreshing
               </button>
             {/if}
+          {/if}
+        </div>
+      </div>
+
+      <div class="p-5 rounded-lg border border-cream-200/50 bg-cream-50 dark:bg-ink-800 dark:border-ink-600">
+        <h3 class="text-sm font-semibold text-ink-600 dark:text-cream-200 mb-1">Face recognition (auto-tag people)</h3>
+        <p class="text-xs text-ink-400 dark:text-cream-300">
+          Uses a local face-embedding model (FaceNet via @vladmandic/face-api) — no Ollama call.
+          Builds face clusters across all photos and matches them to people you've already tagged or set avatars for.
+          Safe to re-run; only adds new <code>tagged_by='ai'</code> rows.
+        </p>
+
+        {#if faceRecError}
+          <div class="mt-3 p-4 rounded-lg bg-terra-50 border border-terra-200 text-terra-600 text-sm">{faceRecError}</div>
+        {/if}
+
+        <div class="mt-3 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            disabled={faceRecRunning}
+            onclick={handleFaceRecognition}
+            class="btn-primary inline-flex items-center justify-center gap-2"
+          >
+            {faceRecRunning ? 'Tagging people…' : 'Tag people in all photos'}
+          </button>
+
+          {#if faceRecStats && faceRecStats.totalFaces > 0 && !faceRecRunning}
+            <span class="text-xs text-ink-400 dark:text-cream-300">
+              {faceRecStats.totalFaces} face{faceRecStats.totalFaces === 1 ? '' : 's'} in {faceRecStats.photosWithFaces} photo{faceRecStats.photosWithFaces === 1 ? '' : 's'}
+              {faceRecStats.peopleWithReferences > 0 ? ` • ${faceRecStats.peopleWithReferences} people with references` : ''}
+              {faceRecStats.aiTags > 0 ? ` • ${faceRecStats.aiTags} AI tags` : ''}
+            </span>
           {/if}
         </div>
       </div>

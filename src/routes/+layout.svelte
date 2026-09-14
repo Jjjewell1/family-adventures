@@ -187,7 +187,7 @@
       <nav class="glass-strong rounded-2xl px-3 sm:px-4 transition-shadow duration-300 {scrolled ? 'shadow-[0_12px_40px_rgba(62,48,32,0.16)]' : 'shadow-[0_4px_16px_rgba(62,48,32,0.06)]'}">
         <div class="flex h-14 items-center justify-between gap-3">
           <a href="/" class="flex items-center gap-2.5 shrink-0">
-            <img src={data.site?.logoUrl || '/logo.png'} alt="Family Adventures" class="h-8 w-8 rounded-xl object-cover ring-2 ring-white/60" />
+            <img src={data.site?.logoUrl || '/logo.png'} alt="Family Adventures" class="h-11 w-11 object-contain drop-shadow-sm" />
             <span class="text-lg font-display font-bold tracking-tight text-ink-800 hidden sm:block dark:text-cream-100">Family Adventures</span>
           </a>
 
