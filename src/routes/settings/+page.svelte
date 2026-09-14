@@ -771,6 +771,12 @@
             id="aiProvider"
             bind:value={aiProvider}
             class="input w-full"
+            onchange={() => {
+              if (aiProvider === 'ollama' && /^gemini-/i.test(aiModel)) {
+                aiModel = '';
+                aiUrl = 'http://100.116.226.10:11434';
+              }
+            }}
           >
             <option value="ollama">Ollama (local)</option>
             <option value="gemini">Google Gemini (API)</option>

@@ -39,14 +39,21 @@ async function getConfiguredModel(): Promise<string | null> {
 // Model resolution that is provider-aware: a model name saved while another
 // provider was active (e.g. an ollama name like "qwen3.5:9b") would 404 against
 // the Gemini API, so Gemini ignores non-Gemini names and uses its default.
+// Likewise, Ollama ignores gemini-* API names (a stale leftover from when the
+// provider dropdown was switched post-test) and falls back to its own default.
 function looksLikeGeminiModel(name: string): boolean {
   return /^(gemini|gemma)/i.test(name);
+}
+
+function looksLikeGeminiApiModel(name: string): boolean {
+  return /^gemini-/i.test(name);
 }
 
 async function resolveModel(provider: Provider): Promise<string> {
   const configured = await getConfiguredModel();
   if (configured) {
     if (provider === 'gemini' && !looksLikeGeminiModel(configured)) return ENV_GEMINI_MODEL;
+    if (provider === 'ollama' && looksLikeGeminiApiModel(configured)) return ENV_OLLAMA_MODEL;
     return configured;
   }
   return provider === 'gemini' ? ENV_GEMINI_MODEL : ENV_OLLAMA_MODEL;
@@ -165,7 +172,7 @@ export async function hasVisionSupport(): Promise<{ ok: boolean; model: string; 
   }
 
   const url = await getOllamaUrl();
-  const model = (await getConfiguredModel()) || ENV_OLLAMA_MODEL;
+  const model = await resolveModel('ollama');
   try {
     const response = await fetch(`${url}/api/show`, {
       method: 'POST',
@@ -173,7 +180,8 @@ export async function hasVisionSupport(): Promise<{ ok: boolean; model: string; 
       body: JSON.stringify({ model }),
       signal: AbortSignal.timeout(5000)
     });
-    if (!response.ok) return { ok: false, model, error: `Model "${model}" not found on the Ollama server` };
+    if (!response.ok)
+      return { ok: false, model, error: `Model "${model}" not found on the Ollama server (${url}). Open Settings → AI and pick a model from the list.` };
     const data = await response.json();
     const capabilities: string[] = data.capabilities || [];
     if (!capabilities.includes('vision')) {
@@ -305,7 +313,7 @@ export async function generateVision(
   }
 
   const url = await getOllamaUrl();
-  const model = (await getConfiguredModel()) || ENV_OLLAMA_MODEL;
+  const model = await resolveModel('ollama');
   try {
     const body: Record<string, unknown> = {
       model,
@@ -404,7 +412,7 @@ export async function generateText(options: GenerateOptions): Promise<string | n
   }
 
   const url = await getOllamaUrl();
-  const model = (await getConfiguredModel()) || ENV_OLLAMA_MODEL;
+  const model = await resolveModel('ollama');
 
   try {
     const body: Record<string, unknown> = {
@@ -512,7 +520,7 @@ export async function* streamText(options: GenerateOptions): AsyncGenerator<stri
   }
 
   const url = await getOllamaUrl();
-  const model = (await getConfiguredModel()) || ENV_OLLAMA_MODEL;
+  const model = await resolveModel('ollama');
 
   try {
     const body: Record<string, unknown> = {
