@@ -169,6 +169,20 @@
           {/if}
         </div>
       </div>
+      {#if media.media_type !== 'video'}
+        <a
+          href="/api/media/image?path=${encodeURIComponent(media.file_path)}"
+          download="${media.caption || 'image'}.${media.file_path.split('.').pop() || 'jpg'}"
+          class="absolute top-3 right-3 rounded-full bg-white/20 p-2 hover:bg-white/30 transition-colors text-white/70 text-sm"
+          aria-label="Download image"
+          style="pointer-events: auto;"
+          onclick={(e) => e.preventDefault()}
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 8.25a2.25 2.25 0 00-2.25-2.25H4.25a2.25 2.25 0 00-2.25 2.25v8.25a2.25 2.25 0 002.25 2.25h14.09l-3.11 3.11a2.25 2.25 0 01-1.24 1.95zM9.75 18h5.25m0 0h-5.25m0 0l-1.5-5.25m1.5 5.25l1.5-5.25m2.25-4.5h1.95a2.25 2.25 0 110 4.5h-1.95a2.25 2.25 0 01-2.25-2.25z" />
+          </svg>
+        </a>
+      {/if}
     </div>
   </button>
 {/snippet}
@@ -342,6 +356,22 @@
               </div>
             {/if}
           {/if}
+          <button
+            class="mt-2 rounded bg-forest-500 text-white px-4 py-2 text-sm hover:bg-forest-400 transition-colors"
+            onclick={(e) => {
+              e.stopPropagation();
+              const url = `/api/media/image?path=${encodeURIComponent(selectedMedia.file_path)}`;
+              const link = document.createElement('a');
+              link.href = url;
+              const ext = selectedMedia.file_path.split('.').pop() || 'jpg';
+              link.download = `${selectedMedia.caption || 'image'}.${ext}`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+          >
+            Download image
+          </button>
         </div>
       {/if}
     </div>
