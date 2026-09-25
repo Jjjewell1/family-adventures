@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%sveltekit.assets%/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#3B6F54" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#12251E" />
+    <meta name="theme-color" content="#FBF7F0" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
@@ -14,9 +14,17 @@
     <!-- PWA (manifest + SW are injected at build time by @vite-pwa/sveltekit) -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!--
+      "default" keeps the iOS status bar opaque with dark text, which is the only
+      legible option on the light parchment surface this app boots into.
+      +layout.svelte flips this to "black-translucent" while dark mode is active,
+      so the immersive edge-to-edge look is only paid for when it is readable.
+    -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Family Adventures" />
-    <link rel="apple-touch-icon" href="/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icon-256x256.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon-192x192.png" />
 
     <!-- OneSignal Web SDK (loaded async, init happens in layout) -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
