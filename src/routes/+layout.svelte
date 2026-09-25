@@ -6,67 +6,77 @@
   import InstallBanner from '$lib/components/InstallBanner.svelte';
   import Chatbot from '$lib/components/Chatbot.svelte';
   import BeachScene from '$lib/components/BeachScene.svelte';
+  import SwipeBack from '$lib/components/SwipeBack.svelte';
+  import Icon from '$lib/components/Icon.svelte';
+  import type { IconName } from '$lib/components/Icon.svelte';
+  import { theme } from '$lib/theme.svelte';
   import { env } from '$env/dynamic/public';
+
   let { children, data } = $props();
+
   let moreOpen = $state(false);
-  let isDark = $state(false);
   let scrolled = $state(false);
   let oneSignalReady = $state(false);
   let isSubscribed = $state(false);
   let pageReady = $state(true);
 
   const currentPath = $derived($page.url.pathname);
+  const isDark = $derived(theme.resolved === 'dark');
 
-  const primaryNav = [
-    { href: '/adventures', label: 'Adventures' },
-    { href: '/gallery', label: 'Gallery' },
-    { href: '/map', label: 'Map' },
-    { href: '/people', label: 'People' },
-  ];
-  const moreNav = [
-    { href: '/feed', label: 'Feed' },
-    { href: '/memories', label: 'Memories' },
-    { href: '/bucket-list', label: 'Bucket List' },
-    { href: '/stats', label: 'Stats' },
-  ];
-  const bottomNav = [
+  type NavItem = { href: string; label: string; icon: IconName };
+  type NavSection = { label: string; items: NavItem[] };
+
+  // Root destinations get an equal slot in the tab bar. Everything else lives in
+  // the More sheet, which keeps the bar at the five items iOS users can actually
+  // hit one-handed.
+  const tabs: NavItem[] = [
     { href: '/', label: 'Home', icon: 'home' },
     { href: '/adventures', label: 'Adventures', icon: 'compass' },
     { href: '/map', label: 'Map', icon: 'pin' },
-    { href: '/gallery', label: 'Gallery', icon: 'photo' },
+    { href: '/gallery', label: 'Gallery', icon: 'photo' }
   ];
 
-  function isActive(href: string) {
-    if (href === '/') return currentPath === '/';
-    return currentPath.startsWith(href);
+  const moreSections: NavSection[] = [
+    {
+      label: 'Browse',
+      items: [
+        { href: '/feed', label: 'Feed', icon: 'list' },
+        { href: '/memories', label: 'Memories', icon: 'heart' },
+        { href: '/people', label: 'People', icon: 'people' },
+        { href: '/bucket-list', label: 'Bucket List', icon: 'star' }
+      ]
+    },
+    {
+      label: 'You',
+      items: [
+        { href: '/stats', label: 'Stats', icon: 'chart' },
+        { href: '/settings', label: 'Settings', icon: 'settings' }
+      ]
+    }
+  ];
+
+  const isRootTab = (href: string) => href === '/' && currentPath === '/';
+  const isActive = (href: string) =>
+    href === '/' ? currentPath === '/' : currentPath.startsWith(href);
+
+  // Root tabs render their own large title in the scroll content, so the compact
+  // bar stays hidden until the user scrolls — that is the iOS behaviour.
+  const onRootSurface = $derived(tabs.some((tab) => isActive(tab.href)));
+  const showCompactBar = $derived(!onRootSurface || scrolled);
+
+  /** Best-effort label for the compact bar; pages own their own <h1>. */
+  const barTitle = $derived(
+    [...tabs, ...moreSections.flatMap((section) => section.items)].find((item) =>
+      isActive(item.href)
+    )?.label ?? 'Family Adventures'
+  );
+
+  function closeMore() {
+    moreOpen = false;
   }
 
-  function iconFor(name: string) {
-    const paths: Record<string, { d: string; fill?: boolean }> = {
-      home: { d: 'M3 10.5L12 3l9 7.5M5 9.5V21h5v-6h4v6h5V9.5' },
-      compass: { d: 'M9 9l10.5-5.5L14 14 3.5 19.5 9 9z' },
-      pin: { d: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z' },
-      photo: { d: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
-      bell: { d: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
-      bellFilled: { d: 'M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z', fill: true },
-      theme: { d: 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z' },
-      moon: { d: 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z' },
-      plus: { d: 'M12 4v16m8-8H4' },
-      more: { d: 'M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z' },
-    };
-    return paths[name] || paths.home;
-  }
-
-  // Keep the browser theme-color bar in sync with the active theme
-  $effect(() => {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', isDark ? '#1E1A15' : '#3B6F54');
-  });
-
-  function toggleTheme() {
-    isDark = !isDark;
-    document.documentElement.classList.toggle('dark', isDark);
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  function openMore() {
+    moreOpen = true;
   }
 
   async function toggleNotifications() {
@@ -77,8 +87,7 @@
       await OneSignal.User.PushSubscription.optOut();
       isSubscribed = false;
     } else {
-      const accepted = await OneSignal.Slidedown.promptPush();
-      isSubscribed = accepted;
+      isSubscribed = await OneSignal.Slidedown.promptPush();
     }
   }
 
@@ -88,54 +97,51 @@
   }
 
   onMount(() => {
-    const onScroll = () => { scrolled = window.scrollY > 8; };
+    theme.start();
+
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        scrolled = window.scrollY > 8;
+        frame = 0;
+      });
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    const saved = localStorage.getItem('theme');
-    if (saved === 'dark') {
-      isDark = true;
-      document.documentElement.classList.add('dark');
-    } else if (!saved) {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (prefersDark) {
-        isDark = true;
-        document.documentElement.classList.add('dark');
-      }
-    }
-
-    // Service worker is registered automatically by @vite-pwa/sveltekit.
-
-    // Initialize OneSignal (deferred so it doesn't block the SW)
     const appId = env.PUBLIC_ONESIGNAL_APP_ID;
     if (appId) {
       (window as any).OneSignalDeferred = (window as any).OneSignalDeferred || [];
-      (window as any).OneSignalDeferred.push(async function(OneSignal: any) {
+      (window as any).OneSignalDeferred.push(async function (OneSignal: any) {
         await OneSignal.init({
           appId,
           notifyButton: { enable: false },
           allowLocalhostAsSecureOrigin: true,
           welcomeNotification: {
             title: 'Family Adventures',
-            body: 'Notifications enabled!'
+            body: 'Notifications enabled.'
           }
         });
         oneSignalReady = true;
-        isSubscribed = await OneSignal.User.PushSubscription.optedInAsync?.() ?? false;
-        isSubscribed = isSubscribed || OneSignal.User.PushSubscription.optedIn;
+        const optedIn = await OneSignal.User.PushSubscription.optedInAsync?.();
+        isSubscribed = Boolean(optedIn) || Boolean(OneSignal.User.PushSubscription.optedIn);
       });
     }
 
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   });
 
-  // Screen-level transition: scroll to top and fade the new page in on SPA
-  // navigation. Reduces visual noise from the swapped DOM—and the instant
-  // scroll-to-top is essential for long pages navigated mid-scroll.
+  // Reset scroll and any open transient UI on SPA navigation, otherwise the More
+  // sheet survives into a page that has no relationship to it.
   let firstNav = true;
   afterNavigate(() => {
     const isFirst = firstNav;
     firstNav = false;
+    moreOpen = false;
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
     }
@@ -147,7 +153,7 @@
 
 <svelte:head>
   <script>
-    (function() {
+    (function () {
       var saved = localStorage.getItem('theme');
       if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
@@ -156,275 +162,295 @@
   </script>
   <link rel="icon" type="image/png" href={data.site?.faviconUrl || '/favicon.png'} />
   <title>{data.site?.title || 'Family Adventures'}</title>
-  <meta name="description" content={data.site?.description || "Our family's collection of adventures, memories, and shared moments"} />
-  <!-- Open Graph -->
+  <meta
+    name="description"
+    content={data.site?.description || "Our family's collection of adventures, memories, and shared moments"}
+  />
   <meta property="og:type" content="website" />
   <meta property="og:title" content={data.site?.title || 'Family Adventures'} />
-  <meta property="og:description" content={data.site?.description || "Our family's collection of adventures, memories, and shared moments"} />
-  <meta property="og:image" content="{data.siteUrl}{data.site?.ogImageUrl || '/og-image.png'}" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
+  <meta
+    property="og:description"
+    content={data.site?.description || "Our family's collection of adventures, memories, and shared moments"}
+  />
+  <meta property="og:image" content="{data.siteUrl}{data.site?.ogImageUrl || '/logo.png'}" />
   <meta property="og:site_name" content={data.site?.title || 'Family Adventures'} />
-  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={data.site?.title || 'Family Adventures'} />
-  <meta name="twitter:description" content={data.site?.description || "Our family's collection of adventures, memories, and shared moments"} />
-  <meta name="twitter:image" content="{data.siteUrl}{data.site?.ogImageUrl || '/og-image.png'}" />
+  <meta
+    name="twitter:description"
+    content={data.site?.description || "Our family's collection of adventures, memories, and shared moments"}
+  />
+  <meta name="twitter:image" content="{data.siteUrl}{data.site?.ogImageUrl || '/logo.png'}" />
 </svelte:head>
 
-<div class="min-h-screen flex flex-col">
-  <a href="#main" class="skip-link">Skip to main content</a>
+<a href="#main" class="skip-link">Skip to main content</a>
 
-  <!-- Animated ocean background (generated BeachScene) behind all content -->
+<div class="flex min-h-[100dvh] flex-col">
   <div class="fixed inset-0 -z-10 overflow-hidden bg-[#7BA79E]" aria-hidden="true">
     <BeachScene className="h-full w-full" fullscreen interactive={false} />
-    <div class="absolute inset-0 pointer-events-none bg-gradient-to-b from-forest-900/55 via-forest-900/40 to-black/80 dark:from-black/65 dark:via-black/55 dark:to-black/85"></div>
+    <!-- Heavier scrim in dark mode: the scene is a bright painted sunset, and at
+         the light-mode opacities it kept glowing through an otherwise OLED-black
+         page. Photos should be the only real light source at night. -->
+    <div
+      class="pointer-events-none absolute inset-0 bg-gradient-to-b from-forest-900/55 via-forest-900/40 to-black/80 dark:from-black/88 dark:via-black/84 dark:to-black/96"
+    ></div>
   </div>
 
-  <!-- Floating navigation (desktop only — mobile uses the bottom tab bar) -->
-  <header class="safe-top sticky top-0 hidden lg:block {moreOpen ? 'z-[80]' : 'z-40'}">
-    <div class="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 pt-3 pb-2">
-      <nav class="glass-strong rounded-2xl px-3 sm:px-4 transition-shadow duration-300 {scrolled ? 'shadow-[0_12px_40px_rgba(62,48,32,0.16)]' : 'shadow-[0_4px_16px_rgba(62,48,32,0.06)]'}">
-        <div class="flex h-14 items-center justify-between gap-3">
-          <a href="/" class="flex items-center gap-2.5 shrink-0">
-            <img src={data.site?.logoUrl || '/logo.png'} alt="Family Adventures" class="h-11 w-11 object-contain drop-shadow-sm" />
-            <span class="text-lg font-display font-bold tracking-tight text-ink-800 hidden sm:block dark:text-cream-100">Family Adventures</span>
-          </a>
+  <!-- Compact top bar. Mobile: fades in once content scrolls under it.
+       Desktop: always present, because there is no tab bar to anchor navigation. -->
+  <header
+    class="fixed inset-x-0 top-0 z-[var(--z-chrome)] transition-opacity duration-200 lg:opacity-100! {showCompactBar
+      ? 'opacity-100'
+      : 'pointer-events-none opacity-0'}"
+  >
+    <div class="chrome chrome-scrolled" class:!shadow-none={!scrolled}>
+      <div
+        class="mx-auto flex h-[calc(var(--tap-target)+env(safe-area-inset-top))] max-w-7xl items-center gap-2 px-[max(1rem,env(safe-area-inset-left))] pt-[env(safe-area-inset-top)] lg:px-8"
+      >
+        <!-- Back affordance only on non-root surfaces. -->
+        {#if !onRootSurface}
+          <button
+            type="button"
+            onclick={() => history.back()}
+            class="tap pressable -ml-2 flex items-center gap-0.5 rounded-full px-2 py-1.5 text-[var(--accent-action)]"
+            aria-label="Go back"
+          >
+            <Icon name="chevron-left" size={22} strokeWidth={2.25} />
+          </button>
+        {/if}
 
-          <!-- Desktop nav -->
-          <div class="hidden lg:flex items-center gap-0.5">
-            {#each primaryNav as link}
-              <a href={link.href} class="nav-link {isActive(link.href) ? 'active' : ''}">
-                {link.label}
-              </a>
-            {/each}
-            <div class="relative">
-              <button
-                class="nav-link flex items-center gap-1 {moreNav.some(l => isActive(l.href)) ? 'active' : ''}"
-                onclick={() => moreOpen = !moreOpen}
-                aria-haspopup="true"
-                aria-expanded={moreOpen}
-              >
-                More
-                <svg class="h-3 w-3 transition-transform {moreOpen ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {#if moreOpen}
-                <div class="absolute right-0 top-full mt-2 w-52 rounded-2xl glass-strong p-1.5 shadow-2xl animate-in">
-                  {#each moreNav as link}
-                    <a href={link.href} class="nav-link block {isActive(link.href) ? 'active' : ''}" onclick={() => moreOpen = false}>
-                      {link.label}
-                    </a>
-                  {/each}
-                </div>
+        <a href="/" class="flex shrink-0 items-center lg:hidden" aria-label="Family Adventures home">
+          <img src={data.site?.logoUrl || '/logo.png'} alt="" class="size-7 object-contain" />
+        </a>
+
+        <span
+          class="min-w-0 flex-1 truncate text-center text-[0.9375rem] font-semibold tracking-[-0.01em] text-[var(--text-primary)] lg:hidden"
+        >
+          {barTitle}
+        </span>
+
+        <a href="/" class="hidden shrink-0 items-center gap-2.5 lg:flex">
+          <img
+            src={data.site?.logoUrl || '/logo.png'}
+            alt="Family Adventures"
+            class="size-10 object-contain drop-shadow-sm"
+          />
+          <span class="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
+            Family Adventures
+          </span>
+        </a>
+
+        <nav class="ml-auto hidden items-center gap-0.5 lg:flex" aria-label="Primary">
+          {#each tabs as tab}
+            <a
+              href={tab.href}
+              class="nav-link tap {isActive(tab.href) ? 'active' : ''}"
+              aria-current={isActive(tab.href) ? 'page' : undefined}
+            >
+              {tab.label}
+            </a>
+          {/each}
+          {#each moreSections.flatMap((section) => section.items) as item}
+            <a
+              href={item.href}
+              class="nav-link tap {isActive(item.href) ? 'active' : ''}"
+              aria-current={isActive(item.href) ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          {/each}
+        </nav>
+
+        <div class="flex shrink-0 items-center gap-0.5 lg:ml-3">
+          {#if oneSignalReady && data.user}
+            <button
+              type="button"
+              onclick={toggleNotifications}
+              class="tap pressable rounded-full p-2.5 {isSubscribed
+                ? 'text-[var(--accent-action)]'
+                : 'text-[var(--text-secondary)]'}"
+              aria-label={isSubscribed ? 'Turn off notifications' : 'Turn on notifications'}
+            >
+              <Icon name="bell" size={20} filled={isSubscribed} />
+            </button>
+          {/if}
+
+          <button
+            type="button"
+            onclick={() => theme.toggle()}
+            class="tap pressable rounded-full p-2.5 text-[var(--text-secondary)]"
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            <Icon name={isDark ? 'sun' : 'moon'} size={20} />
+          </button>
+
+          {#if data.user}
+            <a
+              href="/settings"
+              class="tap ml-0.5 flex size-8 items-center justify-center overflow-hidden rounded-full bg-[var(--accent-action)] text-xs font-semibold text-white"
+              aria-label="Settings — {data.user.name}"
+            >
+              {#if data.user.avatar_url}
+                <img src={data.user.avatar_url} alt="" class="size-full object-cover" />
+              {:else}
+                {(data.user.name?.charAt(0).toUpperCase() ?? '?')}
               {/if}
-            </div>
-          </div>
-
-          <!-- Right side -->
-          <div class="flex items-center gap-1 sm:gap-2">
-            {#if data.user}
-              <a href="/adventures/create" class="btn-primary hidden min-[500px]:inline-flex text-xs px-3.5 sm:px-4">
-                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                New
-              </a>
-            {/if}
-
-            {#if oneSignalReady && data.user}
-              <button
-                onclick={toggleNotifications}
-                class="p-2 rounded-xl transition-colors {isSubscribed ? 'text-forest-500 bg-forest-500/10 hover:bg-forest-500/15' : 'text-ink-400 hover:text-ink-600 hover:bg-cream-100 dark:text-ink-300 dark:hover:bg-ink-800'}"
-                title={isSubscribed ? 'Notifications on' : 'Enable push notifications'}
-              >
-                <svg class="h-4 w-4" fill="{isSubscribed ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={isSubscribed ? iconFor('bellFilled').d : iconFor('bell').d} />
-                </svg>
-              </button>
-            {/if}
-
-            {#if data.user}
-              <a href="/settings" class="group h-8 w-8 rounded-full overflow-hidden bg-forest-500 flex items-center justify-center text-white text-xs font-semibold transition-all hover:ring-2 hover:ring-forest-400 hover:ring-offset-1 dark:hover:ring-offset-ink-900" title="Settings - {data.user.name}">
-                {#if data.user.avatar_url}
-                  <img src={data.user.avatar_url} alt={data.user.name} class="h-full w-full object-cover" />
-                {:else}
-                  {data.user.name?.charAt(0).toUpperCase() || '?'}
-                {/if}
-              </a>
-            {/if}
-
-            <button
-              onclick={toggleTheme}
-              class="p-2 rounded-xl text-ink-400 hover:text-ink-600 hover:bg-cream-100 transition-colors dark:text-ink-300 dark:hover:text-cream-200 dark:hover:bg-ink-800"
-              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            </a>
+          {:else}
+            <!-- Desktop only. On mobile the compact bar is back + title + two
+                 actions, and a third control squeezes the title to an ellipsis.
+                 The tab bar's More sheet still offers Sign in. -->
+            <a
+              href="/auth/login"
+              class="btn-primary tap-target ml-1 hidden text-xs lg:inline-flex"
             >
-              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={isDark ? iconFor('theme').d : iconFor('moon').d} />
-              </svg>
-            </button>
+              Sign in
+            </a>
+          {/if}
 
-            {#if data.user}
-              <button
-                onclick={signOut}
-                class="hidden sm:inline text-xs font-medium text-ink-400 hover:text-ink-600 transition-colors dark:text-ink-300 dark:hover:text-cream-200"
-              >
-                Sign Out
-              </button>
-            {:else}
-              <a href="/auth/login" class="btn-primary text-xs px-3.5 hidden min-[420px]:inline-flex">Sign In</a>
-            {/if}
-
-            <!-- Mobile "More" trigger -->
-            <button
-              class="lg:hidden p-2 rounded-xl text-ink-500 hover:bg-cream-100 dark:hover:bg-ink-800"
-              onclick={() => moreOpen = !moreOpen}
-              aria-label="More menu"
-              aria-expanded={moreOpen}
-            >
-              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={iconFor('more').d} />
-              </svg>
-            </button>
-          </div>
+          <button
+            type="button"
+            onclick={openMore}
+            class="tap pressable rounded-full p-2.5 text-[var(--text-secondary)]"
+            aria-label="More menu"
+            aria-expanded={moreOpen}
+          >
+            <Icon name="more" size={20} />
+          </button>
         </div>
-      </nav>
+      </div>
     </div>
   </header>
 
   {#if moreOpen}
-    <!-- Click-outside / backdrop for the More menu -->
-    <button type="button" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-[60] lg:hidden" onclick={() => moreOpen = false}></button>
-  {/if}
+    <button
+      type="button"
+      tabindex="-1"
+      aria-hidden="true"
+      class="fixed inset-0 z-[var(--z-scrim)] bg-[var(--surface-scrim)]"
+      onclick={closeMore}
+    ></button>
 
-<!-- Main content -->
-  <main id="main" aria-label="Page content" class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 lg:pt-8 pt-[max(2rem,env(safe-area-inset-top))] pb-32 lg:pb-12 transition-opacity duration-300 ease-out {pageReady ? 'opacity-100' : 'opacity-0'}">
-    {@render children()}
-  </main>
+    <div
+      class="fixed inset-x-0 bottom-0 z-[var(--z-sheet)] mx-auto max-w-lg"
+      role="dialog"
+      aria-modal="true"
+      aria-label="More"
+      style:padding-bottom="env(safe-area-inset-bottom)"
+    >
+      <div class="glass-strong rounded-t-[var(--radius-xl)] p-4 shadow-[var(--shadow-sheet)]">
+        <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--border-default)]"></div>
 
-  <!-- Footer -->
-  <footer class="mt-auto hidden lg:block">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-8">
-      <div class="glass rounded-2xl px-5 py-4">
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-ink-500 dark:text-ink-300">
-          <div class="flex items-center gap-2">
-            <img src={data.site?.logoUrl || '/logo.png'} alt="Family Adventures" class="h-4 w-4 rounded object-cover" />
-            <span class="font-medium text-ink-600 dark:text-cream-200">Family Adventures</span>
-            <span class="hidden sm:inline">— the stories, places, and people we love.</span>
-          </div>
-          <div class="flex items-center gap-4">
-            <a href="/adventures" class="hover:text-ink-700 transition-colors dark:hover:text-cream-100">Adventures</a>
-            <a href="/gallery" class="hover:text-ink-700 transition-colors dark:hover:text-cream-100">Gallery</a>
-            <a href="/feed" class="hover:text-ink-700 transition-colors dark:hover:text-cream-100">Feed</a>
-            <a href="/map" class="hover:text-ink-700 transition-colors dark:hover:text-cream-100">Map</a>
+        <div class="scroll-y max-h-[70dvh]">
+          {#each moreSections as section}
+            <p class="list-group-label mt-2">{section.label}</p>
+            <div class="list-group">
+              {#each section.items as item}
+                <a href={item.href} class="list-row tap" onclick={closeMore}>
+                  <Icon name={item.icon} size={20} class="shrink-0 text-[var(--accent-action)]" />
+                  <span class="list-row-title">{item.label}</span>
+                  {#if isActive(item.href)}
+                    <Icon name="check" size={18} class="list-row-value text-[var(--accent-action)]" />
+                  {:else}
+                    <Icon name="chevron-right" size={16} class="ml-auto text-[var(--text-tertiary)]" />
+                  {/if}
+                </a>
+              {/each}
+            </div>
+          {/each}
+
+          <div class="list-group mt-4">
+            <button type="button" class="list-row tap" onclick={() => theme.toggle()}>
+              <Icon name={isDark ? 'sun' : 'moon'} size={20} class="shrink-0 text-[var(--accent-action)]" />
+              <span class="list-row-title">{isDark ? 'Light mode' : 'Dark mode'}</span>
+            </button>
+
+            {#if oneSignalReady && data.user}
+              <button type="button" class="list-row tap" onclick={toggleNotifications}>
+                <Icon name="bell" size={20} class="shrink-0 text-[var(--accent-action)]" />
+                <span class="list-row-title">
+                  {isSubscribed ? 'Notifications on' : 'Notifications off'}
+                </span>
+              </button>
+            {/if}
+
+            {#if data.user}
+              <button type="button" class="list-row tap" onclick={signOut}>
+                <Icon name="logout" size={20} class="shrink-0 text-[var(--status-error)]" />
+                <span class="list-row-title text-[var(--status-error)]">Sign out</span>
+              </button>
+            {/if}
           </div>
         </div>
       </div>
     </div>
-  </footer>
+  {/if}
 
-  <!-- Mobile bottom tab bar (flush, premium glass) -->
-  <nav class="lg:hidden fixed inset-x-0 bottom-0 z-50" aria-label="Main navigation">
-    <div class="glass-strong border-t border-cream-200/50 dark:border-ink-700/50 shadow-[0_-8px_30px_rgba(30,26,21,0.08)] dark:shadow-[0_-8px_30px_rgba(0,0,0,0.25)] overflow-visible">
-      <div class="mx-auto max-w-lg flex items-end justify-around px-1 pt-2 pb-[max(6px,env(safe-area-inset-bottom))]">
-        {#each bottomNav as item}
-          <a href={item.href}
-            class="relative flex flex-1 flex-col items-center gap-0.5 py-1.5 rounded-xl transition-all duration-200 {isActive(item.href) ? 'bg-forest-500/10 text-forest-600 dark:text-forest-300 font-semibold' : 'text-ink-400 dark:text-ink-300 hover:text-ink-600 dark:hover:text-cream-200'}"
-            aria-current={isActive(item.href) ? 'page' : undefined}
-          >
-            <svg class="h-[22px] w-[22px]" fill="none" stroke="currentColor" stroke-width={isActive(item.href) ? '2.2' : '1.6'} viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d={iconFor(item.icon).d} />
-            </svg>
-            <span class="text-[10px] leading-none">{item.label}</span>
-          </a>
-        {/each}
+  <SwipeBack enabled={!moreOpen}>
+    <main
+      id="main"
+      class="mx-auto w-full max-w-7xl flex-1 px-[max(1rem,env(safe-area-inset-left))] pb-[calc(var(--tab-bar-height)+2rem+env(safe-area-inset-bottom))] pt-[calc(var(--tap-target)+env(safe-area-inset-top)+0.5rem)] transition-opacity duration-300 ease-out lg:px-8 lg:pb-12 lg:pt-24 {pageReady
+        ? 'opacity-100'
+        : 'opacity-0'}"
+    >
+      {@render children()}
+    </main>
+  </SwipeBack>
 
-        {#if data.user}
-          <a href="/adventures/create" class="relative flex flex-1 flex-col items-center -mt-4" aria-label="New adventure">
-            <span class="h-12 w-12 rounded-full bg-gradient-to-br from-forest-500 via-forest-600 to-forest-700 text-white flex items-center justify-center shadow-[0_6px_25px_rgba(59,111,84,0.5)] ring-[3px] ring-cream-50 dark:ring-ink-900 transition-transform active:scale-95">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-            </span>
-            <span class="mt-2 text-[10px] font-medium leading-none text-forest-600 dark:text-forest-300">New</span>
-          </a>
-        {:else}
-          <a href="/auth/login" class="relative flex flex-1 flex-col items-center -mt-4" aria-label="Sign in">
-            <span class="h-12 w-12 rounded-full bg-gradient-to-br from-terra-500 via-terra-600 to-terra-700 text-white flex items-center justify-center shadow-[0_6px_25px_rgba(206,80,52,0.45)] ring-[3px] ring-cream-50 dark:ring-ink-900 transition-transform active:scale-95">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 8a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2" />
-              </svg>
-            </span>
-            <span class="mt-2 text-[10px] font-medium leading-none text-terra-600 dark:text-terra-300">Sign In</span>
-          </a>
-        {/if}
+  <!-- Floating primary action, clear of the tab bar and the home indicator. -->
+  {#if data.user}
+    <a
+      href="/adventures/create"
+      class="fixed right-[max(1rem,env(safe-area-inset-right))] z-[var(--z-raised)] flex size-14 items-center justify-center rounded-full text-white shadow-[var(--shadow-fab)] lg:hidden"
+      style:bottom="calc(var(--tab-bar-height) + 1rem + env(safe-area-inset-bottom))"
+      style:background="linear-gradient(140deg, var(--color-forest-400), var(--color-forest-700))"
+      aria-label="New adventure"
+    >
+      <Icon name="plus" size={26} strokeWidth={2.25} />
+    </a>
+  {/if}
 
-        <button
-          onclick={() => moreOpen = !moreOpen}
-          class="relative flex flex-1 flex-col items-center gap-0.5 py-1.5 rounded-xl transition-all duration-200 {moreOpen ? 'bg-forest-500/10 text-forest-600 dark:text-forest-300 font-semibold' : 'text-ink-400 dark:text-ink-300 hover:text-ink-600 dark:hover:text-cream-200'}"
-          aria-label="More menu"
-          aria-expanded={moreOpen}
+  <nav
+    class="chrome fixed inset-x-0 bottom-0 z-[var(--z-chrome)] border-t lg:hidden"
+    aria-label="Main navigation"
+  >
+    <div
+      class="mx-auto flex max-w-lg items-stretch px-1"
+      style:padding-bottom="env(safe-area-inset-bottom)"
+    >
+      {#each tabs as tab}
+        <a
+          href={tab.href}
+          class="tap flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5"
+          style:min-height="var(--tab-bar-height)"
+          class:text-[var(--accent-action)]={isActive(tab.href)}
+          class:font-semibold={isActive(tab.href)}
+          class:text-[var(--text-secondary)]={!isActive(tab.href)}
+          aria-current={isActive(tab.href) ? 'page' : undefined}
         >
-          <svg class="h-[22px] w-[22px]" fill="currentColor" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={iconFor('more').d} />
-          </svg>
-          <span class="text-[10px] leading-none">More</span>
-        </button>
-      </div>
+          <Icon
+            name={tab.icon}
+            size={23}
+            strokeWidth={isActive(tab.href) ? 2.25 : 1.75}
+          />
+          <span class="text-[0.625rem] leading-none tracking-[0.01em]">{tab.label}</span>
+        </a>
+      {/each}
+
+      <a
+        href={data.user ? '/settings' : '/auth/login'}
+        class="tap flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5"
+        style:min-height="var(--tab-bar-height)"
+        class:text-[var(--accent-action)]={isRootTab('/settings')}
+        class:text-[var(--text-secondary)]={!isRootTab('/settings')}
+        aria-current={isRootTab('/settings') ? 'page' : undefined}
+      >
+        <Icon name="more" size={23} strokeWidth={1.75} />
+        <span class="text-[0.625rem] leading-none tracking-[0.01em]">More</span>
+      </a>
     </div>
   </nav>
 
-  <!-- More sheet (mobile) -->
-  {#if moreOpen}
-    <div class="fixed inset-0 z-[70]">
-      <button type="button" tabindex="-1" aria-hidden="true" class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick={() => moreOpen = false}></button>
-      <div class="absolute inset-x-0 bottom-0 safe-bottom">
-        <div class="mx-auto max-w-lg rounded-t-3xl glass-strong p-5 pb-3 shadow-2xl animate-in">
-          <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-cream-300 dark:bg-ink-600"></div>
-          <div class="grid grid-cols-2 gap-1">
-            {#each [...primaryNav.slice(3), ...moreNav, { href: '/settings', label: 'Settings' }] as link}
-              <a href={link.href} class="nav-link block flex items-center gap-2 {isActive(link.href) ? 'active' : ''}" onclick={() => moreOpen = false}>
-                {link.label}
-              </a>
-            {/each}
-          </div>
-          <hr class="divider my-3" />
-          <div class="flex items-center justify-between gap-2">
-            <button onclick={toggleTheme} class="nav-link flex items-center gap-2">
-              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={isDark ? iconFor('theme').d : iconFor('moon').d} />
-              </svg>
-              {isDark ? 'Light Mode' : 'Dark Mode'}
-            </button>
-            {#if oneSignalReady && data.user}
-              <button onclick={toggleNotifications} class="nav-link flex items-center gap-2">
-                <svg class="h-4 w-4" fill="{isSubscribed ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={isSubscribed ? iconFor('bellFilled').d : iconFor('bell').d} />
-                </svg>
-                {isSubscribed ? 'Notifications On' : 'Enable Notifications'}
-              </button>
-            {/if}
-            {#if data.user}
-              <button
-                onclick={signOut}
-                class="nav-link flex items-center gap-2 text-terra-600 dark:text-terra-300"
-              >
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Sign Out
-              </button>
-            {/if}
-          </div>
-        </div>
-      </div>
-    </div>
-  {/if}
-
-  <!-- PWA Install Banner -->
   <InstallBanner />
-
-  <!-- AI Chat Assistant -->
   <Chatbot />
 </div>
