@@ -1,9 +1,20 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import type { PageData } from './$types';
-import { onMount } from 'svelte';
+  import { onMount } from 'svelte';
+  import { theme } from '$lib/theme.svelte';
+  import type { ThemePreference } from '$lib/theme.svelte';
 
   let { data }: { data: PageData } = $props();
+
+  const themeOptions: { id: ThemePreference; label: string }[] = [
+    { id: 'system', label: 'System' },
+    { id: 'light', label: 'Light' },
+    { id: 'dark', label: 'Dark' }
+  ];
+  let themeIndex = $derived(
+    Math.max(0, themeOptions.findIndex((option) => option.id === theme.preference))
+  );
 
   let activeTab = $state('profile');
 
@@ -63,6 +74,20 @@ import { onMount } from 'svelte';
   let aiTesting = $state(false);
   let aiTestResult = $state<{ ok: boolean; models: string[]; error?: string } | null>(null);
   let aiModels = $state<string[]>([]);
+
+  // The AI config is server-owned, so it must follow `data` — saving invalidates
+  // the load and the form would otherwise keep showing the values it was seeded
+  // with. The profile form above is deliberately *not* synced, because it holds
+  // edits the user has not submitted yet.
+  $effect(() => {
+    const config = data.aiConfig;
+    if (!config) return;
+    aiEnabled = config.enabled ?? true;
+    aiProvider = config.provider ?? 'ollama';
+    aiUrl = config.url ?? 'http://100.116.226.10:11434';
+    aiModel = config.model ?? 'qwen3.5:9b';
+    geminiKeySet = config.geminiKeySet ?? false;
+  });
 
   // Photo categorization (backfill) state
   let categorizeStatus = $state<{
@@ -472,7 +497,7 @@ import { onMount } from 'svelte';
 <div class="max-w-3xl mx-auto space-y-8">
   <div>
     <h1 class="text-3xl font-display font-semibold text-ink-600 dark:text-cream-200">Settings</h1>
-    <p class="text-ink-400 dark:text-cream-300 mt-1">Manage your account and family preferences</p>
+    <p class="text-ink-500 dark:text-cream-300 mt-1">Manage your account and family preferences</p>
   </div>
 
   <!-- Tabs -->
@@ -489,12 +514,42 @@ import { onMount } from 'svelte';
     {/each}
   </div>
 
-  <!-- Profile Tab -->
+  // Profile Tab -->
   {#if activeTab === 'profile'}
+    <div class="space-y-8">
+      <div class="card rounded-lg p-8 space-y-5">
+        <div>
+          <h2 class="text-xl font-display font-semibold text-ink-600 dark:text-cream-200 mb-1">Appearance</h2>
+          <p class="text-sm text-ink-500 dark:text-cream-300">
+            System follows your device setting and keeps following it as it changes.
+          </p>
+        </div>
+
+        <div class="segmented" role="radiogroup" aria-label="Colour scheme">
+          <div
+            class="segmented-thumb"
+            style:width="calc((100% - 4px) / 3)"
+            style:transform="translateX({themeIndex * 100}%)"
+            aria-hidden="true"
+          ></div>
+          {#each themeOptions as option}
+            <button
+              type="button"
+              role="radio"
+              class="segmented-option tap"
+              aria-checked={theme.preference === option.id}
+              onclick={() => theme.set(option.id)}
+            >
+              {option.label}
+            </button>
+          {/each}
+        </div>
+      </div>
+
     <div class="card rounded-lg p-8 space-y-8">
       <div>
         <h2 class="text-xl font-display font-semibold text-ink-600 dark:text-cream-200 mb-1">Profile</h2>
-        <p class="text-sm text-ink-400 dark:text-cream-300">Update your name and email address</p>
+        <p class="text-sm text-ink-500 dark:text-cream-300">Update your name and email address</p>
       </div>
 
       {#if profileMessage}
@@ -515,7 +570,7 @@ import { onMount } from 'svelte';
           {/if}
           <div>
             <p class="text-sm font-medium text-ink-600 dark:text-cream-200">{data.user.name}</p>
-            <p class="text-xs text-ink-400 dark:text-cream-300">
+            <p class="text-xs text-ink-500 dark:text-cream-300">
               {#if data.user.provider === 'google'}
                 Signed in with Google
               {:else}
@@ -555,7 +610,7 @@ import { onMount } from 'svelte';
 
       <div class="border-t border-cream-200 dark:border-ink-600 pt-8">
         <h3 class="text-lg font-display font-semibold text-ink-600 dark:text-cream-200 mb-1">Change Password</h3>
-        <p class="text-sm text-ink-400 dark:text-cream-300 mb-6">Update your account password</p>
+        <p class="text-sm text-ink-500 dark:text-cream-300 mb-6">Update your account password</p>
 
         {#if passwordMessage}
           <div class="p-4 rounded-lg bg-forest-50 border border-forest-200 text-forest-600 text-sm mb-4">{passwordMessage}</div>
@@ -578,7 +633,7 @@ import { onMount } from 'svelte';
               />
               <button
                 type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-200"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-500 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-200"
                 onclick={() => showOldPassword = !showOldPassword}
               >
                 {#if showOldPassword}
@@ -608,7 +663,7 @@ import { onMount } from 'svelte';
               />
               <button
                 type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-200"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-500 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-200"
                 onclick={() => showNewPassword = !showNewPassword}
               >
                 {#if showNewPassword}
@@ -646,6 +701,7 @@ import { onMount } from 'svelte';
         </form>
       </div>
     </div>
+    </div>
   {/if}
 
   <!-- Branding Tab (admin only) -->
@@ -653,7 +709,7 @@ import { onMount } from 'svelte';
     <div class="card rounded-lg p-8 space-y-8">
       <div>
         <h2 class="text-xl font-display font-semibold text-ink-600 dark:text-cream-200 mb-1">Site Branding</h2>
-        <p class="text-sm text-ink-400 dark:text-cream-300">Upload a logo to customize your site appearance</p>
+        <p class="text-sm text-ink-500 dark:text-cream-300">Upload a logo to customize your site appearance</p>
       </div>
 
       {#if logoMessage}
@@ -682,12 +738,12 @@ import { onMount } from 'svelte';
           </div>
         {:else}
           <div class="flex flex-col items-center gap-3">
-            <svg class="h-10 w-10 text-ink-300 dark:text-cream-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-10 w-10 text-ink-500 dark:text-cream-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <div>
               <p class="text-sm font-medium text-ink-600 dark:text-cream-200">Drop an image here or click to browse</p>
-              <p class="text-xs text-ink-400 dark:text-cream-300 mt-1">JPG, PNG, GIF, WebP, HEIC — background will be removed automatically</p>
+              <p class="text-xs text-ink-500 dark:text-cream-300 mt-1">JPG, PNG, GIF, WebP, HEIC — background will be removed automatically</p>
             </div>
           </div>
         {/if}
@@ -717,9 +773,9 @@ import { onMount } from 'svelte';
                     {#if isActive}
                       <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-forest-50 text-forest-600">Active</span>
                     {/if}
-                    <span class="text-xs text-ink-400 dark:text-cream-300">{logo.date}</span>
+                    <span class="text-xs text-ink-500 dark:text-cream-300">{logo.date}</span>
                   </div>
-                  <p class="text-xs text-ink-300 dark:text-cream-400 mt-0.5 truncate">{logo.filename}</p>
+                  <p class="text-xs text-ink-500 dark:text-cream-400 mt-0.5 truncate">{logo.filename}</p>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                   {#if !isActive}
@@ -735,11 +791,11 @@ import { onMount } from 'svelte';
                       <div class="flex items-center gap-1">
                         <span class="text-xs text-terra-500">Delete?</span>
                         <button class="text-xs text-terra-500 hover:text-terra-700 font-medium" onclick={() => confirmDeleteLogo(logo.filename)}>Yes</button>
-                        <button class="text-xs text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-200 font-medium" onclick={() => deletingLogo = null}>No</button>
+                        <button class="text-xs text-ink-500 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-200 font-medium" onclick={() => deletingLogo = null}>No</button>
                       </div>
                     {:else}
                       <button
-                        class="text-sm text-ink-300 hover:text-terra-500 dark:text-cream-400 dark:hover:text-terra-500 transition-colors"
+                        class="text-sm text-ink-500 hover:text-terra-500 dark:text-cream-400 dark:hover:text-terra-500 transition-colors"
                         onclick={() => handleDeleteLogo(logo.filename)}
                         title="Delete logo"
                       >
@@ -759,7 +815,7 @@ import { onMount } from 'svelte';
       <!-- Info -->
       <div class="p-5 rounded-lg bg-cream-50 border border-cream-200 dark:bg-ink-800 dark:border-ink-600">
         <h3 class="text-sm font-semibold text-ink-600 dark:text-cream-200 mb-2">What gets generated</h3>
-        <ul class="text-sm text-ink-400 dark:text-cream-300 space-y-1.5">
+        <ul class="text-sm text-ink-500 dark:text-cream-300 space-y-1.5">
           <li class="flex items-center gap-2">
             <span class="h-1.5 w-1.5 rounded-full bg-forest-400 shrink-0"></span>
             <span><strong class="text-ink-600 dark:text-cream-200">Logo</strong> — 512x512 transparent, used in nav bar and footer</span>
@@ -773,7 +829,7 @@ import { onMount } from 'svelte';
             <span><strong class="text-ink-600 dark:text-cream-200">OG Image</strong> — 1200x630, shown when you share links on social media</span>
           </li>
         </ul>
-        <p class="text-xs text-ink-400 dark:text-cream-300 mt-3">White or near-white backgrounds are automatically removed. Previous logos are kept so you can switch back or delete them.</p>
+        <p class="text-xs text-ink-500 dark:text-cream-300 mt-3">White or near-white backgrounds are automatically removed. Previous logos are kept so you can switch back or delete them.</p>
       </div>
     </div>
   {/if}
@@ -783,7 +839,7 @@ import { onMount } from 'svelte';
     <div class="card rounded-lg p-8 space-y-6">
       <div>
         <h2 class="text-xl font-display font-semibold text-ink-600 dark:text-cream-200 mb-1">AI Assistant</h2>
-        <p class="text-sm text-ink-400 dark:text-cream-300">Configure the local AI for content generation</p>
+        <p class="text-sm text-ink-500 dark:text-cream-300">Configure the local AI for content generation</p>
       </div>
 
       {#if aiMessage}
@@ -797,7 +853,7 @@ import { onMount } from 'svelte';
         <div class="flex items-center justify-between p-4 rounded-lg bg-cream-50 border border-cream-200/50 dark:bg-ink-800 dark:border-ink-600">
           <div>
             <p class="text-sm font-medium text-ink-600 dark:text-cream-200">Enable AI Assistant</p>
-            <p class="text-xs text-ink-400 dark:text-cream-300 mt-0.5">Show AI buttons for content generation throughout the site</p>
+            <p class="text-xs text-ink-500 dark:text-cream-300 mt-0.5">Show AI buttons for content generation throughout the site</p>
           </div>
           <button
             type="button"
@@ -825,7 +881,7 @@ import { onMount } from 'svelte';
             <option value="ollama">Ollama (local)</option>
             <option value="gemini">Google Gemini (API)</option>
           </select>
-          <p class="text-xs text-ink-400 dark:text-cream-300 mt-1">
+          <p class="text-xs text-ink-500 dark:text-cream-300 mt-1">
             {aiProvider === 'gemini'
               ? 'Uses your GEMINI_API_KEY server secret — no data stored in the site database'
               : 'Runs on your home Ollama server — no API key needed'}
@@ -849,7 +905,7 @@ import { onMount } from 'svelte';
               <span class="h-2 w-2 rounded-full {geminiKeySet ? 'bg-forest-500' : 'bg-terra-500'}"></span>
               <div>
                 <p class="text-sm font-medium text-ink-600 dark:text-cream-200">Gemini API Key</p>
-                <p class="text-xs text-ink-400 dark:text-cream-300 mt-0.5">
+                <p class="text-xs text-ink-500 dark:text-cream-300 mt-0.5">
                   {geminiKeySet ? 'Configured — set via the GEMINI_API_KEY environment variable' : 'Not set — add GEMINI_API_KEY to the app environment'}
                 </p>
               </div>
@@ -876,7 +932,7 @@ import { onMount } from 'svelte';
               placeholder={aiProvider === 'gemini' ? 'gemini-3.6-flash' : 'qwen3.5:9b'}
               class="input w-full"
             />
-            <p class="text-xs text-ink-400 dark:text-cream-300 mt-1">Click "Test Connection" to load available models</p>
+            <p class="text-xs text-ink-500 dark:text-cream-300 mt-1">Click "Test Connection" to load available models</p>
           {/if}
         </div>
 
@@ -929,7 +985,7 @@ import { onMount } from 'svelte';
 
       <div class="p-5 rounded-lg border border-cream-200/50 bg-cream-50 dark:bg-ink-800 dark:border-ink-600">
         <h3 class="text-sm font-semibold text-ink-600 dark:text-cream-200 mb-1">Photo categorization</h3>
-        <p class="text-xs text-ink-400 dark:text-cream-300">
+        <p class="text-xs text-ink-500 dark:text-cream-300">
           Photos upload with no category until AI looks at them. New uploads are analyzed automatically; run the
           button below to categorize the backlog. Processing is serialized (one photo at a time) so provider rate
           limits aren't hit &mdash; a few hundred photos take 15&ndash;25 minutes. Safe to stop and restart anytime.
@@ -950,7 +1006,7 @@ import { onMount } from 'svelte';
           </button>
 
           {#if categorizeStatus && categorizeStatus.queued > 0 && !categorizeStatus.running}
-            <span class="text-xs text-ink-400 dark:text-cream-300">
+            <span class="text-xs text-ink-500 dark:text-cream-300">
               {categorizeStatus.queued} photo{categorizeStatus.queued === 1 ? '' : 's'} in queue
             </span>
           {/if}
@@ -967,7 +1023,7 @@ import { onMount } from 'svelte';
               ></div>
             </div>
             {#if !categorizeStatus.running}
-              <button type="button" onclick={stopCategorizePolling} class="text-xs text-ink-400 hover:text-ink-600 dark:hover:text-cream-200">
+              <button type="button" onclick={stopCategorizePolling} class="text-xs text-ink-500 hover:text-ink-600 dark:hover:text-cream-200">
                 Stop refreshing
               </button>
             {/if}
@@ -977,7 +1033,7 @@ import { onMount } from 'svelte';
 
       <div class="p-5 rounded-lg border border-cream-200/50 bg-cream-50 dark:bg-ink-800 dark:border-ink-600">
         <h3 class="text-sm font-semibold text-ink-600 dark:text-cream-200 mb-1">Face recognition (auto-tag people)</h3>
-        <p class="text-xs text-ink-400 dark:text-cream-300">
+        <p class="text-xs text-ink-500 dark:text-cream-300">
           Uses a local face-embedding model (FaceNet via @vladmandic/face-api) — no Ollama call.
           Builds face clusters across all photos and matches them to people you've already tagged or set avatars for.
           Safe to re-run; only adds new <code>tagged_by='ai'</code> rows.
@@ -998,7 +1054,7 @@ import { onMount } from 'svelte';
           </button>
 
           {#if faceRecStats && faceRecStats.totalFaces > 0 && !faceRecRunning}
-            <span class="text-xs text-ink-400 dark:text-cream-300">
+            <span class="text-xs text-ink-500 dark:text-cream-300">
               {faceRecStats.totalFaces} face{faceRecStats.totalFaces === 1 ? '' : 's'} in {faceRecStats.photosWithFaces} photo{faceRecStats.photosWithFaces === 1 ? '' : 's'}
               {faceRecStats.peopleWithReferences > 0 ? ` • ${faceRecStats.peopleWithReferences} people with references` : ''}
               {faceRecStats.aiTags > 0 ? ` • ${faceRecStats.aiTags} AI tags` : ''}
@@ -1009,7 +1065,7 @@ import { onMount } from 'svelte';
 
       <div class="p-5 rounded-lg bg-cream-50 border border-cream-200/50 dark:bg-ink-800 dark:border-ink-600">
         <h3 class="text-sm font-semibold text-ink-600 dark:text-cream-200 mb-2">What AI can do</h3>
-        <ul class="text-sm text-ink-400 dark:text-cream-300 space-y-1.5">
+        <ul class="text-sm text-ink-500 dark:text-cream-300 space-y-1.5">
           <li class="flex items-center gap-2">
             <span class="h-1.5 w-1.5 rounded-full bg-forest-400 shrink-0"></span>
             <span><strong class="text-ink-600 dark:text-cream-200">Generate descriptions</strong> — Write trip summaries from basic details</span>
@@ -1039,7 +1095,7 @@ import { onMount } from 'svelte';
             <span><strong class="text-ink-600 dark:text-cream-200">Trip planning</strong> — Create itineraries and packing lists</span>
           </li>
         </ul>
-        <p class="text-xs text-ink-400 dark:text-cream-300 mt-3">
+        <p class="text-xs text-ink-500 dark:text-cream-300 mt-3">
           Ollama runs locally on your home server. Gemini runs through Google's API using your GEMINI_API_KEY server
           secret — neither stores your photos or prompts in the site database.
         </p>
@@ -1052,7 +1108,7 @@ import { onMount } from 'svelte';
     <div class="card rounded-lg p-8 space-y-8">
       <div>
         <h2 class="text-xl font-display font-semibold text-ink-600 dark:text-cream-200 mb-1">Family Members</h2>
-        <p class="text-sm text-ink-400 dark:text-cream-300">Manage user accounts for your family</p>
+        <p class="text-sm text-ink-500 dark:text-cream-300">Manage user accounts for your family</p>
       </div>
 
       <!-- Pending Approvals -->
@@ -1068,7 +1124,7 @@ import { onMount } from 'svelte';
                   </div>
                   <div>
                     <p class="text-sm font-medium text-ink-600 dark:text-cream-200">{pending.name}</p>
-                    <p class="text-xs text-ink-400 dark:text-cream-300">{pending.email} &middot; {pending.provider || 'local'}</p>
+                    <p class="text-xs text-ink-500 dark:text-cream-300">{pending.email} &middot; {pending.provider || 'local'}</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -1083,7 +1139,7 @@ import { onMount } from 'svelte';
                   </button>
                   {#if pending.id !== data.user.id}
                     <button
-                      class="text-xs text-ink-300 hover:text-terra-500 dark:text-cream-400 dark:hover:text-terra-500 transition-colors"
+                      class="text-xs text-ink-500 hover:text-terra-500 dark:text-cream-400 dark:hover:text-terra-500 transition-colors"
                       onclick={() => handleDeleteMember(pending.id)}
                       title="Reject"
                     >
@@ -1104,12 +1160,12 @@ import { onMount } from 'svelte';
         <table class="w-full">
           <thead>
             <tr class="border-b border-cream-200/50 dark:border-ink-600">
-              <th class="text-left text-xs font-semibold text-ink-400 dark:text-cream-300 uppercase tracking-wider pb-3 pr-4">Name</th>
-              <th class="text-left text-xs font-semibold text-ink-400 dark:text-cream-300 uppercase tracking-wider pb-3 pr-4">Email</th>
-              <th class="text-left text-xs font-semibold text-ink-400 dark:text-cream-300 uppercase tracking-wider pb-3 pr-4">Role</th>
-              <th class="text-left text-xs font-semibold text-ink-400 dark:text-cream-300 uppercase tracking-wider pb-3 pr-4">Provider</th>
-              <th class="text-left text-xs font-semibold text-ink-400 dark:text-cream-300 uppercase tracking-wider pb-3 pr-4">Created</th>
-              <th class="text-right text-xs font-semibold text-ink-400 dark:text-cream-300 uppercase tracking-wider pb-3"></th>
+              <th class="text-left text-xs font-semibold text-ink-500 dark:text-cream-300 uppercase tracking-wider pb-3 pr-4">Name</th>
+              <th class="text-left text-xs font-semibold text-ink-500 dark:text-cream-300 uppercase tracking-wider pb-3 pr-4">Email</th>
+              <th class="text-left text-xs font-semibold text-ink-500 dark:text-cream-300 uppercase tracking-wider pb-3 pr-4">Role</th>
+              <th class="text-left text-xs font-semibold text-ink-500 dark:text-cream-300 uppercase tracking-wider pb-3 pr-4">Provider</th>
+              <th class="text-left text-xs font-semibold text-ink-500 dark:text-cream-300 uppercase tracking-wider pb-3 pr-4">Created</th>
+              <th class="text-right text-xs font-semibold text-ink-500 dark:text-cream-300 uppercase tracking-wider pb-3"></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-cream-200/50 dark:divide-ink-600">
@@ -1127,13 +1183,13 @@ import { onMount } from 'svelte';
                     <span class="text-sm font-medium text-ink-600 dark:text-cream-200">
                       {member.name}
                       {#if member.id === data.user.id}
-                        <span class="text-ink-300 dark:text-cream-400 ml-1">(you)</span>
+                        <span class="text-ink-500 dark:text-cream-400 ml-1">(you)</span>
                       {/if}
                     </span>
                   </div>
                 </td>
                 <td class="py-3.5 pr-4">
-                  <span class="text-sm text-ink-400 dark:text-cream-300">{member.email}</span>
+                  <span class="text-sm text-ink-500 dark:text-cream-300">{member.email}</span>
                 </td>
                 <td class="py-3.5 pr-4">
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {member.role === 'admin' ? 'bg-forest-50 text-forest-600' : 'bg-cream-100 text-ink-500 dark:bg-ink-700 dark:text-cream-300'}">
@@ -1141,10 +1197,10 @@ import { onMount } from 'svelte';
                   </span>
                 </td>
                 <td class="py-3.5 pr-4">
-                  <span class="text-xs text-ink-400 dark:text-cream-300">{member.provider || 'local'}</span>
+                  <span class="text-xs text-ink-500 dark:text-cream-300">{member.provider || 'local'}</span>
                 </td>
                 <td class="py-3.5 pr-4">
-                  <span class="text-sm text-ink-400 dark:text-cream-300">{new Date(member.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  <span class="text-sm text-ink-500 dark:text-cream-300">{new Date(member.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                 </td>
                 <td class="py-3.5 text-right">
                   {#if member.id !== data.user.id}
@@ -1158,7 +1214,7 @@ import { onMount } from 'svelte';
                           Yes
                         </button>
                         <button
-                          class="text-xs text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-200 font-medium"
+                          class="text-xs text-ink-500 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-200 font-medium"
                           onclick={() => deletingId = null}
                         >
                           No
@@ -1174,7 +1230,7 @@ import { onMount } from 'svelte';
                           {member.role === 'admin' ? 'Demote' : 'Make Admin'}
                         </button>
                         <button
-                          class="text-sm text-ink-300 hover:text-terra-500 dark:text-cream-400 dark:hover:text-terra-500 transition-colors ml-1"
+                          class="text-sm text-ink-500 hover:text-terra-500 dark:text-cream-400 dark:hover:text-terra-500 transition-colors ml-1"
                           onclick={() => handleDeleteMember(member.id)}
                           title="Remove member"
                         >
@@ -1195,7 +1251,7 @@ import { onMount } from 'svelte';
       <!-- Add New Member -->
       <div class="border-t border-cream-200/50 dark:border-ink-600 pt-8">
         <h3 class="text-lg font-display font-semibold text-ink-600 dark:text-cream-200 mb-1">Add New Member</h3>
-        <p class="text-sm text-ink-400 dark:text-cream-300 mb-6">Create a new family member account</p>
+        <p class="text-sm text-ink-500 dark:text-cream-300 mb-6">Create a new family member account</p>
 
         {#if memberMessage}
           <div class="p-4 rounded-lg bg-forest-50 border border-forest-200 text-forest-600 text-sm mb-4">{memberMessage}</div>
