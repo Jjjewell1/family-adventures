@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Tailwind v4 ships `dark:` bound to `prefers-color-scheme`. The app drives an
+   explicit `.dark` class on <html> so a manual override can beat the OS setting,
+   which means `dark:` has to follow the class instead — without this, the theme
+   toggle restyles `.card`/`.glass` while every `dark:` utility ignores it. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
  /* Warm parchment neutrals */
   --color-cream-50: #FBF7F0;
@@ -61,30 +67,130 @@
   --color-ink-800: #2C2721;
   --color-ink-900: #1E1A15;
 
-  /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Playfair Display', Georgia, serif;
+  /* Typography
+     -apple-system leads the sans stack on purpose: on a real iPhone the app renders
+     in SF Pro, whose letterforms and native tracking are what the platform expects.
+     Every other platform falls through to Inter, the accepted free SF Pro substitute.
+     Playfair stays the display face everywhere — that pairing is the brand. */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+  --font-display: 'Playfair Display', 'New York', Georgia, serif;
 }
 
 :root {
   color-scheme: light;
+
+  /* Semantic surfaces — the iOS layer. The brand ramps above stay untouched; these
+     role-named tokens are what components should reference so light/dark flips one
+     variable instead of restyling each class. Mirrors DESIGN.md §2.2. */
+  --surface-base: #FBF7F0;
+  --surface-grouped: #F6EFE3;
+  --surface-card: #FFFDF8;
+  --surface-elevated: #FFFFFF;
+  --surface-chrome: rgba(251, 247, 240, 0.82);
+  --surface-scrim: rgba(30, 26, 21, 0.38);
+
+  --text-primary: #2C2721;
+  --text-secondary: #6F6556;
+  --text-tertiary: #8C8070;
+  --text-on-accent: #FFFFFF;
+
+  --border-default: rgba(207, 183, 150, 0.55);
+  --border-subtle: rgba(224, 210, 183, 0.75);
+
+  --accent-action: #3B6F54;
+  --accent-pressed: #2F5A43;
+  --status-success: #2F5A43;
+  --status-warning: #A36F23;
+  --status-error: #AD422A;
+
+  /* Deliberate radius tiers rather than one rounded-corner value everywhere. */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  /* Shadows carry the warm background hue; pure black at low alpha reads grey. */
+  --shadow-card: 0 1px 2px rgba(62, 48, 32, 0.05), 0 4px 16px rgba(62, 48, 32, 0.06);
+  --shadow-elevated: 0 2px 6px rgba(62, 48, 32, 0.07), 0 12px 32px rgba(62, 48, 32, 0.12);
+  --shadow-sheet: 0 -8px 40px rgba(30, 26, 21, 0.18);
+  --shadow-fab: 0 6px 20px rgba(59, 111, 84, 0.38);
+
+  /* z-index scale — replaces ad-hoc values like 9999. */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-chrome: 40;
+  --z-overlay: 60;
+  --z-scrim: 65;
+  --z-sheet: 70;
+  --z-toast: 80;
+  --z-skip: 100;
+
+  /* iOS-flavoured easings and durations (DESIGN.md §6.1). */
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-micro: cubic-bezier(0.2, 0, 0, 1);
+  --dur-micro: 140ms;
+  --dur-standard: 280ms;
+  --dur-emphasis: 460ms;
+
+  --tap-target: 44px;
+  --tab-bar-height: 49px;
+}
+
+.dark {
+  --surface-base: #000000;
+  --surface-grouped: #0B0B0B;
+  --surface-card: #141210;
+  --surface-elevated: #1C1917;
+  --surface-chrome: rgba(10, 10, 10, 0.76);
+  --surface-scrim: rgba(0, 0, 0, 0.55);
+
+  --text-primary: #F6EFE3;
+  --text-secondary: #A99E8C;
+  --text-tertiary: #6E6558;
+  --text-on-accent: #FFFFFF;
+
+  --border-default: rgba(120, 110, 95, 0.28);
+  --border-subtle: rgba(90, 82, 70, 0.24);
+
+  --accent-action: #6F9F7F;
+  --accent-pressed: #4C8567;
+  --status-success: #6F9F7F;
+  --status-warning: #E0C079;
+  --status-error: #EA8A6C;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 2px 6px rgba(0, 0, 0, 0.55), 0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
 }
 
 html {
-  scroll-behavior: smooth;
   overflow-x: clip;
+  /* iOS rubber-band and the browser's own pull-to-refresh both fight a custom
+     overscroll affordance. Disabled at the document, then opted back in per
+     scroll container with `overscroll-behavior-y: contain`. */
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  min-height: 100vh;
+  /* 100vh resolves to the *largest* iOS viewport, so it overflows by exactly the
+     height of the collapsing URL bar. 100dvh tracks the real visible height. */
+  min-height: 100dvh;
   background: var(--color-cream-50);
-  color: var(--color-ink-700);
+  color: var(--ink-700);
   font-family: var(--font-sans);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: clip;
+  overscroll-behavior-y: none;
 }
 
 /* Images and video must never distort: always keep intrinsic aspect ratio even
@@ -176,6 +282,17 @@ a {
     animation: none;
   }
 }
+
+/* ==============================
+   COMPONENT LAYER
+   The shared primitives below are component classes. They live in the
+   `components` cascade layer so Tailwind utilities — which sit in a later
+   layer — can still override them. Unlayered, a class like .btn-primary (which
+   sets `display: inline-flex`) silently beats `hidden` on any element carrying
+   both, and no amount of class-name juggling fixes that. Do not move these back
+   out of the layer.
+   ============================== */
+@layer components {
 
 /* Cards — warm paper with soft elevation */
 .card {
@@ -407,6 +524,8 @@ a {
   border: none;
 }
 
+} /* end @layer components */
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -488,99 +607,355 @@ button, a, [role="button"] {
 }
 
 /* ==============================
-   DARK THEME (optional toggle)
+   iOS NATIVE BEHAVIOR LAYER
    ============================== */
-.dark {
-  color-scheme: dark;
+
+/* Chrome material is a recipe, not a lone backdrop-filter: translucent fill +
+   blur + saturate + hairline + inner top highlight. A single blur() is the flat
+   trap — it reads as plastic because the edge never refracts. */
+.chrome {
+  background: var(--surface-chrome);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+.dark .chrome {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
-.dark body {
-  background: var(--color-ink-900);
-  color: var(--color-cream-200);
+/* Hairline that only appears once content has scrolled under the chrome. */
+.chrome-scrolled {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 2px 12px rgba(62, 48, 32, 0.08);
+}
+.dark .chrome-scrolled {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 2px 12px rgba(0, 0, 0, 0.5);
 }
 
-.dark .aurora {
-  background:
-    radial-gradient(120vmax 90vmax at 88% -10%, rgba(192, 139, 49, 0.10), transparent 55%),
-    radial-gradient(110vmax 85vmax at -12% 108%, rgba(59, 111, 84, 0.12), transparent 55%),
-    radial-gradient(90vmax 70vmax at 50% 120%, rgba(206, 80, 52, 0.04), transparent 60%),
-    linear-gradient(180deg, #211C16 0%, var(--color-ink-900) 100%);
-}
-.dark .aurora::after {
-  opacity: 0.35;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='%23AB9F8C' stroke-opacity='0.05' stroke-width='1'%3E%3Cpath d='M20 140c40-30 90-30 130 0s90 30 130 0'/%3E%3Cpath d='M30 160c40-24 80-24 110 0'/%3E%3Cpath d='M40 180c30-20 70-20 100 0'/%3E%3Cpath d='M90 110c30-18 70-18 110 0'/%3E%3Cpath d='M110 90c30-14 50-14 70 0'/%3E%3Cpath d='M60 200c40-16 80-16 120 0'/%3E%3C/g%3E%3C/svg%3E");
-}
-.dark .aurora::before {
-  background: linear-gradient(180deg, transparent 60%, rgba(30, 26, 21, 0.9));
+/* Scroll containers opt back into rubber-band so pull-to-refresh can own the
+   gesture instead of the document bouncing underneath it. */
+.scroll-y {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
-.dark .card {
-  background: rgba(44, 39, 33, 0.55);
-  border-color: rgba(205, 195, 179, 0.14);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.25), 0 10px 28px rgba(0,0,0,0.20);
-}
-.dark .card:hover {
-  background: rgba(52, 46, 39, 0.8);
-  border-color: rgba(205, 195, 179, 0.24);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3), 0 18px 44px rgba(0,0,0,0.26);
+/* Controls suppress the long-press selection callout that makes a web app feel
+   like a web page; content areas stay selectable. */
+.tap {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+  touch-action: manipulation;
 }
 
-.dark .card-flat {
-  background: rgba(44, 39, 33, 0.5);
-  border-color: rgba(205, 195, 179, 0.14);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 10px 28px rgba(0,0,0,0.18);
+/* iOS large-title nav: the compact tier is a separate layer that fades in, so
+   the collapse animates opacity/transform and never triggers layout. */
+.nav-large {
+  transform-origin: left bottom;
+  transition: opacity var(--dur-standard) var(--ease-ios),
+              transform var(--dur-standard) var(--ease-ios);
+}
+.nav-compact {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity var(--dur-standard) var(--ease-ios),
+              transform var(--dur-standard) var(--ease-ios);
+}
+.nav-collapsed .nav-large {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+.nav-collapsed .nav-compact {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.dark .glass {
-  background: rgba(44, 39, 33, 0.5);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.25), 0 10px 28px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.05);
+/* Press feedback. Universal `active` treatment so no interactive element ships
+   with a dead tap. Pointer-only hover lives in its own media query below. */
+.pressable {
+  transition: transform var(--dur-micro) var(--ease-micro),
+              opacity var(--dur-micro) var(--ease-micro);
 }
-.dark .glass-strong {
-  background: rgba(52, 46, 39, 0.72);
-  border-color: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.28), 0 12px 36px rgba(0,0,0,0.26), inset 0 1px 0 rgba(255,255,255,0.07);
-}
-
-.dark .page-header {
-  background: rgba(44, 39, 33, 0.5);
-  border-color: rgba(205, 195, 179, 0.14);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 10px 28px rgba(0,0,0,0.18);
+.pressable:active {
+  transform: scale(0.97);
+  opacity: 0.92;
 }
 
-.dark .page-header-title { color: var(--color-cream-100); }
-.dark .page-header-desc { color: var(--color-ink-300); }
-.dark .page-header-label { color: var(--color-terra-300); }
-
-.dark .nav-link { color: var(--color-ink-300); }
-.dark .nav-link:hover { color: var(--color-cream-200); background: rgba(255, 255, 255, 0.06); }
-.dark .nav-link.active { color: var(--color-forest-200); background: rgba(59, 111, 84, 0.22); box-shadow: inset 0 0 0 1px rgba(111, 159, 127, 0.25); }
-
-.dark .input {
-  background: rgba(30, 26, 21, 0.6);
-  border-color: rgba(205, 195, 179, 0.16);
-  color: var(--color-cream-100);
-}
-.dark .input::placeholder { color: var(--color-ink-400); }
-.dark .input:focus { border-color: var(--color-forest-400); background: rgba(30, 26, 21, 0.85); }
-
-.dark .btn-secondary {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(205, 195, 179, 0.18);
-  color: var(--color-cream-200);
-}
-.dark .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(205, 195, 179, 0.3);
+/* Minimum hit area without forcing a minimum visual size — the padding is
+   transparent, so a compact chip can still be a 44pt target. Deliberately does
+   NOT set `display`: that is the element's business, and declaring it here made
+   this class beat Tailwind's own `hidden`/`flex` on any element using both. */
+@utility tap-target {
+  min-height: var(--tap-target);
+  min-width: var(--tap-target);
 }
 
-.dark .divider { background: var(--color-ink-700); }
-.dark ::-webkit-scrollbar-track { background: var(--color-ink-900); }
-.dark ::-webkit-scrollbar-thumb { background: var(--color-ink-600); }
-.dark ::-webkit-scrollbar-thumb:hover { background: var(--color-ink-500); }
-.dark ::selection { background: rgba(59, 111, 84, 0.32); }
+@media (hover: hover) {
+  .pressable:hover {
+    opacity: 1;
+  }
+  .card:hover,
+  .card-flat:hover {
+    background: var(--surface-card);
+    border-color: var(--border-default);
+    box-shadow: var(--shadow-elevated);
+    transform: translateY(-2px);
+  }
+}
 
-/* iPhone notch / home-indicator safe areas (viewport-fit=cover) */
+/* --- Inset grouped list (iOS Settings / Photos) --- */
+.list-group {
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--tap-target);
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--dur-micro) var(--ease-micro);
+}
+.list-row:last-child {
+  border-bottom: none;
+}
+.list-row:active {
+  background: var(--surface-grouped);
+}
+.list-row-title {
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.29;
+  letter-spacing: -0.008em;
+}
+.list-row-subtitle {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.38;
+}
+.list-row-value {
+  margin-left: auto;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  text-align: right;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.list-group-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  padding: 0 var(--space-4) var(--space-2);
+}
+
+/* --- iOS switch --- */
+.switch {
+  position: relative;
+  flex: none;
+  width: 51px;
+  height: 31px;
+  border-radius: var(--radius-full);
+  background: var(--border-default);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background var(--dur-standard) var(--ease-ios);
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
+  transition: transform var(--dur-standard) var(--ease-ios);
+}
+.switch[aria-checked='true'] {
+  background: var(--status-success);
+}
+.switch[aria-checked='true']::after {
+  transform: translateX(20px);
+}
+.switch:active::after {
+  width: 31px;
+}
+
+/* --- iOS segmented control ---
+   The indicator is a transformed pseudo-element rather than an animated width,
+   so switching segments stays on the compositor. */
+.segmented {
+  position: relative;
+  display: flex;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-grouped);
+  border: 1px solid var(--border-subtle);
+  isolation: isolate;
+}
+.segmented-thumb {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  z-index: -1;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: var(--surface-card);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  transition: transform var(--dur-standard) var(--ease-ios),
+              width var(--dur-standard) var(--ease-ios);
+}
+.dark .segmented-thumb {
+  background: var(--surface-elevated);
+}
+.segmented-option {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 var(--space-2);
+  border: none;
+  background: transparent;
+  border-radius: calc(var(--radius-sm) - 3px);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: color var(--dur-micro) var(--ease-micro),
+              font-weight var(--dur-micro) var(--ease-micro);
+}
+/* A segmented control is either a radiogroup (aria-checked) or a tablist
+   (aria-selected) depending on what it drives — accept either hook. */
+.segmented-option[aria-checked='true'],
+.segmented-option[aria-selected='true'] {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* --- Bottom sheet --- */
+.sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-scrim);
+  background: var(--surface-scrim);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  animation: scrimIn var(--dur-standard) var(--ease-ios);
+}
+.sheet-panel {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: var(--z-sheet);
+  margin-inline: auto;
+  max-width: 34rem;
+  background: var(--surface-elevated);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: var(--shadow-sheet);
+  padding-bottom: env(safe-area-inset-bottom);
+  animation: sheetIn var(--dur-emphasis) var(--ease-ios);
+  will-change: transform;
+}
+.sheet-grabber {
+  width: 36px;
+  height: 5px;
+  margin: 8px auto 4px;
+  border-radius: var(--radius-full);
+  background: var(--border-default);
+}
+@keyframes sheetIn {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes sheetOut {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+@keyframes scrimIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* --- Pull to refresh --- */
+.ptr {
+  --ptr-pull: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--ptr-pull);
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  opacity: 0;
+  transition: opacity var(--dur-micro) linear;
+}
+.ptr[data-state='armed'],
+.ptr[data-state='refreshing'],
+.ptr[data-state='done'] {
+  opacity: 1;
+}
+
+/* --- Skeleton / empty / error states --- */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-grouped);
+  border-radius: var(--radius-sm);
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--surface-card) 70%, transparent),
+    transparent
+  );
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { animation: none; }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-12) var(--space-6);
+  color: var(--text-secondary);
+}
+
+/* --- Utilities --- */
 @utility safe-top {
   padding-top: env(safe-area-inset-top);
 }
@@ -588,9 +963,119 @@ button, a, [role="button"] {
   padding-bottom: env(safe-area-inset-bottom);
 }
 @utility safe-x {
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
+  padding-left: max(env(safe-area-inset-left), var(--space-4));
+  padding-right: max(env(safe-area-inset-right), var(--space-4));
 }
+@utility full-safe {
+  min-height: 100dvh;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: max(env(safe-area-inset-left), var(--space-4));
+  padding-right: max(env(safe-area-inset-right), var(--space-4));
+}
+@utility numeric {
+  font-variant-numeric: tabular-nums;
+}
+@utility measure {
+  max-width: 65ch;
+}
+
+/* ==============================
+   DARK THEME
+   ============================== */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background: var(--surface-base);
+  color: var(--text-primary);
+}
+
+/* OLED black, not warm brown. The alpha on the colour drifts is roughly halved
+   from the light treatment: at #000 a 10% warm wash reads as a brown haze and
+   kills the contrast that makes photos the only light source at night. */
+.dark .aurora {
+  background:
+    radial-gradient(120vmax 90vmax at 88% -10%, rgba(192, 139, 49, 0.05), transparent 55%),
+    radial-gradient(110vmax 85vmax at -12% 108%, rgba(59, 111, 84, 0.06), transparent 55%),
+    radial-gradient(90vmax 70vmax at 50% 120%, rgba(206, 80, 52, 0.02), transparent 60%),
+    linear-gradient(180deg, #0A0908 0%, #000000 100%);
+}
+.dark .aurora::after {
+  opacity: 0.2;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='%23AB9F8C' stroke-opacity='0.05' stroke-width='1'%3E%3Cpath d='M20 140c40-30 90-30 130 0s90 30 130 0'/%3E%3Cpath d='M30 160c40-24 80-24 110 0'/%3E%3Cpath d='M40 180c30-20 70-20 100 0'/%3E%3Cpath d='M90 110c30-18 70-18 110 0'/%3E%3Cpath d='M110 90c30-14 50-14 70 0'/%3E%3Cpath d='M60 200c40-16 80-16 120 0'/%3E%3C/g%3E%3C/svg%3E");
+}
+.dark .aurora::before {
+  background: linear-gradient(180deg, transparent 60%, rgba(0, 0, 0, 0.85));
+}
+
+.dark .card {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-card);
+}
+.dark .card:hover {
+  background: var(--surface-elevated);
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-elevated);
+}
+
+.dark .card-flat {
+  background: var(--surface-grouped);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-card);
+}
+
+.dark .glass {
+  background: var(--surface-chrome);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.dark .glass-strong {
+  background: var(--surface-chrome);
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-elevated), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.dark .page-header {
+  background: var(--surface-grouped);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-card);
+}
+
+.dark .page-header-title { color: var(--text-primary); }
+/* ink-300 is 2.1:1 on cream and ~2.6:1 here — both fail AA for body copy. */
+.dark .page-header-desc { color: var(--text-secondary); }
+.dark .page-header-label { color: var(--color-terra-300); }
+
+.dark .nav-link { color: var(--text-secondary); }
+.dark .nav-link:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.08); }
+.dark .nav-link.active { color: var(--color-forest-200); background: rgba(59, 111, 84, 0.24); box-shadow: inset 0 0 0 1px rgba(111, 159, 127, 0.28); }
+
+.dark .input {
+  background: var(--surface-card);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+.dark .input::placeholder { color: var(--text-tertiary); }
+.dark .input:focus { border-color: var(--accent-action); background: var(--surface-elevated); }
+
+.dark .btn-secondary {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+.dark .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: var(--text-tertiary);
+}
+
+.dark .divider { background: var(--border-subtle); }
+.dark ::-webkit-scrollbar-track { background: #000000; }
+.dark ::-webkit-scrollbar-thumb { background: #2C2721; }
+.dark ::-webkit-scrollbar-thumb:hover { background: var(--color-ink-500); }
+.dark ::selection { background: rgba(111, 159, 127, 0.32); }
 
 /* PWA install banner — floats above the mobile tab bar */
 .install-banner-wrap {
@@ -598,7 +1083,7 @@ button, a, [role="button"] {
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 9999;
+  z-index: var(--z-toast);
   padding: 16px;
   padding-left: max(16px, env(safe-area-inset-left));
   padding-right: max(16px, env(safe-area-inset-right));
