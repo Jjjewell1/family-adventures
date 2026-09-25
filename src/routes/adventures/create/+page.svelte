@@ -2,8 +2,10 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import LocationInput from '$lib/components/LocationInput.svelte';
-  
-  let { data } = $props();
+  import Icon from '$lib/components/Icon.svelte';
+  import type { IconName } from '$lib/components/Icon.svelte';
+
+  let { data, form } = $props();
   
   let title = $state('');
   let description = $state('');
@@ -32,25 +34,36 @@
 
   onMount(() => { checkAIStatus(); });
 
-  const templates = [
-    { id: 'beach', label: 'Beach Trip', icon: '🏖️' },
-    { id: 'roadtrip', label: 'Road Trip', icon: '🚗' },
-    { id: 'holiday', label: 'Holiday', icon: '🎄' },
-    { id: 'camping', label: 'Camping', icon: '⛺' },
-    { id: 'international', label: 'International', icon: '✈️' },
-    { id: 'city', label: 'City Break', icon: '🏙️' },
-    { id: 'nature', label: 'Nature', icon: '🌲' },
-    { id: 'other', label: 'Other', icon: '📝' }
+  const templates: { id: string; label: string; icon: IconName }[] = [
+    { id: 'beach', label: 'Beach Trip', icon: 'beach' },
+    { id: 'roadtrip', label: 'Road Trip', icon: 'roadtrip' },
+    { id: 'holiday', label: 'Holiday', icon: 'holiday' },
+    { id: 'camping', label: 'Camping', icon: 'camping' },
+    { id: 'international', label: 'International', icon: 'plane' },
+    { id: 'city', label: 'City Break', icon: 'city' },
+    { id: 'nature', label: 'Nature', icon: 'tree' },
+    { id: 'other', label: 'Other', icon: 'note' }
   ];
 
-  const moods = [
-    { id: 'adventurous', label: 'Adventurous', icon: '🗺️' },
-    { id: 'relaxing', label: 'Relaxing', icon: '😌' },
-    { id: 'exciting', label: 'Exciting', icon: '🎉' },
-    { id: 'peaceful', label: 'Peaceful', icon: '🧘' },
-    { id: 'fun', label: 'Fun', icon: '😄' },
-    { id: 'romantic', label: 'Romantic', icon: '💕' }
+  const moods: { id: string; label: string; icon: IconName }[] = [
+    { id: 'adventurous', label: 'Adventurous', icon: 'adventurous' },
+    { id: 'relaxing', label: 'Relaxing', icon: 'relaxing' },
+    { id: 'exciting', label: 'Exciting', icon: 'exciting' },
+    { id: 'peaceful', label: 'Peaceful', icon: 'peaceful' },
+    { id: 'fun', label: 'Fun', icon: 'fun' },
+    { id: 'romantic', label: 'Romantic', icon: 'romantic' }
   ];
+
+  // A PWA share_target POST lands here and arrives as `form`. Prefill once, then
+  // drop the flag so a later reset or a client-side re-render cannot clobber
+  // whatever the user has typed since.
+  let prefilled = $state(false);
+  $effect(() => {
+    if (prefilled || !form?.shared) return;
+    if (form.shared.title) title = form.shared.title;
+    if (form.shared.description) description = form.shared.description;
+    prefilled = true;
+  });
 
   function toggleTag(tagId: string) {
     if (selectedTags.includes(tagId)) {
@@ -213,7 +226,7 @@
 </svelte:head>
 
 <div class="max-w-3xl mx-auto">
-  <a href="/adventures" class="inline-flex items-center gap-2 text-sm text-ink-400 hover:text-ink-600 mb-6 transition-colors">
+  <a href="/adventures" class="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-600 mb-6 transition-colors">
     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
     </svg>
@@ -338,7 +351,7 @@
           rows="8"
           class="input resize-y"
         ></textarea>
-        <p class="mt-1 text-xs text-ink-300">HTML is supported for rich formatting.</p>
+        <p class="mt-1 text-xs text-ink-500">HTML is supported for rich formatting.</p>
       </div>
 
       <!-- Template -->
@@ -350,14 +363,15 @@
           {#each templates as template}
             <button
               type="button"
-              class="flex flex-col items-center gap-1 p-3 rounded-lg border transition-colors
-                {templateType === template.id 
-                  ? 'border-forest-400 bg-forest-50 text-forest-600 dark:bg-forest-900 dark:text-forest-300' 
+              class="pressable flex min-h-[var(--tap-target)] flex-col items-center gap-1.5 rounded-[var(--radius-md)] border p-3 transition-colors
+                {templateType === template.id
+                  ? 'border-forest-400 bg-forest-50 text-forest-600 dark:bg-forest-900 dark:text-forest-300'
                   : 'border-cream-200 bg-white text-ink-500 hover:border-cream-300 dark:bg-ink-700 dark:border-ink-600'}"
-              onclick={() => templateType = template.id}
+              onclick={() => (templateType = template.id)}
+              aria-pressed={templateType === template.id}
             >
-              <span class="text-2xl">{template.icon}</span>
-              <span class="text-xs">{template.label}</span>
+              <Icon name={template.icon} size={22} />
+              <span class="text-center text-xs leading-tight">{template.label}</span>
             </button>
           {/each}
         </div>
@@ -396,12 +410,13 @@
           {#each moods as m}
             <button
               type="button"
-              class="badge border {mood === m.id 
-                ? 'border-forest-400 bg-forest-50 text-forest-600 dark:bg-forest-900 dark:text-forest-300' 
+              class="pressable badge min-h-[36px] gap-1.5 border {mood === m.id
+                ? 'border-forest-400 bg-forest-50 text-forest-600 dark:bg-forest-900 dark:text-forest-300'
                 : 'border-cream-200 bg-white text-ink-500 hover:border-cream-300 dark:bg-ink-700 dark:border-ink-600'}"
-              onclick={() => mood = m.id}
+              onclick={() => (mood = m.id)}
+              aria-pressed={mood === m.id}
             >
-              <span>{m.icon}</span>
+              <Icon name={m.icon} size={16} />
               <span>{m.label}</span>
             </button>
           {/each}
