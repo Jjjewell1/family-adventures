@@ -25,10 +25,26 @@ export default defineConfig({
         scope: '/',
         display: 'standalone',
         display_override: ['standalone', 'minimal-ui'],
+        // Phones and tablets in both orientations — locking portrait would block
+        // landscape photo viewing, which is the whole point of a gallery app.
         orientation: 'any',
-        theme_color: '#3B6F54',
+        theme_color: '#FBF7F0',
         background_color: '#FBF7F0',
-        categories: ['lifestyle', 'family'],
+        categories: ['lifestyle', 'family', 'photo'],
+        prefer_related_applications: false,
+        // Receiving a link from the iOS/Android share sheet drops the user straight
+        // into "New adventure" with the shared title/text/url pre-filled. Handled by
+        // the default form action in src/routes/adventures/create/+page.server.ts.
+        share_target: {
+          action: '/adventures/create',
+          method: 'POST',
+          enctype: 'application/x-www-form-urlencoded',
+          params: {
+            title: 'title',
+            text: 'text',
+            url: 'url'
+          }
+        },
         icons: [
           {
             src: '/icon-192x192.png',
@@ -75,6 +91,26 @@ export default defineConfig({
         navigateFallback: '/offline.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/auth\//, /^\/admin\//, /^\/share\//],
         runtimeCaching: [
+          // Google Fonts are a third-party origin, so workbox needs an explicit rule
+          // or the installed app falls back to system fonts the first time it goes
+          // offline. Stale-while-revalidate keeps the shell typography intact offline.
+          {
+            urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com',
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'google-fonts-stylesheets',
+              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 * 365 }
+            }
+          },
+          {
+            urlPattern: ({ url }) => url.origin === 'https://fonts.gstatic.com',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-webfonts',
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          },
           // Visited pages work offline (network-first, cached on success)
           {
             urlPattern: ({ request }) => request.mode === 'navigate',
