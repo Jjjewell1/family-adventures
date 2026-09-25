@@ -63,7 +63,7 @@
           </svg>
         </div>
         <h1 class="text-2xl font-display font-semibold text-ink-800 dark:text-cream-100 mb-2">Request Submitted!</h1>
-        <p class="text-ink-400 mb-6 text-sm">
+        <p class="text-ink-500 mb-6 text-sm">
           Your account is awaiting admin approval. You'll be able to sign in once approved.
         </p>
         <a href="/auth/login" class="btn-primary">Back to Login</a>
@@ -71,7 +71,7 @@
     {:else}
       <div class="text-center mb-6">
         <h1 class="text-2xl font-display font-semibold text-ink-800 dark:text-cream-100">Join Family Adventures</h1>
-        <p class="text-sm text-ink-400 mt-1">Create your account to start sharing</p>
+        <p class="text-sm text-ink-500 mt-1">Create your account to start sharing</p>
       </div>
 
       {#if error}
@@ -97,7 +97,7 @@
             <div class="w-full divider"></div>
           </div>
           <div class="relative flex justify-center text-xs">
-            <span class="bg-white px-2 text-ink-400 dark:bg-ink-700">or sign up with email</span>
+            <span class="bg-white px-2 text-ink-500 dark:bg-ink-700">or sign up with email</span>
           </div>
         </div>
 
@@ -128,7 +128,7 @@
           </button>
         </form>
 
-        <p class="text-center text-xs text-ink-400">
+        <p class="text-center text-xs text-ink-500">
           New accounts require admin approval before you can sign in.
         </p>
       </div>

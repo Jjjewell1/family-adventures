@@ -129,7 +129,7 @@
       </div>
       <div class="text-center group">
         <div class="relative inline-block">
-          <p class="text-3xl md:text-4xl font-display font-bold text-ink-400 tabular-nums">{stats.total_videos || 0}</p>
+          <p class="text-3xl md:text-4xl font-display font-bold text-ink-500 tabular-nums">{stats.total_videos || 0}</p>
           <div class="absolute -inset-2 rounded-full bg-ink-400/5 scale-0 group-hover:scale-100 transition-transform duration-300"></div>
         </div>
         <p class="text-xs font-medium text-ink-500 mt-1.5 uppercase tracking-wider">Videos</p>
@@ -240,7 +240,7 @@
 
       <a href="/bucket-list" class="group card p-6 border-t-2 border-ink-300 hover:border-ink-400 transition-all duration-300 hover:shadow-lg hover:shadow-ink-500/5 hover:-translate-y-0.5">
         <div class="relative">
-          <div class="h-12 w-12 rounded-2xl bg-cream-100 dark:bg-ink-700/50 flex items-center justify-center text-ink-400 mb-4 group-hover:bg-ink-500 group-hover:text-white transition-all duration-300 group-hover:rounded-xl dark:group-hover:bg-ink-600">
+          <div class="h-12 w-12 rounded-2xl bg-cream-100 dark:bg-ink-700/50 flex items-center justify-center text-ink-500 mb-4 group-hover:bg-ink-500 group-hover:text-white transition-all duration-300 group-hover:rounded-xl dark:group-hover:bg-ink-600">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
             </svg>

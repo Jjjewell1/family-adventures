@@ -67,7 +67,7 @@
         </svg>
       </div>
       <h1 class="text-2xl font-display font-semibold text-ink-800 dark:text-cream-100">Welcome Back</h1>
-      <p class="text-ink-400 mt-2 text-sm">Sign in to your Family Adventures account</p>
+      <p class="text-ink-500 mt-2 text-sm">Sign in to your Family Adventures account</p>
     </div>
 
     {#if error}
@@ -95,7 +95,7 @@
         <div class="w-full divider"></div>
       </div>
       <div class="relative flex justify-center text-xs">
-        <span class="bg-white px-2 text-ink-400 dark:bg-ink-700">or sign in with email</span>
+        <span class="bg-white px-2 text-ink-500 dark:bg-ink-700">or sign in with email</span>
       </div>
     </div>
 
@@ -129,7 +129,7 @@
           />
           <button
             type="button"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-300 hover:text-ink-500"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-500 hover:text-ink-500"
             onclick={() => showPassword = !showPassword}
           >
             {#if showPassword}
@@ -155,7 +155,7 @@
     </form>
 
     <div class="mt-6 text-center">
-      <p class="text-sm text-ink-400">
+      <p class="text-sm text-ink-500">
         Don't have an account?
         <a href="/auth/signup" class="text-forest-500 hover:text-forest-600 font-medium">Sign up</a>
       </p>

@@ -18,7 +18,7 @@
   <div class="card p-8 max-w-md w-full animate-in">
     <div class="text-center mb-8">
       <h1 class="text-2xl font-display font-semibold text-ink-800 dark:text-cream-100">Admin Account Recovery</h1>
-      <p class="text-ink-400 mt-2 text-sm">Reset the admin account credentials</p>
+      <p class="text-ink-500 mt-2 text-sm">Reset the admin account credentials</p>
     </div>
 
     {#if !data.isConfigured}

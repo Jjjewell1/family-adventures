@@ -25,23 +25,23 @@
   <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
     <div class="card-flat p-4 text-center">
       <p class="text-3xl font-bold text-forest-600">{data.totalAdventures}</p>
-      <p class="text-xs text-ink-400 mt-1">Adventures</p>
+      <p class="text-xs text-ink-500 mt-1">Adventures</p>
     </div>
     <div class="card-flat p-4 text-center">
       <p class="text-3xl font-bold text-terra-500">{data.statesCount}</p>
-      <p class="text-xs text-ink-400 mt-1">States Visited</p>
+      <p class="text-xs text-ink-500 mt-1">States Visited</p>
     </div>
     <div class="card-flat p-4 text-center">
       <p class="text-3xl font-bold text-gold-500">{data.totalMedia}</p>
-      <p class="text-xs text-ink-400 mt-1">Photos & Videos</p>
+      <p class="text-xs text-ink-500 mt-1">Photos & Videos</p>
     </div>
     <div class="card-flat p-4 text-center">
       <p class="text-3xl font-bold text-forest-500">{data.totalComments}</p>
-      <p class="text-xs text-ink-400 mt-1">Comments</p>
+      <p class="text-xs text-ink-500 mt-1">Comments</p>
     </div>
     <div class="card-flat p-4 text-center">
       <p class="text-3xl font-bold text-terra-400">{data.totalBucketItems}</p>
-      <p class="text-xs text-ink-400 mt-1">Bucket List Items</p>
+      <p class="text-xs text-ink-500 mt-1">Bucket List Items</p>
     </div>
   </div>
 
@@ -80,7 +80,7 @@
           </div>
         {/each}
         {#if Object.keys(data.byYear).length === 0}
-          <p class="text-sm text-ink-400 italic">No adventures yet</p>
+          <p class="text-sm text-ink-500 italic">No adventures yet</p>
         {/if}
       </div>
     </div>
@@ -122,7 +122,7 @@
           </div>
         {/each}
         {#if Object.keys(data.byMood).length === 0}
-          <p class="text-sm text-ink-400 italic">No moods recorded yet</p>
+          <p class="text-sm text-ink-500 italic">No moods recorded yet</p>
         {/if}
       </div>
     </div>

@@ -95,16 +95,16 @@
   {#if filteredAdventures.length === 0}
     <div class="card-flat text-center py-16">
       <div class="h-14 w-14 mx-auto rounded-full bg-cream-100 dark:bg-ink-700 flex items-center justify-center mb-4">
-        <svg class="h-7 w-7 text-ink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="h-7 w-7 text-ink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
       <h3 class="text-lg font-semibold text-ink-700 dark:text-cream-200">No adventures yet</h3>
       {#if data.user}
-        <p class="text-ink-400 mt-2 text-sm">Start documenting your family's journeys!</p>
+        <p class="text-ink-500 mt-2 text-sm">Start documenting your family's journeys!</p>
         <a href="/adventures/create" class="btn-primary mt-4">Create First Adventure</a>
       {:else}
-        <p class="text-ink-400 mt-2 text-sm">Sign in to start documenting your family's journeys!</p>
+        <p class="text-ink-500 mt-2 text-sm">Sign in to start documenting your family's journeys!</p>
         <a href="/auth/login" class="btn-primary mt-4">Sign In</a>
       {/if}
     </div>
@@ -152,7 +152,7 @@
 
           <!-- Content -->
           <div class="p-4">
-            <div class="flex items-center gap-2 text-xs text-ink-400 mb-1.5">
+            <div class="flex items-center gap-2 text-xs text-ink-500 mb-1.5">
               {#if adventure.start_date}
                 <time datetime={adventure.start_date}>{formatDate(adventure.start_date)}</time>
                 {#if adventure.end_date && adventure.end_date !== adventure.start_date}
@@ -169,7 +169,7 @@
             </h2>
             
             {#if adventure.description}
-              <p class="text-sm text-ink-400 mt-1.5 line-clamp-2">
+              <p class="text-sm text-ink-500 mt-1.5 line-clamp-2">
                 {adventure.description}
               </p>
             {/if}
@@ -194,7 +194,7 @@
                 <div class="h-6 w-6 rounded-full bg-terra-500 flex items-center justify-center text-white text-xs font-medium">
                   {adventure.author_name.charAt(0).toUpperCase()}
                 </div>
-                <span class="text-xs text-ink-400">{adventure.author_name}</span>
+                <span class="text-xs text-ink-500">{adventure.author_name}</span>
               </div>
               {#if data.user && data.user.id === adventure.author_id}
                 <a

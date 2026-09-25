@@ -83,7 +83,7 @@
   {#if items.length === 0}
     <div class="card-flat p-12 text-center animate-in">
       <div class="text-4xl mb-4">🧭</div>
-      <p class="text-ink-400">No activity yet. Start an adventure!</p>
+      <p class="text-ink-500">No activity yet. Start an adventure!</p>
     </div>
   {:else}
     <div class="space-y-3">
@@ -114,7 +114,7 @@
                     <span class="font-medium text-forest-600">the family</span>
                   {/if}
                 </p>
-                <span class="text-xs text-ink-400 whitespace-nowrap shrink-0">{timeAgo(item.created_at)}</span>
+                <span class="text-xs text-ink-500 whitespace-nowrap shrink-0">{timeAgo(item.created_at)}</span>
               </div>
 
               <!-- Comment preview -->
@@ -154,7 +154,7 @@
 
               <!-- Action icon -->
               {#if item.action_type !== 'reacted' && item.action_type !== 'rated' && getIcon(item.action_type)}
-                <span class="inline-block mt-1 text-xs text-ink-400">{getIcon(item.action_type)}</span>
+                <span class="inline-block mt-1 text-xs text-ink-500">{getIcon(item.action_type)}</span>
               {/if}
             </div>
           </div>

@@ -233,13 +233,13 @@
 
 <div class="max-w-4xl mx-auto">
   <div class="text-center mb-8">
-    <a href="/" class="inline-flex items-center gap-2 text-sm text-ink-400 hover:text-ink-600 mb-4 transition-colors">
+    <a href="/" class="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-600 mb-4 transition-colors">
       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       Family Adventures
     </a>
-    <p class="text-xs text-ink-300 uppercase tracking-wider">Shared Adventure</p>
+    <p class="text-xs text-ink-500 uppercase tracking-wider">Shared Adventure</p>
   </div>
 
   <div class="relative rounded-2xl overflow-hidden mb-8">
@@ -367,11 +367,11 @@
                   <p class="text-sm font-medium text-forest-600">{uploadProgress || 'Uploading...'}</p>
                 </div>
               {:else}
-                <svg class="h-8 w-8 mx-auto text-ink-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-8 w-8 mx-auto text-ink-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <p class="text-sm text-ink-500 font-medium">Add your photos & videos</p>
-                <p class="text-xs text-ink-400 mt-1">Select multiple files or drag & drop them here</p>
+                <p class="text-xs text-ink-500 mt-1">Select multiple files or drag & drop them here</p>
               {/if}
             </label>
           </div>
@@ -421,17 +421,17 @@
     {#if isSignedIn}
       <div class="flex items-center justify-between gap-4">
         <div>
-          <p class="text-sm text-ink-400">Signed in as</p>
+          <p class="text-sm text-ink-500">Signed in as</p>
           <p class="text-lg font-display font-semibold text-ink-800 dark:text-cream-100">
             {data.sessionUser!.name}
           </p>
-          <p class="text-xs text-ink-400 dark:text-cream-300 mt-1">You can add photos, comment, and share your story below.</p>
+          <p class="text-xs text-ink-500 dark:text-cream-300 mt-1">You can add photos, comment, and share your story below.</p>
         </div>
         <button onclick={leaveAsGuest} class="btn-secondary px-4 py-2 text-sm font-medium">Sign out</button>
       </div>
     {:else}
       <h3 class="text-lg font-display font-semibold text-ink-800 dark:text-cream-100 mb-1">Join in and share your memories</h3>
-      <p class="text-sm text-ink-400 dark:text-cream-300 mb-4">
+      <p class="text-sm text-ink-500 dark:text-cream-300 mb-4">
         Add photos, leave a comment, or tell your story about this adventure. Enter your name and the passcode sent with the link.
       </p>
       <div class="flex flex-col sm:flex-row gap-3">
@@ -488,7 +488,7 @@
     {/if}
 
     {#if data.comments.length === 0}
-      <p class="text-center text-ink-400 dark:text-cream-300 py-8">No comments yet.{isSignedIn ? ' Be the first to share!' : ''}</p>
+      <p class="text-center text-ink-500 dark:text-cream-300 py-8">No comments yet.{isSignedIn ? ' Be the first to share!' : ''}</p>
     {:else}
       <div class="space-y-4">
         {#each data.comments as comment}
@@ -503,7 +503,7 @@
               </div>
               <div>
                 <p class="text-sm font-medium text-ink-700 dark:text-cream-100">{comment.author_name || 'Guest'}</p>
-                <p class="text-xs text-ink-400">{formatDate(comment.created_at)}</p>
+                <p class="text-xs text-ink-500">{formatDate(comment.created_at)}</p>
               </div>
             </div>
             <p class="text-sm text-ink-500 dark:text-cream-200 leading-relaxed">{comment.content}</p>
@@ -514,7 +514,7 @@
                   <div>
                     <div class="flex items-center gap-2 mb-1">
                       <span class="text-xs font-semibold text-forest-600">{reply.author_name || 'Guest'}</span>
-                      <span class="text-xs text-ink-400">{formatDate(reply.created_at)}</span>
+                      <span class="text-xs text-ink-500">{formatDate(reply.created_at)}</span>
                     </div>
                     <p class="text-sm text-ink-500 dark:text-cream-200">{reply.content}</p>
                   </div>
@@ -566,7 +566,7 @@
     {/if}
 
     {#if data.stories.length === 0}
-      <p class="text-sm text-ink-400 dark:text-cream-300 italic py-4">No stories yet.{isSignedIn ? ' Be the first to share a memory!' : ''}</p>
+      <p class="text-sm text-ink-500 dark:text-cream-300 italic py-4">No stories yet.{isSignedIn ? ' Be the first to share a memory!' : ''}</p>
     {:else}
       <div class="space-y-4">
         {#each data.stories as story}
@@ -581,7 +581,7 @@
               </div>
               <div>
                 <p class="text-sm font-medium text-ink-700 dark:text-cream-100">{story.author_name || 'Guest'}</p>
-                <p class="text-xs text-ink-400">{formatDate(story.created_at)}</p>
+                <p class="text-xs text-ink-500">{formatDate(story.created_at)}</p>
               </div>
             </div>
             {#if story.title}
@@ -595,7 +595,7 @@
   </div>
 
   <div class="text-center py-8 border-t border-cream-200 dark:border-ink-600">
-    <p class="text-sm text-ink-400">
+    <p class="text-sm text-ink-500">
       Shared with love from 
       <a href="/" class="text-forest-500 hover:text-forest-600">Family Adventures</a>
     </p>

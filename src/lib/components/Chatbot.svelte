@@ -165,7 +165,7 @@
               </svg>
             </div>
             <p class="text-sm font-medium text-ink-600 dark:text-cream-200">Hi! I'm your adventure assistant.</p>
-            <p class="text-xs text-ink-400 dark:text-cream-400 mt-1 max-w-xs">Ask me about your trips, who's in the photos, or what's on your bucket list.</p>
+            <p class="text-xs text-ink-500 dark:text-cream-400 mt-1 max-w-xs">Ask me about your trips, who's in the photos, or what's on your bucket list.</p>
             <div class="flex flex-wrap gap-1.5 mt-4 justify-center">
               <button class="text-xs px-3 py-1.5 rounded-full bg-cream-100 dark:bg-ink-700 text-ink-600 dark:text-cream-300 hover:bg-cream-200 dark:hover:bg-ink-600 transition-colors"
                 onclick={() => { input = 'What adventures have we been on?'; send(); }}>

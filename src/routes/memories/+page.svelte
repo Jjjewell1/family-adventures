@@ -25,12 +25,12 @@
   {#if data.memories.length === 0}
     <div class="text-center py-16 card">
       <div class="h-16 w-16 mx-auto rounded-full bg-cream-100 dark:bg-ink-700 flex items-center justify-center mb-4">
-        <svg class="h-8 w-8 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="h-8 w-8 text-ink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
       <h3 class="text-lg font-medium text-ink-700">No memories for today</h3>
-      <p class="text-ink-400 mt-2">Check back another day to see past adventures!</p>
+      <p class="text-ink-500 mt-2">Check back another day to see past adventures!</p>
     </div>
   {:else}
     <div class="space-y-8">
@@ -71,11 +71,11 @@
                     <h3 class="font-semibold text-ink-700 group-hover:text-forest-600 transition-colors truncate">
                       {adventure.title}
                     </h3>
-                    <p class="text-sm text-ink-400 mt-1">
+                    <p class="text-sm text-ink-500 mt-1">
                       {adventure.location_name || 'No location'}
                     </p>
                     {#if adventure.description}
-                      <p class="text-xs text-ink-400 mt-2 line-clamp-2">
+                      <p class="text-xs text-ink-500 mt-2 line-clamp-2">
                         {adventure.description}
                       </p>
                     {/if}
@@ -101,7 +101,7 @@
             </div>
             <div class="flex-1 min-w-0">
               <p class="font-medium text-ink-700 truncate">{anniversary.title}</p>
-              <p class="text-sm text-ink-400">
+              <p class="text-sm text-ink-500">
                 {anniversary.yearsAgo} year{anniversary.yearsAgo !== 1 ? 's' : ''} ago • {anniversary.start_date ? formatDate(anniversary.start_date) : ''}
               </p>
             </div>

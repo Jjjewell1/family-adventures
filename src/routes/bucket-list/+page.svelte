@@ -306,7 +306,7 @@
   {#if aiSuggestions.length > 0}
     <div class="card p-6 animate-in">
       <h2 class="text-lg font-display font-semibold text-ink-800 dark:text-cream-100 mb-1">AI Suggestions</h2>
-      <p class="text-xs text-ink-400 mb-4">Based on your family's travel history</p>
+      <p class="text-xs text-ink-500 mb-4">Based on your family's travel history</p>
       <div class="grid gap-3 md:grid-cols-2">
         {#each aiSuggestions as suggestion}
           <div class="p-4 rounded-lg bg-forest-50 border border-forest-100 dark:bg-forest-900 dark:border-forest-800">
@@ -314,10 +314,10 @@
               <div class="flex-1 min-w-0">
                 <h3 class="font-semibold text-ink-700 dark:text-cream-100">{suggestion.title}</h3>
                 {#if suggestion.description}
-                  <p class="text-sm text-ink-400 mt-1">{suggestion.description}</p>
+                  <p class="text-sm text-ink-500 mt-1">{suggestion.description}</p>
                 {/if}
                 {#if suggestion.locationName}
-                  <p class="text-xs text-ink-400 mt-1 flex items-center gap-1">
+                  <p class="text-xs text-ink-500 mt-1 flex items-center gap-1">
                     <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     </svg>
@@ -348,7 +348,7 @@
       <div>
         <div class="flex items-center gap-2 mb-3">
           <span class="badge {status.color}">{status.label}</span>
-          <span class="text-xs text-ink-400">({itemsList.length})</span>
+          <span class="text-xs text-ink-500">({itemsList.length})</span>
         </div>
         <div class="grid gap-4 md:grid-cols-2">
           {#each itemsList as item (item.id)}
@@ -360,10 +360,10 @@
                     <h3 class="font-semibold text-ink-800 dark:text-cream-100 truncate">{item.title}</h3>
                   </div>
                   {#if item.description}
-                    <p class="text-sm text-ink-400 line-clamp-2">{item.description}</p>
+                    <p class="text-sm text-ink-500 line-clamp-2">{item.description}</p>
                   {/if}
                   {#if item.location_name}
-                    <p class="text-xs text-ink-400 mt-1 flex items-center gap-1">
+                    <p class="text-xs text-ink-500 mt-1 flex items-center gap-1">
                       <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       </svg>
@@ -382,13 +382,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
                       </svg>
                     </button>
-                    <span class="text-sm font-semibold {item.vote_score > 0 ? 'text-forest-500' : item.vote_score < 0 ? 'text-terra-500' : 'text-ink-400'}">
+                    <span class="text-sm font-semibold {item.vote_score > 0 ? 'text-forest-500' : item.vote_score < 0 ? 'text-terra-500' : 'text-ink-500'}">
                       {item.vote_score}
                     </span>
                     <button onclick={() => vote(item.id, -1)}
                       class="h-7 w-7 rounded-md flex items-center justify-center hover:bg-terra-50 dark:hover:bg-terra-900 transition-colors"
                       title="Not interested">
-                      <svg class="h-4 w-4 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="h-4 w-4 text-ink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
@@ -406,11 +406,11 @@
                       {item.author_name?.charAt(0).toUpperCase()}
                     </div>
                   {/if}
-                  <span class="text-xs text-ink-400">{item.author_name}</span>
+                  <span class="text-xs text-ink-500">{item.author_name}</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <button onclick={() => expandedId = expandedId === item.id ? null : item.id}
-                    class="text-xs text-ink-400 hover:text-ink-600 transition-colors flex items-center gap-1">
+                    class="text-xs text-ink-500 hover:text-ink-600 transition-colors flex items-center gap-1">
                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
@@ -430,7 +430,7 @@
               <!-- Comments section -->
               {#if expandedId === item.id}
                 <div class="mt-3 pt-3 border-t border-cream-200 dark:border-ink-600">
-                  <p class="text-xs text-ink-400 mb-2">Comments</p>
+                  <p class="text-xs text-ink-500 mb-2">Comments</p>
                   {#if data.user}
                     <form class="flex gap-2 mb-3" onsubmit={(e) => { e.preventDefault(); addComment(item.id); }}>
                       <input type="text" bind:value={commentText} placeholder="Share your thoughts..."
@@ -438,7 +438,7 @@
                       <button type="submit" class="btn-primary text-xs px-3 py-2">Post</button>
                     </form>
                   {/if}
-                  <p class="text-xs text-ink-400 italic">View full discussion on the detail page</p>
+                  <p class="text-xs text-ink-500 italic">View full discussion on the detail page</p>
                 </div>
               {/if}
             </div>
@@ -451,12 +451,12 @@
   {#if items.length === 0}
     <div class="card-flat p-12 text-center">
       <div class="h-14 w-14 mx-auto mb-4 rounded-full bg-cream-100 flex items-center justify-center">
-        <svg class="h-7 w-7 text-ink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="h-7 w-7 text-ink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
       <h2 class="text-xl font-display font-semibold text-ink-700 dark:text-cream-200 mb-2">Nothing on the list yet</h2>
-      <p class="text-ink-400">Start dreaming — add places you'd love to visit!</p>
+      <p class="text-ink-500">Start dreaming — add places you'd love to visit!</p>
     </div>
   {/if}
 </div>

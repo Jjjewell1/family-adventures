@@ -71,7 +71,7 @@
                    class="w-full h-24 object-cover rounded-lg mb-2" />
             ` : ''}
             <h3 class="font-semibold text-ink-700">${escapeHtml(adventure.title)}</h3>
-            <p class="text-xs text-ink-400 mt-1">
+            <p class="text-xs text-ink-500 mt-1">
               ${adventure.start_date ? formatDate(adventure.start_date) : ''}
               ${adventure.location_name ? ` • ${escapeHtml(adventure.location_name)}` : ''}
             </p>
@@ -98,11 +98,11 @@
               <span class="badge text-terra-600 bg-terra-50">
                 ${escapeHtml(item.status === 'completed' ? '✓ Done' : item.status === 'in_progress' ? 'In Progress' : 'Wishlist')}
               </span>
-              ${item.category ? `<span class="text-xs text-ink-400">${escapeHtml(item.category)}</span>` : ''}
+              ${item.category ? `<span class="text-xs text-ink-500">${escapeHtml(item.category)}</span>` : ''}
             </div>
             <h3 class="font-semibold text-ink-700">${escapeHtml(item.title)}</h3>
-            ${item.description ? `<p class="text-xs text-ink-400 mt-1 line-clamp-2">${escapeHtml(item.description)}</p>` : ''}
-            ${item.location_name ? `<p class="text-xs text-ink-400 mt-1">📍 ${escapeHtml(item.location_name)}</p>` : ''}
+            ${item.description ? `<p class="text-xs text-ink-500 mt-1 line-clamp-2">${escapeHtml(item.description)}</p>` : ''}
+            ${item.location_name ? `<p class="text-xs text-ink-500 mt-1">📍 ${escapeHtml(item.location_name)}</p>` : ''}
             <a href="/bucket-list" class="inline-block mt-2 text-xs text-terra-500 hover:text-terra-600">
               View Bucket List →
             </a>
@@ -180,7 +180,7 @@
             </div>
             <div class="min-w-0">
               <p class="font-medium text-ink-700 truncate">{adventure.title}</p>
-              <p class="text-xs text-ink-400">
+              <p class="text-xs text-ink-500">
                 {adventure.start_date ? formatDate(adventure.start_date) : 'No date'}
               </p>
             </div>

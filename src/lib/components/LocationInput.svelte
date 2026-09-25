@@ -157,7 +157,7 @@
               onmousedown={() => selectResult(result)}
             >
               <p class="text-sm text-ink-600 dark:text-cream-200">{formatShortName(result)}</p>
-              <p class="text-xs text-ink-400 mt-0.5">
+              <p class="text-xs text-ink-500 mt-0.5">
                 {result.type}{#if result.address?.state}, {result.address.state}{/if}
               </p>
             </button>
@@ -172,7 +172,7 @@
         class="w-24 h-[50px] rounded-lg border border-cream-200 overflow-hidden dark:border-ink-600"
       ></div>
       {#if lat !== null && lng !== null}
-        <p class="text-[10px] text-ink-400 text-center">{lat.toFixed(3)}, {lng.toFixed(3)}</p>
+        <p class="text-[10px] text-ink-500 text-center">{lat.toFixed(3)}, {lng.toFixed(3)}</p>
       {/if}
     </div>
   </div>

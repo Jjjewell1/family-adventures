@@ -146,7 +146,7 @@
 
 <div class="space-y-6">
   <!-- Back link -->
-  <a href="/people" class="inline-flex items-center gap-2 text-sm text-ink-400 hover:text-ink-600 transition-colors">
+  <a href="/people" class="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-600 transition-colors">
     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
     </svg>
@@ -178,7 +178,7 @@
         <h1 class="text-2xl md:text-3xl font-display font-semibold text-ink-800 dark:text-cream-100">
           {data.person?.name}
         </h1>
-        <p class="text-ink-400 mt-1">
+        <p class="text-ink-500 mt-1">
           {data.photos?.length || 0} {(data.photos?.length || 0) === 1 ? 'photo' : 'photos'}
           {#if data.adventures?.length > 0}
             across {data.adventures.length} {data.adventures.length === 1 ? 'adventure' : 'adventures'}
@@ -207,7 +207,7 @@
   <!-- Adventures this person appears in -->
   {#if data.adventures?.length > 0}
     <div class="space-y-2">
-      <h2 class="text-sm font-medium text-ink-400 uppercase tracking-wide">Adventures</h2>
+      <h2 class="text-sm font-medium text-ink-500 uppercase tracking-wide">Adventures</h2>
       <div class="flex flex-wrap gap-2">
         {#each data.adventures as adv}
           <a href="/adventures/{adv.slug}" class="badge bg-forest-50 text-forest-700 hover:bg-forest-100 transition-colors">
@@ -275,7 +275,7 @@
     </div>
   {:else}
     <div class="card-flat text-center py-12">
-      <p class="text-ink-400">No photos tagged with {data.person?.name} yet.</p>
+      <p class="text-ink-500">No photos tagged with {data.person?.name} yet.</p>
     </div>
   {/if}
 </div>
@@ -288,7 +288,7 @@
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-sm font-medium text-ink-600 dark:text-cream-200">Photo actions</h3>
           <button class="h-8 w-8 rounded-full bg-ink-100 dark:bg-ink-800 flex items-center justify-center" onclick={() => menuMedia = null} aria-label="Close">
-            <svg class="h-4 w-4 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <svg class="h-4 w-4 text-ink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
         <img src={`/api/media/image?path=${encodeURIComponent(menuMedia.file_path)}&w=480`} alt="" class="w-full h-48 object-cover rounded-lg mb-4" />

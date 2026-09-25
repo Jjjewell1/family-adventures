@@ -743,7 +743,7 @@
 <article>
   <div class="max-w-4xl mx-auto">
     <!-- Back button -->
-    <a href="/adventures" class="inline-flex items-center gap-2 text-sm text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 mb-6 transition-colors">
+    <a href="/adventures" class="inline-flex items-center gap-2 text-sm text-ink-500 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 mb-6 transition-colors">
       <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
@@ -856,7 +856,7 @@
           <span class="text-2xl">📸</span>
           <div>
             <h2 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Photos & Videos</h2>
-            <p class="text-xs text-ink-400 dark:text-cream-300">Moments captured along the way</p>
+            <p class="text-xs text-ink-500 dark:text-cream-300">Moments captured along the way</p>
           </div>
         </div>
         <div class="flex items-center gap-3">
@@ -878,7 +878,7 @@
             </button>
           {/if}
           {#if data.user && data.user.id === data.adventure.author_id}
-            <p class="text-xs text-ink-400 dark:text-cream-300">Hover photos for controls</p>
+            <p class="text-xs text-ink-500 dark:text-cream-300">Hover photos for controls</p>
           {/if}
         </div>
       </div>
@@ -996,7 +996,7 @@
                 </div>
               {/if}
             {:else}
-              <div class="flex items-center justify-center gap-2 text-ink-400 dark:text-cream-300 hover:text-forest-500 transition-colors">
+              <div class="flex items-center justify-center gap-2 text-ink-500 dark:text-cream-300 hover:text-forest-500 transition-colors">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
@@ -1040,7 +1040,7 @@
           <span class="text-2xl">🗺️</span>
           <div>
             <h2 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Side Quests</h2>
-            <p class="text-xs text-ink-400 dark:text-cream-300">Detours, stops, and little adventures along the way</p>
+            <p class="text-xs text-ink-500 dark:text-cream-300">Detours, stops, and little adventures along the way</p>
           </div>
         </div>
         {#if subAdventures.length > 0}
@@ -1074,7 +1074,7 @@
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-semibold text-ink-600 dark:text-cream-100">{editingSQId ? 'Edit Side Quest' : 'New Side Quest'}</h3>
           {#if editingSQId}
-            <button type="button" class="text-xs text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100" onclick={cancelEditSQ}>Cancel</button>
+            <button type="button" class="text-xs text-ink-500 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100" onclick={cancelEditSQ}>Cancel</button>
           {/if}
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1106,7 +1106,7 @@
               </button>
             {/each}
             {#if sqRating > 0}
-              <span class="ml-2 text-sm text-ink-400 dark:text-cream-300 self-center">{sqRating}/5</span>
+              <span class="ml-2 text-sm text-ink-500 dark:text-cream-300 self-center">{sqRating}/5</span>
             {/if}
           </div>
         </div>
@@ -1120,7 +1120,7 @@
     {#if subAdventures.length === 0}
       <div class="card rounded-xl p-8 text-center">
         <div class="text-3xl mb-3">🗺️</div>
-        <p class="text-ink-400 dark:text-cream-300 text-sm">No side quests yet. Add stops, activities, and little detours from this trip!</p>
+        <p class="text-ink-500 dark:text-cream-300 text-sm">No side quests yet. Add stops, activities, and little detours from this trip!</p>
       </div>
     {:else if sideQuestView === 'timeline'}
       <!-- Timeline View -->
@@ -1175,21 +1175,21 @@
                             {/if}
                           </div>
                           {#if sq.note}
-                            <p class="text-xs text-ink-400 dark:text-cream-300 leading-relaxed line-clamp-2">{sq.note}</p>
+                            <p class="text-xs text-ink-500 dark:text-cream-300 leading-relaxed line-clamp-2">{sq.note}</p>
                           {/if}
                         </div>
                         {#if data.user}
                           {#if deletingSQId === sq.id}
                             <div class="flex items-center gap-1.5 shrink-0">
                               <button type="button" class="text-xs text-terra-500 hover:text-terra-700 font-medium" onclick={() => confirmDeleteSQ(sq.id)}>Yes</button>
-                              <button type="button" class="text-xs text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 font-medium" onclick={() => deletingSQId = null}>No</button>
+                              <button type="button" class="text-xs text-ink-500 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 font-medium" onclick={() => deletingSQId = null}>No</button>
                             </div>
                           {:else}
                             <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
-                              <button type="button" class="p-1 rounded-lg text-ink-300 dark:text-cream-400 hover:text-forest-500 hover:bg-forest-50 transition-colors" onclick={() => startEditSQ(sq)} title="Edit">
+                              <button type="button" class="p-1 rounded-lg text-ink-500 dark:text-cream-400 hover:text-forest-500 hover:bg-forest-50 transition-colors" onclick={() => startEditSQ(sq)} title="Edit">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                               </button>
-                              <button type="button" class="p-1 rounded-lg text-ink-300 dark:text-cream-400 hover:text-terra-500 hover:bg-terra-50 transition-colors" onclick={() => deleteSideQuest(sq.id)} title="Remove">
+                              <button type="button" class="p-1 rounded-lg text-ink-500 dark:text-cream-400 hover:text-terra-500 hover:bg-terra-50 transition-colors" onclick={() => deleteSideQuest(sq.id)} title="Remove">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                               </button>
                             </div>
@@ -1218,7 +1218,7 @@
         {#if subAdventuresByDay.undated.length > 0}
           <div class="relative pl-10 pb-6">
             <div class="absolute left-2.5 top-1 h-4 w-4 rounded-full bg-cream-400 border-2 border-white shadow-sm"></div>
-            <p class="text-xs font-semibold text-ink-400 dark:text-cream-300 uppercase tracking-wider mb-3">Other Stops</p>
+            <p class="text-xs font-semibold text-ink-500 dark:text-cream-300 uppercase tracking-wider mb-3">Other Stops</p>
             <div class="space-y-3">
               {#each subAdventuresByDay.undated as sq (sq.id)}
                 <div class="card rounded-xl overflow-hidden group hover:shadow-md transition-shadow">
@@ -1259,21 +1259,21 @@
                             {/if}
                           </div>
                           {#if sq.note}
-                            <p class="text-xs text-ink-400 dark:text-cream-300 leading-relaxed line-clamp-2">{sq.note}</p>
+                            <p class="text-xs text-ink-500 dark:text-cream-300 leading-relaxed line-clamp-2">{sq.note}</p>
                           {/if}
                         </div>
                         {#if data.user}
                           {#if deletingSQId === sq.id}
                             <div class="flex items-center gap-1.5 shrink-0">
                               <button type="button" class="text-xs text-terra-500 hover:text-terra-700 font-medium" onclick={() => confirmDeleteSQ(sq.id)}>Yes</button>
-                              <button type="button" class="text-xs text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 font-medium" onclick={() => deletingSQId = null}>No</button>
+                              <button type="button" class="text-xs text-ink-500 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 font-medium" onclick={() => deletingSQId = null}>No</button>
                             </div>
                           {:else}
                             <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
-                              <button type="button" class="p-1 rounded-lg text-ink-300 dark:text-cream-400 hover:text-forest-500 hover:bg-forest-50 transition-colors" onclick={() => startEditSQ(sq)} title="Edit">
+                              <button type="button" class="p-1 rounded-lg text-ink-500 dark:text-cream-400 hover:text-forest-500 hover:bg-forest-50 transition-colors" onclick={() => startEditSQ(sq)} title="Edit">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                               </button>
-                              <button type="button" class="p-1 rounded-lg text-ink-300 dark:text-cream-400 hover:text-terra-500 hover:bg-terra-50 transition-colors" onclick={() => deleteSideQuest(sq.id)} title="Remove">
+                              <button type="button" class="p-1 rounded-lg text-ink-500 dark:text-cream-400 hover:text-terra-500 hover:bg-terra-50 transition-colors" onclick={() => deleteSideQuest(sq.id)} title="Remove">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                               </button>
                             </div>
@@ -1358,21 +1358,21 @@
                     <span class="inline-block text-[10px] font-medium text-forest-600 bg-forest-50 dark:text-forest-300 dark:bg-forest-900 rounded-full px-2 py-0.5 mb-1">Day {sq.day_number}</span>
                   {/if}
                   {#if sq.note}
-                    <p class="text-xs text-ink-400 dark:text-cream-300 leading-relaxed line-clamp-2">{sq.note}</p>
+                    <p class="text-xs text-ink-500 dark:text-cream-300 leading-relaxed line-clamp-2">{sq.note}</p>
                   {/if}
                 </div>
                 {#if data.user}
                   {#if deletingSQId === sq.id}
                     <div class="flex items-center gap-1.5 shrink-0">
                       <button type="button" class="text-xs text-terra-500 hover:text-terra-700 font-medium" onclick={() => confirmDeleteSQ(sq.id)}>Yes</button>
-                      <button type="button" class="text-xs text-ink-400 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 font-medium" onclick={() => deletingSQId = null}>No</button>
+                      <button type="button" class="text-xs text-ink-500 hover:text-ink-600 dark:text-cream-300 dark:hover:text-cream-100 font-medium" onclick={() => deletingSQId = null}>No</button>
                     </div>
                   {:else}
                     <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
-                      <button type="button" class="p-1 rounded-lg text-ink-300 dark:text-cream-400 hover:text-forest-500 hover:bg-forest-50 transition-colors" onclick={() => startEditSQ(sq)} title="Edit">
+                      <button type="button" class="p-1 rounded-lg text-ink-500 dark:text-cream-400 hover:text-forest-500 hover:bg-forest-50 transition-colors" onclick={() => startEditSQ(sq)} title="Edit">
                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                       </button>
-                      <button type="button" class="p-1 rounded-lg text-ink-300 dark:text-cream-400 hover:text-terra-500 hover:bg-terra-50 transition-colors" onclick={() => deleteSideQuest(sq.id)} title="Remove">
+                      <button type="button" class="p-1 rounded-lg text-ink-500 dark:text-cream-400 hover:text-terra-500 hover:bg-terra-50 transition-colors" onclick={() => deleteSideQuest(sq.id)} title="Remove">
                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>
@@ -1402,7 +1402,7 @@
       <span class="text-2xl">❤️</span>
       <div>
         <h2 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Reactions</h2>
-        <p class="text-xs text-ink-400 dark:text-cream-300">Show how this adventure made you feel</p>
+        <p class="text-xs text-ink-500 dark:text-cream-300">Show how this adventure made you feel</p>
       </div>
     </div>
     
@@ -1414,7 +1414,7 @@
         >
           {emoji}
           {#if data.reactions.filter(r => r.emoji === emoji).length > 0}
-            <span class="ml-1 text-sm text-ink-400 dark:text-cream-300">
+            <span class="ml-1 text-sm text-ink-500 dark:text-cream-300">
               {data.reactions.filter(r => r.emoji === emoji).length}
             </span>
           {/if}
@@ -1440,7 +1440,7 @@
       <span class="text-2xl">💬</span>
       <div>
         <h2 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Comments</h2>
-        <p class="text-xs text-ink-400 dark:text-cream-300">Share your thoughts and memories</p>
+        <p class="text-xs text-ink-500 dark:text-cream-300">Share your thoughts and memories</p>
       </div>
     </div>
 
@@ -1463,14 +1463,14 @@
         </div>
       </form>
     {:else}
-      <p class="text-sm text-ink-400 dark:text-cream-300 mb-6">
+      <p class="text-sm text-ink-500 dark:text-cream-300 mb-6">
         <a href="/auth/login" class="text-forest-500 hover:text-forest-600">Sign in</a> to leave a comment.
       </p>
     {/if}
 
     <!-- Comments list -->
     {#if data.comments.length === 0}
-      <p class="text-center text-ink-400 dark:text-cream-300 py-8">No comments yet. Be the first to share!</p>
+      <p class="text-center text-ink-500 dark:text-cream-300 py-8">No comments yet. Be the first to share!</p>
     {:else}
       <div class="space-y-4">
         {#each data.comments as comment}
@@ -1480,7 +1480,7 @@
                 {comment.author?.name?.charAt(0).toUpperCase() || '?'}
               </div>
               <span class="text-sm font-medium text-ink-600 dark:text-cream-100">{comment.author?.name || 'Unknown'}</span>
-              <span class="text-xs text-ink-400 dark:text-cream-300">{timeAgo(comment.created_at)}</span>
+              <span class="text-xs text-ink-500 dark:text-cream-300">{timeAgo(comment.created_at)}</span>
             </div>
             <p class="text-ink-500 dark:text-cream-200 text-sm">{comment.content}</p>
           </div>
@@ -1495,7 +1495,7 @@
       <span class="text-2xl">🔥</span>
       <div>
         <h2 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Rating</h2>
-        <p class="text-xs text-ink-400 dark:text-cream-300">How fire was this adventure?</p>
+        <p class="text-xs text-ink-500 dark:text-cream-300">How fire was this adventure?</p>
       </div>
     </div>
     {#if data.ratings.length > 0}
@@ -1503,7 +1503,7 @@
         <span class="text-3xl">{data.avgRating >= 1 ? '🔥' : '🏕️'}</span>
         <div>
           <p class="text-2xl font-bold text-ink-600 dark:text-cream-100">{data.avgRating}</p>
-          <p class="text-xs text-ink-400 dark:text-cream-300">{data.ratings.length} rating{data.ratings.length > 1 ? 's' : ''}</p>
+          <p class="text-xs text-ink-500 dark:text-cream-300">{data.ratings.length} rating{data.ratings.length > 1 ? 's' : ''}</p>
         </div>
         <div class="flex gap-0.5 ml-2">
           {#each Array(5) as _, i}
@@ -1528,12 +1528,12 @@
             </button>
           {/each}
           {#if myRating > 0}
-            <span class="ml-2 text-sm text-ink-400 dark:text-cream-300 self-center">{myRating}/5 fires</span>
+            <span class="ml-2 text-sm text-ink-500 dark:text-cream-300 self-center">{myRating}/5 fires</span>
           {/if}
         </div>
       </div>
     {:else}
-      <p class="text-sm text-ink-400 dark:text-cream-300">
+      <p class="text-sm text-ink-500 dark:text-cream-300">
         <a href="/auth/login" class="text-forest-500 hover:text-forest-600">Sign in</a> to rate this adventure.
       </p>
     {/if}
@@ -1554,7 +1554,7 @@
         <span class="text-2xl">📖</span>
         <div>
           <h2 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Stories & Memories</h2>
-          <p class="text-xs text-ink-400 dark:text-cream-300">Longer tales and favorite moments</p>
+          <p class="text-xs text-ink-500 dark:text-cream-300">Longer tales and favorite moments</p>
         </div>
       </div>
       {#if data.user}
@@ -1600,7 +1600,7 @@
     {/if}
 
     {#if data.stories.length === 0}
-      <p class="text-sm text-ink-400 dark:text-cream-300 italic">No stories yet. Be the first to share a memory!</p>
+      <p class="text-sm text-ink-500 dark:text-cream-300 italic">No stories yet. Be the first to share a memory!</p>
     {:else}
       <div class="space-y-4">
         {#each data.stories as story}
@@ -1614,7 +1614,7 @@
                 </div>
               {/if}
               <span class="text-sm font-medium text-ink-600 dark:text-cream-100">{story.author_name}</span>
-              <span class="text-xs text-ink-400 dark:text-cream-300">{new Date(story.created_at).toLocaleDateString()}</span>
+              <span class="text-xs text-ink-500 dark:text-cream-300">{new Date(story.created_at).toLocaleDateString()}</span>
             </div>
             {#if story.title}
               <h3 class="font-semibold text-ink-600 dark:text-cream-100 mb-1">{story.title}</h3>
@@ -1659,7 +1659,7 @@
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
     <div class="card rounded-xl p-6 max-w-md w-full mx-4">
       <h3 class="text-lg font-semibold text-ink-600 dark:text-cream-100 mb-4">Share Adventure</h3>
-      <p class="text-sm text-ink-400 dark:text-cream-300 mb-4">
+      <p class="text-sm text-ink-500 dark:text-cream-300 mb-4">
         Send this link to family. They can view the adventure, add photos, comment, and share their own story.
       </p>
       <div class="flex items-center gap-2 mb-4">
@@ -1695,7 +1695,7 @@
           {shareSaved ? 'Saved' : 'Save'}
         </button>
       </div>
-      <p class="text-xs text-ink-400 dark:text-cream-300 mb-4">
+      <p class="text-xs text-ink-500 dark:text-cream-300 mb-4">
         Anyone with this passcode can post photos, comments, and stories. The link itself stays viewable by anyone.
       </p>
       {#if shareUsers.length > 0}
@@ -1747,7 +1747,7 @@
     <div class="card rounded-xl p-6 max-w-md w-full mx-4" role="dialog" aria-label="Tag People" tabindex="0" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Tag People</h3>
-        <button onclick={closeTagging} class="text-ink-400 hover:text-ink-600" aria-label="Close">
+        <button onclick={closeTagging} class="text-ink-500 hover:text-ink-600" aria-label="Close">
           <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
       </div>
@@ -1797,7 +1797,7 @@
               placeholder="Search people or add new..."
               class="input w-full px-3 py-2 text-sm pl-9"
             />
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </div>
         {/if}
 
@@ -1815,7 +1815,7 @@
                 {/if}
                 <div>
                   <p class="text-sm font-medium text-ink-700 dark:text-cream-200">{person.name}</p>
-                  <p class="text-xs text-ink-400">{person.photo_count} photos</p>
+                  <p class="text-xs text-ink-500">{person.photo_count} photos</p>
                 </div>
               </button>
             {/each}
