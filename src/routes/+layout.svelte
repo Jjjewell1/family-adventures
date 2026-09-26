@@ -403,6 +403,13 @@
               </button>
             {/if}
           </div>
+
+          <!-- Readable build stamp. A stale service worker or proxy cache can keep
+               a browser on an old build for days with no other symptom, so the
+               running commit has to be inspectable from the page itself. -->
+          <p class="numeric mt-3 text-center text-[0.6875rem] text-[var(--text-tertiary)]">
+            build {import.meta.env.BUILD_COMMIT} &middot; {import.meta.env.BUILD_AT.slice(0, 16).replace('T', ' ')} UTC
+          </p>
         </div>
       </div>
     </div>

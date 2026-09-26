@@ -13,6 +13,12 @@ declare global {
     }
     interface Platform {}
   }
+
+  interface ImportMetaEnv {
+    /** Commit and build time injected by the build-stamp plugin in vite.config.ts. */
+    readonly BUILD_COMMIT: string;
+    readonly BUILD_AT: string;
+  }
 }
 
 export {};

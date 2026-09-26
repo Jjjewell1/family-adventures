@@ -1,10 +1,48 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+import { execSync } from 'child_process';
+
+function gitCommit(): string {
+  try {
+    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString()
+      .trim();
+  } catch {
+    return 'unknown';
+  }
+}
+
+/**
+ * Stamps the commit and build time into the bundle and onto <html data-build>.
+ * A service worker or proxy cache can leave a browser running an older build for
+ * days with no visible symptom, so the running build needs to be readable from
+ * the page itself rather than inferred from a deploy log.
+ */
+function buildStamp(): Plugin {
+  const commit = gitCommit();
+  const builtAt = new Date().toISOString();
+  return {
+    name: 'build-stamp',
+    config: () => ({
+      define: {
+        'import.meta.env.BUILD_COMMIT': JSON.stringify(commit),
+        'import.meta.env.BUILD_AT': JSON.stringify(builtAt)
+      }
+    }),
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html: string) {
+        return html.replace('<html lang="en">', `<html lang="en" data-build="${commit}">`);
+      }
+    }
+  };
+}
 
 export default defineConfig({
   plugins: [
+    buildStamp(),
     tailwindcss(),
     sveltekit(),
     SvelteKitPWA({
