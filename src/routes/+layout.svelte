@@ -196,14 +196,17 @@
     ></div>
   </div>
 
-  <!-- Compact top bar. Mobile: fades in once content scrolls under it.
-       Desktop: always present, because there is no tab bar to anchor navigation. -->
+  <!-- Compact top bar. Below lg it fades in once content scrolls under it and is
+       inert until then, which is how UINavigationBar behaves on a phone. From lg
+       up there is no tab bar to anchor navigation, so the bar is permanently
+       visible AND interactive — the hidden state is max-lg scoped so it can never
+       leave the desktop nav on screen but unclickable. -->
   <header
-    class="fixed inset-x-0 top-0 z-[var(--z-chrome)] transition-opacity duration-200 lg:opacity-100! {showCompactBar
+    class="fixed inset-x-0 top-0 z-[var(--z-chrome)] transition-opacity duration-200 {showCompactBar
       ? 'opacity-100'
-      : 'pointer-events-none opacity-0'}"
+      : 'max-lg:pointer-events-none max-lg:opacity-0'}"
   >
-    <div class="chrome chrome-scrolled" class:!shadow-none={!scrolled}>
+    <div class="chrome" class:chrome-scrolled={scrolled}>
       <div
         class="mx-auto flex h-[calc(var(--tap-target)+env(safe-area-inset-top))] max-w-7xl items-center gap-2 px-[max(1rem,env(safe-area-inset-left))] pt-[env(safe-area-inset-top)] lg:px-8"
       >
@@ -253,7 +256,7 @@
           {#each moreSections.flatMap((section) => section.items) as item}
             <a
               href={item.href}
-              class="nav-link tap {isActive(item.href) ? 'active' : ''}"
+              class="nav-link tap hidden xl:block {isActive(item.href) ? 'active' : ''}"
               aria-current={isActive(item.href) ? 'page' : undefined}
             >
               {item.label}
