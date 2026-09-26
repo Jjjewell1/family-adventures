@@ -54,30 +54,19 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   const response = await resolve(event);
 
-  const contentType = response.headers.get('content-type') ?? '';
-  const pathname = event.url.pathname;
-
-  // The service worker and the manifest are the two files a returning browser
-  // must always be able to revalidate. sw.js ships with a 4h max-age, so the edge
-  // serves a stale worker for hours after a deploy; that worker precaches the
-  // previous build's chunks and keeps serving the old app, which is
-  // indistinguishable from a deploy that never landed.
-  if (pathname === '/sw.js' || pathname.endsWith('/registerSW.js')) {
-    response.headers.set('cache-control', 'no-cache, no-store, must-revalidate');
-    return response;
-  }
-
-  if (pathname === '/manifest.webmanifest') {
-    response.headers.set('cache-control', 'no-cache, must-revalidate');
-    return response;
-  }
-
   // A document must never be served from cache without revalidation. It
   // references content-hashed assets, so one stale copy pins an entire old build
   // in the browser. Hashed assets keep their immutable year-long cache; only the
   // HTML is volatile. no-cache rather than no-store leaves the service worker able
   // to keep a copy for offline use.
-  if (contentType.includes('text/html')) {
+  //
+  // This hook cannot fix /sw.js or /manifest.webmanifest: those are static files
+  // emitted into the client directory and served by the adapter's static handler
+  // before this ever runs. They arrive with a 4h max-age, which lets the edge hold
+  // a stale service worker after a deploy — that worker precaches the previous
+  // build and keeps serving it. Bypassing the cache for those two paths has to be
+  // a rule on the proxy in front; see the README's PWA section.
+  if ((response.headers.get('content-type') ?? '').includes('text/html')) {
     response.headers.set('cache-control', 'no-cache, must-revalidate');
   }
 

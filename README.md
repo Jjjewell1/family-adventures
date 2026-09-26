@@ -73,6 +73,26 @@ docker run -d -p 3000:3000 \
 - "Add to Home Screen" works on iOS 16.4+; on iOS the Web Share Target appears in the share sheet when the installed app is running Safari share.
 - If icons look stale, regenerate with `node scripts/generate-icons.mjs`.
 
+### Required: bypass the edge cache for the service worker
+
+`sw.js` and `manifest.webmanifest` are static files served by the adapter's static
+handler, so application code cannot set headers on them — they arrive with a 4-hour
+`max-age`. Behind Cloudflare that means the edge holds a **stale service worker**
+for hours after a deploy. The worker precaches the previous build's hashed chunks and
+keeps serving the old app, so a deploy that succeeded looks like one that never
+landed, and repeat visits never pick up new code.
+
+Add a Cloudflare Cache Rule (Rules → Cache Rules → Create rule):
+
+- **Expression:** `(http.request.uri.path eq "/sw.js") or (http.request.uri.path eq "/manifest.webmanifest")`
+- **Action:** Bypass cache
+
+Then purge the cached `/sw.js` once (`Caching → Configuration → Purge Everything`, or
+purge by URL) so the rule takes effect immediately rather than after the current
+4-hour TTL rolls off. HTML documents are already `no-cache, must-revalidate` from
+`src/hooks.server.ts`; hashed assets under `/_app/immutable/` stay immutable for a year
+by design.
+
 ## Project layout
 
 ```
