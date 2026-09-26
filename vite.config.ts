@@ -9,7 +9,12 @@ export default defineConfig({
     sveltekit(),
     SvelteKitPWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      // The generated registerSW.js registers './sw.js' at scope './', which
+      // resolves to /adventures/sw.js on any nested route and 404s. SvelteKit
+      // renders HTML at request time so there is no index.html for the plugin to
+      // inject into anyway; +layout.svelte registers /sw.js explicitly instead.
+      injectRegister: false,
+      scope: '/',
       strategies: 'generateSW',
       devOptions: {
         enabled: true,

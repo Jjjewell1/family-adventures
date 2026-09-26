@@ -11,7 +11,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
 
-    <!-- PWA (manifest + SW are injected at build time by @vite-pwa/sveltekit) -->
+    <!-- SvelteKit renders HTML per request, so the PWA plugin has no index.html to
+         inject into. Both the manifest link and the worker registration are wired
+         up explicitly: the manifest here, the worker in +layout.svelte. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <!--
