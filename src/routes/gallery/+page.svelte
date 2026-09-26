@@ -1,15 +1,23 @@
 <script lang="ts">
   import type { PageData } from './$types';
-  import { goto, pushState } from '$app/navigation';
+  import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import VideoThumbnail from '$lib/components/VideoThumbnail.svelte';
+  import Lightbox from '$lib/components/Lightbox.svelte';
+  import type { LightboxItem } from '$lib/components/Lightbox.svelte';
+  import ActionSheet from '$lib/components/ActionSheet.svelte';
+  import type { ActionSheetAction } from '$lib/components/ActionSheet.svelte';
+  import Icon from '$lib/components/Icon.svelte';
+  import { longPress } from '$lib/actions/longPress';
 
   let { data } = $props();
-  let selectedMedia = $state<any>(null);
-  let lightboxOpen = $state(false);
-  let mediaList = $derived(data.media || []);
+  let mediaList = $derived((data.media || []) as LightboxItem[]);
+  let lightboxIndex = $state(-1);
+  let actionTarget = $state<LightboxItem | null>(null);
   let openCategory = $state<string | null>(null);
   let groupedInitialized = $state(false);
+
+  const lightboxOpen = $derived(lightboxIndex >= 0);
 
   const categories = ['all', 'beach', 'hiking', 'landmark', 'celebration', 'food', 'wildlife', 'group', 'selfie', 'other'];
   const types = ['all', 'photo', 'video'];
@@ -88,56 +96,88 @@
     openCategory = openCategory === cat ? null : cat;
   }
 
-  function openLightbox(media: any) {
-    selectedMedia = media;
-    lightboxOpen = true;
-    // Shallow history entry so the browser back button closes the lightbox
-    pushState('', { lightbox: true });
+  function openLightbox(media: LightboxItem) {
+    const idx = mediaList.indexOf(media);
+    lightboxIndex = idx === -1 ? 0 : idx;
   }
 
   function closeLightbox() {
-    if (!lightboxOpen) return;
-    lightboxOpen = false;
-    selectedMedia = null;
+    lightboxIndex = -1;
     if (page.state.lightbox) history.back();
   }
 
   // Back button pressed while the lightbox is open -> close it instead of leaving
   $effect(() => {
-    if (lightboxOpen && !page.state.lightbox) {
-      lightboxOpen = false;
-      selectedMedia = null;
-    }
+    if (lightboxOpen && !page.state.lightbox) lightboxIndex = -1;
   });
 
-  function navigate(direction: number) {
-    if (!selectedMedia) return;
-    const idx = mediaList.indexOf(selectedMedia);
-    if (idx === -1) return;
-    const newIdx = (idx + direction + mediaList.length) % mediaList.length;
-    selectedMedia = mediaList[newIdx];
+  function downloadMedia(media: LightboxItem) {
+    const url = `/api/media/image?path=${encodeURIComponent(media.file_path)}&download=1`;
+    const ext = media.file_path.split('.').pop() || 'jpg';
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${media.caption || media.ai_caption || 'image'}.${ext}`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   }
 
-  function handleKeydown(e: KeyboardEvent) {
-    if (!lightboxOpen) return;
-    if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowLeft') navigate(-1);
-    if (e.key === 'ArrowRight') navigate(1);
-  }
+  const sheetActions = $derived<ActionSheetAction[]>(
+    actionTarget
+      ? [
+          ...(actionTarget.media_type === 'video'
+            ? []
+            : [
+                {
+                  id: 'download',
+                  label: 'Download image',
+                  icon: 'download' as const,
+                  onSelect: () => downloadMedia(actionTarget as LightboxItem)
+                }
+              ]),
+          ...(actionTarget.adventure_slug
+            ? [
+                {
+                  id: 'adventure',
+                  label: `View ${actionTarget.adventure_title || 'adventure'}`,
+                  icon: 'compass' as const,
+                  onSelect: () => {
+                    window.location.href = `/adventures/${actionTarget?.adventure_slug}`;
+                  }
+                }
+              ]
+            : [])
+        ]
+      : []
+  );
 </script>
 
 <svelte:head>
   <title>Gallery | Family Adventures</title>
 </svelte:head>
 
-{#snippet tile(media: any)}
-  <button
-    class="break-inside-avoid rounded-xl overflow-hidden group cursor-pointer w-full"
+{#snippet tile(media: LightboxItem)}
+  <div
+    class="group relative break-inside-avoid w-full cursor-pointer overflow-hidden rounded-[var(--radius-md)]"
+    role="button"
+    tabindex="0"
+    aria-label="Open {media.caption || media.ai_caption || 'photo'}"
     onclick={() => openLightbox(media)}
+    onkeydown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openLightbox(media);
+      }
+    }}
+    use:longPress={{
+      onLongPress: () => {
+        actionTarget = media;
+      }
+    }}
   >
     <div class="relative">
       {#if media.media_type === 'video'}
-        <VideoThumbnail src={media.file_path} alt={media.caption || 'Video'} class="w-full object-cover transition-transform duration-300 group-hover:scale-105 aspect-square" />
+        <VideoThumbnail src={media.file_path} alt={media.caption || 'Video'} class="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105" />
       {:else}
         <img
           src={`/api/media/image?path=${encodeURIComponent(media.file_path)}&w=480`}
@@ -146,45 +186,37 @@
           loading="lazy"
         />
       {/if}
-      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+      <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
         <div class="absolute bottom-3 left-3 right-3">
           {#if media.caption || media.ai_caption}
-            <p class="text-white text-sm font-medium truncate">{media.caption || media.ai_caption}</p>
+            <p class="truncate text-sm font-medium text-white">{media.caption || media.ai_caption}</p>
           {/if}
           {#if media.adventure_title}
-            <p class="text-white/70 text-xs truncate">{media.adventure_title}</p>
-          {/if}
-          {#if media.ai_tags}
-            {@const tags = JSON.parse(media.ai_tags)}
-            {#if tags.length > 0}
-              <div class="flex flex-wrap gap-1 mt-1">
-                {#each tags.slice(0, 3) as tag}
-                  <span class="px-1.5 py-0.5 text-[9px] rounded-full bg-white/20 text-white/70">{tag}</span>
-                {/each}
-              </div>
-            {/if}
+            <p class="truncate text-xs text-white/70">{media.adventure_title}</p>
           {/if}
           {#if media.tagged_people}
-            <p class="text-white/60 text-[10px] truncate mt-0.5">{media.tagged_people}</p>
+            <p class="mt-0.5 truncate text-[10px] text-white/60">{media.tagged_people}</p>
           {/if}
         </div>
       </div>
+      <!-- Sibling, not a child: a nested interactive control inside the tile
+           button was invalid HTML and its click was cancelled outright, so the
+           old download affordance never actually downloaded anything. -->
       {#if media.media_type !== 'video'}
-        <a
-          href="/api/media/image?path=${encodeURIComponent(media.file_path)}"
-          download="${media.caption || 'image'}.${media.file_path.split('.').pop() || 'jpg'}"
-          class="absolute top-3 right-3 rounded-full bg-white/20 p-2 hover:bg-white/30 transition-colors text-white/70 text-sm"
-          aria-label="Download image"
-          style="pointer-events: auto;"
-          onclick={(e) => e.preventDefault()}
+        <button
+          type="button"
+          onclick={(e) => {
+            e.stopPropagation();
+            downloadMedia(media);
+          }}
+          class="tap pressable absolute right-2 top-2 flex size-9 items-center justify-center rounded-full bg-black/45 text-white/90 backdrop-blur-sm hover:bg-black/65 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+          aria-label="Download {media.caption || 'image'}"
         >
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 8.25a2.25 2.25 0 00-2.25-2.25H4.25a2.25 2.25 0 00-2.25 2.25v8.25a2.25 2.25 0 002.25 2.25h14.09l-3.11 3.11a2.25 2.25 0 01-1.24 1.95zM9.75 18h5.25m0 0h-5.25m0 0l-1.5-5.25m1.5 5.25l1.5-5.25m2.25-4.5h1.95a2.25 2.25 0 110 4.5h-1.95a2.25 2.25 0 01-2.25-2.25z" />
-          </svg>
-        </a>
+          <Icon name="download" size={18} />
+        </button>
       {/if}
     </div>
-  </button>
+  </div>
 {/snippet}
 
 <div class="space-y-6">
@@ -287,106 +319,17 @@
   {/if}
 </div>
 
-<!-- Lightbox -->
-<svelte:window onkeydown={handleKeydown} />
-{#if lightboxOpen && selectedMedia}
-  <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
-    onclick={closeLightbox}
-    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') closeLightbox(); }}
-    role="dialog"
-    tabindex="-1"
-  >
-    <button
-      class="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-      onclick={closeLightbox}
-      aria-label="Close lightbox"
-    >
-      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </button>
+<Lightbox
+  items={mediaList}
+  bind:index={lightboxIndex}
+  open={lightboxOpen}
+  onclose={closeLightbox}
+/>
 
-    {#if mediaList.length > 1}
-      <button
-        class="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-        onclick={(e) => { e.stopPropagation(); navigate(-1); }}
-        title="Previous"
-        aria-label="Previous image"
-      >
-        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-    {/if}
-
-    <div class="max-w-4xl max-h-[90vh] mx-4" role="presentation" onclick={(e) => e.stopPropagation()}>
-      {#if selectedMedia.media_type === 'video'}
-        <video
-          controls
-          class="max-w-full max-h-[80vh] rounded-xl"
-          src={selectedMedia.file_path}
-        >
-          <track kind="captions" />
-          Your browser does not support the video tag.
-        </video>
-      {:else}
-        <img
-          src={selectedMedia.file_path}
-          alt={selectedMedia.caption || 'Gallery photo'}
-          class="max-w-full max-h-[80vh] rounded-xl object-contain"
-        />
-      {/if}
-
-      {#if selectedMedia.caption || selectedMedia.ai_caption}
-        <div class="mt-4 text-center">
-          <p class="text-white text-lg">{selectedMedia.caption || selectedMedia.ai_caption}</p>
-          {#if selectedMedia.adventure_title}
-            <p class="text-white/60 text-sm mt-1">
-              from <a href="/adventures/{selectedMedia.adventure_slug}" class="text-forest-300 hover:text-forest-200">{selectedMedia.adventure_title}</a>
-            </p>
-          {/if}
-          {#if selectedMedia.ai_tags}
-            {@const tags = JSON.parse(selectedMedia.ai_tags)}
-            {#if tags.length > 0}
-              <div class="flex flex-wrap justify-center gap-1.5 mt-3">
-                {#each tags as tag}
-                  <span class="px-2 py-0.5 text-xs rounded-full bg-white/10 text-white/80">{tag}</span>
-                {/each}
-              </div>
-            {/if}
-          {/if}
-          <button
-            class="mt-2 rounded bg-forest-500 text-white px-4 py-2 text-sm hover:bg-forest-400 transition-colors"
-            onclick={(e) => {
-              e.stopPropagation();
-              const url = `/api/media/image?path=${encodeURIComponent(selectedMedia.file_path)}`;
-              const link = document.createElement('a');
-              link.href = url;
-              const ext = selectedMedia.file_path.split('.').pop() || 'jpg';
-              link.download = `${selectedMedia.caption || 'image'}.${ext}`;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            }}
-          >
-            Download image
-          </button>
-        </div>
-      {/if}
-    </div>
-
-    {#if mediaList.length > 1}
-      <button
-        class="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-        onclick={(e) => { e.stopPropagation(); navigate(1); }}
-        title="Next"
-        aria-label="Next image"
-      >
-        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-    {/if}
-  </div>
-{/if}
+<ActionSheet
+  open={actionTarget !== null}
+  title={actionTarget?.caption || actionTarget?.ai_caption || undefined}
+  message="Photo options"
+  actions={sheetActions}
+  onclose={() => (actionTarget = null)}
+/>
