@@ -23,9 +23,13 @@ function mimeFor(path: string): string {
 // Serve an uploaded photo, optionally resized to a max width on demand, with a
 // long immutable cache. Non-photo files (video/audio) fall back to the original.
 // Usage: /api/media/image?path=/uploads/123-abc.jpg&w=480
+//        /api/media/image?path=/uploads/123-abc.jpg&download=1
+// `download=1` exists because the browser `download` attribute is unreliable on
+// iOS Safari; the disposition header below is what makes saving work on a phone.
 export const GET: RequestHandler = async ({ url }) => {
   const filePath = url.searchParams.get('path');
   const wParam = url.searchParams.get('w');
+  const wantsDownload = url.searchParams.get('download') === '1';
 
   if (!filePath) return new Response('Missing path', { status: 400 });
 
@@ -37,7 +41,8 @@ export const GET: RequestHandler = async ({ url }) => {
 
   let fileToServe = absPath;
 
-  if (wParam) {
+  // A download must be the original bytes, never a cached resize.
+  if (wParam && !wantsDownload) {
     let width = parseInt(wParam, 10);
     if (!Number.isFinite(width) || width < 1) width = 480;
     if (width > 2000) width = 2000;
@@ -47,10 +52,19 @@ export const GET: RequestHandler = async ({ url }) => {
   }
 
   const data = readFileSync(fileToServe);
-  return new Response(data, {
-    headers: {
-      'Content-Type': mimeFor(fileToServe),
-      'Cache-Control': 'public, max-age=31536000, immutable'
-    }
-  });
+  const headers: Record<string, string> = {
+    'Content-Type': mimeFor(fileToServe),
+    'Cache-Control': wantsDownload
+      ? 'no-store'
+      : 'public, max-age=31536000, immutable'
+  };
+
+  if (wantsDownload) {
+    // Filenames come from the stored upload path, so only the basename survives
+    // and anything quote- or newline-like is dropped rather than escaped.
+    const base = (absPath.split(/[\\/]/).pop() ?? 'image').replace(/[^\w.\-]+/g, '_');
+    headers['Content-Disposition'] = `attachment; filename="${base}"`;
+  }
+
+  return new Response(data, { headers });
 };
