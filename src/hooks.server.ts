@@ -52,5 +52,17 @@ export const handle: Handle = async ({ event, resolve }) => {
     return new Response('Not found', { status: 404 });
   }
 
-  return resolve(event);
+  const response = await resolve(event);
+
+  // A document must never be served from cache without revalidation. It
+  // references content-hashed assets, so one stale copy pins an entire old build
+  // in the browser — which reads as "the deploy never landed" even when it did.
+  // Hashed assets keep their immutable year-long cache; only the HTML is volatile.
+  // no-cache rather than no-store so the service worker can still keep a copy
+  // for offline use.
+  if (response.headers.get('content-type')?.includes('text/html')) {
+    response.headers.set('cache-control', 'no-cache, must-revalidate');
+  }
+
+  return response;
 };
