@@ -54,13 +54,30 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   const response = await resolve(event);
 
+  const contentType = response.headers.get('content-type') ?? '';
+  const pathname = event.url.pathname;
+
+  // The service worker and the manifest are the two files a returning browser
+  // must always be able to revalidate. sw.js ships with a 4h max-age, so the edge
+  // serves a stale worker for hours after a deploy; that worker precaches the
+  // previous build's chunks and keeps serving the old app, which is
+  // indistinguishable from a deploy that never landed.
+  if (pathname === '/sw.js' || pathname.endsWith('/registerSW.js')) {
+    response.headers.set('cache-control', 'no-cache, no-store, must-revalidate');
+    return response;
+  }
+
+  if (pathname === '/manifest.webmanifest') {
+    response.headers.set('cache-control', 'no-cache, must-revalidate');
+    return response;
+  }
+
   // A document must never be served from cache without revalidation. It
   // references content-hashed assets, so one stale copy pins an entire old build
-  // in the browser — which reads as "the deploy never landed" even when it did.
-  // Hashed assets keep their immutable year-long cache; only the HTML is volatile.
-  // no-cache rather than no-store so the service worker can still keep a copy
-  // for offline use.
-  if (response.headers.get('content-type')?.includes('text/html')) {
+  // in the browser. Hashed assets keep their immutable year-long cache; only the
+  // HTML is volatile. no-cache rather than no-store leaves the service worker able
+  // to keep a copy for offline use.
+  if (contentType.includes('text/html')) {
     response.headers.set('cache-control', 'no-cache, must-revalidate');
   }
 
