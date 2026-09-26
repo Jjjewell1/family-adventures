@@ -84,7 +84,13 @@
     startX = event.clientX;
     startY = event.clientY;
     startT = Date.now();
-    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    // Capture can throw if the pointer was already released, and an exception
+    // here would abort the gesture before it ever moves.
+    try {
+      (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    } catch {
+      /* the drag still works without capture, it just stops at the element edge */
+    }
   }
 
   function onMove(event: PointerEvent) {

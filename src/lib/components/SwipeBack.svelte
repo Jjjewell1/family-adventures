@@ -41,7 +41,13 @@
     startX = event.clientX;
     startY = event.clientY;
     pointerId = event.pointerId;
-    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    // See the note in Lightbox: capture can throw on an already-released
+    // pointer, and that must not abort the gesture.
+    try {
+      (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    } catch {
+      /* the drag still works without capture */
+    }
   }
 
   function onPointerMove(event: PointerEvent) {
