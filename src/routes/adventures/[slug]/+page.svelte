@@ -4,8 +4,94 @@
   import { page } from '$app/state';
   import { formatDate, timeAgo } from '$lib/shared/utils';
   import { onMount } from 'svelte';
-  
+  import Lightbox from '$lib/components/Lightbox.svelte';
+  import type { LightboxItem } from '$lib/components/Lightbox.svelte';
+  import ActionSheet from '$lib/components/ActionSheet.svelte';
+  import type { ActionSheetAction } from '$lib/components/ActionSheet.svelte';
+  import Icon from '$lib/components/Icon.svelte';
+  import { longPress } from '$lib/actions/longPress';
+
   let { data } = $props();
+  let mediaIndex = $state(-1);
+  let menuTarget = $state<LightboxItem | null>(null);
+  const lightboxOpen = $derived(mediaIndex >= 0);
+  const isOwner = $derived(!!data.user && data.user.id === data.adventure.author_id);
+
+  const adventureMedia = $derived((data.adventure.media ?? []) as LightboxItem[]);
+
+  function openMedia(item: LightboxItem) {
+    const idx = adventureMedia.indexOf(item);
+    mediaIndex = idx === -1 ? 0 : idx;
+  }
+
+  function closeMedia() {
+    mediaIndex = -1;
+    if (page.state.lightbox) history.back();
+  }
+
+  // Hardware back while the lightbox is open closes it instead of leaving.
+  $effect(() => {
+    if (lightboxOpen && !page.state.lightbox) mediaIndex = -1;
+  });
+
+  function downloadMedia(item: LightboxItem) {
+    const ext = item.file_path.split('.').pop() || 'jpg';
+    const link = document.createElement('a');
+    link.href = `/api/media/image?path=${encodeURIComponent(item.file_path)}&download=1`;
+    link.download = `${item.caption || item.ai_caption || 'image'}.${ext}`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  // The per-photo controls are hover-revealed, which makes them unreachable on a
+  // touch device. They live here instead, so the same actions work by long press
+  // on a phone and by right-click on a desktop.
+  const mediaSheetActions = $derived.by<ActionSheetAction[]>(() => {
+    const target = menuTarget;
+    if (!target) return [];
+
+    const actions: ActionSheetAction[] = [];
+
+    if (target.media_type !== 'video') {
+      actions.push({
+        id: 'download',
+        label: 'Download image',
+        icon: 'download',
+        onSelect: () => downloadMedia(target)
+      });
+    }
+
+    if (isOwner) {
+      actions.push({
+        id: 'tag',
+        label: 'Tag people',
+        icon: 'people',
+        onSelect: () => openTagging(String(target.id))
+      });
+
+      if (!target.ai_caption && !(target.id && aiAnalyzing[String(target.id)])) {
+        actions.push({
+          id: 'analyze',
+          label: 'AI analyze this photo',
+          icon: 'sparkles',
+          onSelect: async () => {
+            await analyzeMedia(String(target.id), target.file_path);
+          }
+        });
+      }
+
+      actions.push({
+        id: 'hero',
+        label: target.hero_image ? 'Remove from homepage hero' : 'Feature on homepage hero',
+        icon: 'star',
+        onSelect: () => toggleHeroImage(String(target.id), !!target.hero_image)
+      });
+    }
+
+    return actions;
+  });
+
   let showShareDialog = $state(false);
   let shareLink = $state('');
   let sharePasscode = $state('');
@@ -853,7 +939,7 @@
       <div class="max-w-6xl mx-auto">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
         <div class="flex items-center gap-3">
-          <span class="text-2xl">📸</span>
+          <Icon name="camera" size={22} class="shrink-0 text-[var(--accent-action)]" />
           <div>
             <h2 class="text-lg font-semibold text-ink-600 dark:text-cream-100">Photos & Videos</h2>
             <p class="text-xs text-ink-500 dark:text-cream-300">Moments captured along the way</p>
@@ -878,13 +964,26 @@
             </button>
           {/if}
           {#if data.user && data.user.id === data.adventure.author_id}
-            <p class="text-xs text-ink-500 dark:text-cream-300">Hover photos for controls</p>
+            <p class="text-xs text-ink-500 dark:text-cream-300 hidden sm:block">Hover, long-press or right-click a photo</p>
           {/if}
         </div>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
         {#each data.adventure.media as media}
-          <div class="relative aspect-square rounded-xl overflow-hidden group">
+          <div
+            class="group relative aspect-square cursor-pointer overflow-hidden rounded-[var(--radius-md)]"
+            role="button"
+            tabindex="0"
+            aria-label="Open {media.caption || media.ai_caption || 'photo'}"
+            onclick={() => openMedia(media)}
+            onkeydown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openMedia(media);
+              }
+            }}
+            use:longPress={{ onLongPress: () => (menuTarget = media) }}
+          >
             {#if media.media_type === 'video'}
               <VideoThumbnail src={media.file_path} alt={media.caption || 'Video'} class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
             {:else}
@@ -916,7 +1015,13 @@
               </div>
             {/if}
             {#if data.user && data.user.id === data.adventure.author_id}
-              <div class="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <!-- The whole tile opens the lightbox, so the hover controls have to
+                   stop the click or every tap on them also opens the viewer. -->
+              <div
+                class="absolute top-2 right-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100"
+                onclick={(e) => e.stopPropagation()}
+                onkeydown={(e) => e.stopPropagation()}
+              >
                 <button
                   class="p-1.5 rounded-full backdrop-blur-sm transition-all bg-black/30 text-white/60 hover:bg-forest-500/80 hover:text-white"
                   onclick={() => openTagging(media.id)}
@@ -1834,3 +1939,13 @@
     </div>
   </div>
 {/if}
+
+<Lightbox items={adventureMedia} bind:index={mediaIndex} open={lightboxOpen} onclose={closeMedia} />
+
+<ActionSheet
+  open={menuTarget !== null}
+  title={menuTarget?.caption || menuTarget?.ai_caption || undefined}
+  message="Photo options"
+  actions={mediaSheetActions}
+  onclose={() => (menuTarget = null)}
+/>
