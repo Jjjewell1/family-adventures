@@ -2,11 +2,16 @@
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
   import { formatDate } from '$lib/shared/utils';
-  
+  import EmptyState from '$lib/components/EmptyState.svelte';
+
   let { data } = $props();
-  let mapContainer: HTMLDivElement;
+  let mapContainer: HTMLDivElement | undefined = $state();
   let map: any;
   let L: any;
+
+  // The load already hands back only rows that have coordinates, so this is the
+  // exact number of pins the map is about to draw.
+  const pinnedCount = $derived(data.adventures.length + data.bucketList.length);
 
   function escapeHtml(str: string): string {
     if (!str) return '';
@@ -18,7 +23,11 @@
 
     // Dynamic import for Leaflet
     L = await import('leaflet');
-    
+
+    // The empty state replaces the map container entirely, so with nothing pinned
+    // there is no element to attach to and Leaflet would throw on undefined.
+    if (!mapContainer) return;
+
     // Initialize map centered on USA
     map = L.map(mapContainer, {
       maxBounds: [[-5, -170], [75, -50]],
@@ -141,6 +150,16 @@
   </div>
 
   <!-- Map Container -->
+  {#if pinnedCount === 0}
+    <EmptyState
+      icon="map"
+      signedIn={!!data.user}
+      title="No places pinned yet"
+      body="Give an adventure or bucket list item a location and it drops a pin here, so you can see where your family's days have happened."
+      actionHref={data.user ? '/adventures' : undefined}
+      actionLabel={data.user ? 'Go to adventures' : undefined}
+    />
+  {:else}
   <div class="card-flat overflow-hidden animate-in">
     <div class="flex items-center gap-4 px-4 py-2 border-b border-white/40 dark:border-white/10 text-xs animate-in">
       <span class="flex items-center gap-1.5">
@@ -154,6 +173,7 @@
     </div>
     <div bind:this={mapContainer} class="h-[500px] md:h-[600px]"></div>
   </div>
+  {/if}
 
   <!-- Adventures without coordinates -->
   {#if data.adventuresWithoutCoords.length > 0}

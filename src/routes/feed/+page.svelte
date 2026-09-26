@@ -1,5 +1,6 @@
 <script lang="ts">
   import { timeAgo } from '$lib/shared/utils';
+  import EmptyState from '$lib/components/EmptyState.svelte';
   let { data } = $props();
   let items = $state(data.items);
   let loading = $state(false);
@@ -81,10 +82,14 @@
   </div>
 
   {#if items.length === 0}
-    <div class="card-flat p-12 text-center animate-in">
-      <div class="text-4xl mb-4">🧭</div>
-      <p class="text-ink-500">No activity yet. Start an adventure!</p>
-    </div>
+    <EmptyState
+      icon="compass"
+      signedIn={true}
+      title="No activity yet"
+      body="Photos, comments and favourites from the family show up here as they happen."
+      actionHref="/adventures"
+      actionLabel="Go to adventures"
+    />
   {:else}
     <div class="space-y-3">
       {#each items as item (item.id)}
