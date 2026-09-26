@@ -17,7 +17,12 @@ export interface LongPressOptions {
   delay?: number;
   /** Movement in px that cancels the press. */
   moveTolerance?: number;
-  onLongPress: (event: PointerEvent) => void;
+  /**
+   * Open the menu on right-click as well as long press. Off means the browser's
+   * own context menu is left alone, which keeps "Save image as…" available.
+   */
+  rightClick?: boolean;
+  onLongPress: (event: PointerEvent | MouseEvent) => void;
 }
 
 export function longPress(node: HTMLElement, options: LongPressOptions) {
@@ -25,11 +30,6 @@ export function longPress(node: HTMLElement, options: LongPressOptions) {
   let timer: ReturnType<typeof setTimeout> | null = null;
   let origin = { x: 0, y: 0 };
   let fired = false;
-  // contextmenu carries a MouseEvent, which has no pointerType, so the last
-  // pointerdown is the only way to know whether a right-click was preceded by
-  // touch. Without this, right-click on desktop opens the sheet instead of the
-  // browser menu.
-  let lastPointerType = 'mouse';
 
   function clear() {
     if (timer) {
@@ -38,10 +38,19 @@ export function longPress(node: HTMLElement, options: LongPressOptions) {
     }
   }
 
+  function fire(event: PointerEvent | MouseEvent) {
+    fired = true;
+    try {
+      navigator.vibrate?.(12);
+    } catch {
+      /* vibration is a nicety, never a failure path */
+    }
+    opts.onLongPress(event);
+  }
+
   function onDown(event: PointerEvent) {
-    lastPointerType = event.pointerType;
-    // Mouse users get the context menu instead; a held left-click on desktop
-    // would otherwise fire on every text selection drag.
+    // Mouse is handled by contextmenu instead. Holding the left button down to
+    // select text or drag would otherwise fire the menu.
     if (event.pointerType === 'mouse') return;
 
     fired = false;
@@ -49,13 +58,7 @@ export function longPress(node: HTMLElement, options: LongPressOptions) {
     clear();
     timer = setTimeout(() => {
       timer = null;
-      fired = true;
-      try {
-        navigator.vibrate?.(12);
-      } catch {
-        /* vibration is a nicety, never a failure path */
-      }
-      opts.onLongPress(event);
+      fire(event);
     }, opts.delay ?? 500);
   }
 
@@ -77,11 +80,15 @@ export function longPress(node: HTMLElement, options: LongPressOptions) {
     event.stopPropagation();
   }
 
-  // Suppress the native callout so a long press does not also raise the iOS
-  // text-selection UI on top of the action sheet.
-  const onContextMenu = (event: Event) => {
-    if (lastPointerType !== 'mouse') event.preventDefault();
-  };
+  function onContextMenu(event: MouseEvent) {
+    if (opts.rightClick === false) return;
+    // Only the unmodified primary gesture; ctrl/cmd-click on macOS and
+    // middle-click keep whatever the platform would normally do.
+    if (event.ctrlKey || event.shiftKey || event.altKey || event.button !== 2) return;
+    clear();
+    event.preventDefault();
+    fire(event);
+  }
 
   node.addEventListener('pointerdown', onDown);
   node.addEventListener('pointermove', onMove);

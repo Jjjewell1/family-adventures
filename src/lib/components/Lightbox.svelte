@@ -16,12 +16,14 @@
   import VideoThumbnail from './VideoThumbnail.svelte';
 
   export type LightboxItem = {
-    id?: number;
+    id?: number | string;
     file_path: string;
     media_type?: string;
     caption?: string | null;
     ai_caption?: string | null;
     ai_tags?: string | null;
+    hero_image?: boolean;
+    category?: string | null;
     adventure_title?: string | null;
     adventure_slug?: string | null;
     tagged_people?: string | null;
