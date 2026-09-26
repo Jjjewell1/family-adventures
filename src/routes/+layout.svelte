@@ -99,6 +99,25 @@
   onMount(() => {
     theme.start();
 
+    // Service worker registration, explicit because SvelteKit has no static
+    // index.html for the PWA plugin to inject one into. An updated worker takes
+    // over via skipWaiting, but the page it takes over from is still running the
+    // previous build's JS, so reload once on controllerchange — without that the
+    // new version is installed and never actually shown.
+    if ('serviceWorker' in navigator) {
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloaded) return;
+        reloaded = true;
+        window.location.reload();
+      });
+      navigator.serviceWorker
+        .register('/sw.js', { scope: '/' })
+        .catch(() => {
+          /* an unavailable worker only costs offline support, not the app */
+        });
+    }
+
     let frame = 0;
     const onScroll = () => {
       if (frame) return;
