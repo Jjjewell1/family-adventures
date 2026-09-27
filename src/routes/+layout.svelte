@@ -9,6 +9,8 @@
   import SwipeBack from '$lib/components/SwipeBack.svelte';
   import Icon from '$lib/components/Icon.svelte';
   import type { IconName } from '$lib/components/Icon.svelte';
+  import GuidedTour from '$lib/components/GuidedTour.svelte';
+  import { tourSteps, readTourSeen, markTourSeen } from '$lib/tour';
   import { theme } from '$lib/theme.svelte';
   import { env } from '$env/dynamic/public';
 
@@ -19,6 +21,30 @@
   let oneSignalReady = $state(false);
   let isSubscribed = $state(false);
   let pageReady = $state(true);
+  let tourOpen = $state(false);
+  // Null until the client reads storage, so the prompt never flashes for someone
+  // who already finished the tour.
+  let tourSeen = $state<boolean | null>(null);
+  let tourPromptDismissed = $state(false);
+
+  const showTourPrompt = $derived(
+    !data.user && tourSeen === false && !tourPromptDismissed && !tourOpen
+  );
+
+  onMount(() => {
+    tourSeen = readTourSeen();
+  });
+
+  function startTour() {
+    tourPromptDismissed = true;
+    tourOpen = true;
+  }
+
+  function endTour() {
+    tourOpen = false;
+    tourSeen = true;
+    markTourSeen();
+  }
 
   const currentPath = $derived($page.url.pathname);
   const isDark = $derived(theme.resolved === 'dark');
@@ -241,7 +267,12 @@
           </button>
         {/if}
 
-        <a href="/" class="flex shrink-0 items-center lg:hidden" aria-label="Family Adventures home">
+        <a
+          href="/"
+          data-tour="brand"
+          class="flex shrink-0 items-center lg:hidden"
+          aria-label="Family Adventures home"
+        >
           <img src={data.site?.logoUrl || '/logo.png'} alt="" class="size-7 object-contain" />
         </a>
 
@@ -251,7 +282,7 @@
           {barTitle}
         </span>
 
-        <a href="/" class="hidden shrink-0 items-center gap-2.5 lg:flex">
+        <a href="/" data-tour="brand" class="hidden shrink-0 items-center gap-2.5 lg:flex">
           <img
             src={data.site?.logoUrl || '/logo.png'}
             alt="Family Adventures"
@@ -482,4 +513,41 @@
 
   <InstallBanner />
   <Chatbot />
+
+  {#if showTourPrompt}
+    <div class="pointer-events-none fixed inset-x-0 bottom-[calc(var(--tab-bar-height)+env(safe-area-inset-bottom)+0.75rem)] z-[var(--z-raised)] mx-auto w-[min(30rem,calc(100vw-1.5rem))] px-3 lg:pb-4">
+      <div class="card-flat pointer-events-auto flex items-center gap-3 p-4 shadow-lg">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cream-100 dark:bg-forest-900/50">
+          <Icon name="compass" size={20} class="text-[var(--accent-action)]" />
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-semibold text-ink-700 dark:text-cream-100">New here?</p>
+          <p class="text-xs text-ink-500 dark:text-cream-300">Take a 30-second tour of the family album.</p>
+        </div>
+        <div class="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            class="btn-secondary px-3 py-1.5 text-xs"
+            onclick={() => (tourPromptDismissed = true)}
+          >
+            Not now
+          </button>
+          <button type="button" class="btn-primary px-3 py-1.5 text-xs" onclick={startTour}>Take a tour</button>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  {#if !data.user && tourSeen === true}
+    <button
+      type="button"
+      class="tap pressable fixed bottom-[calc(var(--tab-bar-height)+env(safe-area-inset-bottom)+0.75rem)] right-3 z-[var(--z-raised)] flex items-center gap-1.5 rounded-full bg-[var(--accent-action)] px-3 py-2 text-xs font-semibold text-white shadow-lg lg:bottom-4"
+      onclick={startTour}
+    >
+      <Icon name="compass" size={15} />
+      Take a tour
+    </button>
+  {/if}
+
+  <GuidedTour open={tourOpen} steps={tourSteps} ondone={endTour} />
 </div>
