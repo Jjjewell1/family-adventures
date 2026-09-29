@@ -10,6 +10,8 @@
   let editName = $state('');
   let saving = $state(false);
   let error = $state('');
+  let thumbnailPickerOpen = $state(false);
+  let thumbnailSaving = $state(false);
   let menuMedia = $state<any>(null);
   let longPressFired = $state(false);
   let pressStart = $state({ x: 0, y: 0 });
@@ -100,6 +102,7 @@
 
   async function setAvatar(m: any) {
     if (!m.file_path) return;
+    thumbnailSaving = true;
     try {
       const res = await fetch(`/api/people/${data.person.id}`, {
         method: 'PATCH',
@@ -108,8 +111,10 @@
       });
       if (res.ok) {
         data.person.avatar_file_path = m.file_path;
+        thumbnailPickerOpen = false;
       }
     } catch {}
+    thumbnailSaving = false;
   }
 
   function startHold(e: PointerEvent, m: any) {
@@ -186,6 +191,12 @@
         </p>
         {#if data.user}
           <div class="flex items-center gap-2 mt-3">
+            <button class="btn-primary text-xs" onclick={() => thumbnailPickerOpen = true}>
+              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Choose thumbnail
+            </button>
             <button class="btn-secondary text-xs" onclick={() => { editing = true; editName = data.person.name; }}>
               <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -281,6 +292,41 @@
     </div>
   {/if}
 </div>
+
+{#if thumbnailPickerOpen && data.user}
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4" role="presentation" tabindex="-1" onclick={() => !thumbnailSaving && (thumbnailPickerOpen = false)} onkeydown={(e) => { if (e.key === 'Escape' && !thumbnailSaving) thumbnailPickerOpen = false; }}>
+    <div class="card w-full max-w-2xl max-h-[85vh] overflow-y-auto p-5" role="dialog" aria-modal="true" aria-label="Choose person thumbnail" tabindex="0" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
+      <div class="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <h2 class="text-lg font-display font-semibold text-ink-800 dark:text-cream-100">Choose thumbnail</h2>
+          <p class="text-sm text-ink-500 mt-1">Pick a photo from {data.person?.name}'s tagged memories.</p>
+        </div>
+        <button class="h-9 w-9 rounded-full bg-ink-100 dark:bg-ink-800 flex items-center justify-center" onclick={() => thumbnailPickerOpen = false} disabled={thumbnailSaving} aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      {#if data.photos?.length}
+        <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+          {#each data.photos as media}
+            <button
+              class="relative aspect-square overflow-hidden rounded-xl ring-2 transition hover:ring-forest-400 disabled:opacity-60 {isAvatar(media) ? 'ring-forest-500' : 'ring-transparent'}"
+              onclick={() => setAvatar(media)}
+              disabled={thumbnailSaving}
+              aria-label="Use this photo as thumbnail"
+            >
+              <img src={`/api/media/image?path=${encodeURIComponent(media.file_path)}&w=480`} alt={media.caption || 'Choose this photo'} class="h-full w-full object-cover" loading="lazy" />
+              {#if isAvatar(media)}
+                <span class="absolute bottom-1 left-1 right-1 rounded-md bg-forest-600/90 px-1 py-1 text-[10px] font-medium text-white">Current</span>
+              {/if}
+            </button>
+          {/each}
+        </div>
+      {:else}
+        <p class="py-8 text-center text-sm text-ink-500">Tag a photo with this person first.</p>
+      {/if}
+    </div>
+  </div>
+{/if}
 
 <!-- Context menu for setting avatar -->
 {#if menuMedia && data.user}
