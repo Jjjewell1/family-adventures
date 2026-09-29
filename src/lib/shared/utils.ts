@@ -26,7 +26,7 @@ export function detectMediaType(filename: string): 'photo' | 'video' | 'audio' {
 }
 
 export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+  const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(dateString) ? `${dateString}T12:00:00` : dateString);
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -35,7 +35,7 @@ export function formatDate(dateString: string): string {
 }
 
 export function formatDateShort(dateString: string): string {
-  const date = new Date(dateString);
+  const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(dateString) ? `${dateString}T12:00:00` : dateString);
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric'
@@ -43,7 +43,7 @@ export function formatDateShort(dateString: string): string {
 }
 
 export function timeAgo(dateString: string): string {
-  const date = new Date(dateString);
+  const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(dateString) ? `${dateString}T12:00:00` : dateString);
   const now = new Date();
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
@@ -58,7 +58,7 @@ export function getAdventuresByMonth(adventures: { start_date: string | null }[]
   const counts = new Map<string, number>();
   adventures.forEach(a => {
     if (a.start_date) {
-      const date = new Date(a.start_date);
+      const date = new Date(`${a.start_date.slice(0, 10)}T12:00:00`);
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       counts.set(key, (counts.get(key) || 0) + 1);
     }

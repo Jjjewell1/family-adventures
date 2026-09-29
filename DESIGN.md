@@ -422,3 +422,14 @@ Rules:
 | Local images are served unoptimized from disk | `data/` | Self-hosted single-file SQLite deployment; no CDN budget | Revisit if payload becomes the bottleneck |
 | Emoji remain as **content** in feed reactions and star ratings | `feed/+page.svelte`, `adventures/[slug]/+page.svelte` | Hearts and stars are user-authored reaction values, not UI iconography, so they are legitimately emoji. The structural cases (adventure type / mood pickers, bucket-list categories, activity-type icons) were migrated to `Icon.svelte`. | Migrate the ratings to the `star` icon if the family ever wants a non-emoji visual voice |
 | `text-ink-300` / `text-ink-400` still used for borders and decoration | various | Legal per §2.2; only *text* usage was migrated to `ink-500` | — |
+
+
+## 9. Album dashboard and library
+The home dashboard uses an editorial split hero: a paper introduction and a featured
+family photograph, followed by a compact album summary, recent journals, and clear
+links to planning and discovery. No automatic slideshows or delayed content reveals.
+Use existing surface, typography, radius and spacing tokens throughout.
+Dashboard layout tokens: --album-hero-min: 360px; --album-photo-min: 280px;
+--album-copy-max: 38rem; --album-grid-min: 240px. Photo aspect ratio: 4 / 3.
+Library tools use a paper panel, labelled search and sorting, wrapping filters,
+44px targets and a live result count. Empty results always offer a reset.

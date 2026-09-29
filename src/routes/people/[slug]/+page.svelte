@@ -224,6 +224,8 @@
     <div class="columns-2 md:columns-3 lg:columns-4 gap-3 space-y-3">
       {#each data.photos as media}
         <div class="break-inside-avoid rounded-xl overflow-hidden group relative"
+          role="group"
+          aria-label="Photo actions"
           onpointerdown={(e) => startHold(e, media)}
           onpointerup={stopHold}
           onpointercancel={stopHold}
@@ -282,9 +284,10 @@
 
 <!-- Context menu for setting avatar -->
 {#if menuMedia && data.user}
-  <div class="fixed inset-0 z-50" onclick={() => menuMedia = null} role="button" tabindex="-1" aria-label="Close">
+  <button type="button" class="fixed inset-0 z-50 bg-black/40" onclick={() => menuMedia = null} aria-label="Close photo actions"></button>
+  <div class="fixed inset-0 z-50 pointer-events-none">
     <div class="fixed bottom-0 left-0 right-0 mx-4 md:mx-auto md:max-w-sm mb-4 md:mb-0 md:bottom-4 md:left-1/2 md:-translate-x-1/2 animate-slide-up">
-      <div class="card p-4 rounded-t-2xl md:rounded-xl shadow-[0_-20px_40px_rgba(0,0,0,0.3)]">
+      <div class="card pointer-events-auto p-4 rounded-t-2xl md:rounded-xl shadow-[0_-20px_40px_rgba(0,0,0,0.3)]" role="dialog" aria-label="Photo actions">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-sm font-medium text-ink-600 dark:text-cream-200">Photo actions</h3>
           <button class="h-8 w-8 rounded-full bg-ink-100 dark:bg-ink-800 flex items-center justify-center" onclick={() => menuMedia = null} aria-label="Close">

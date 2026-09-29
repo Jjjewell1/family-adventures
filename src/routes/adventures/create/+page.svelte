@@ -178,6 +178,11 @@
   }
 
   async function handleSubmit(publish: boolean = false) {
+    if (submitting) return;
+    if (startDate && endDate && endDate < startDate) {
+      error = 'The end date must be on or after the start date.';
+      return;
+    }
     if (!title.trim()) {
       error = 'Please enter a title';
       return;
@@ -212,7 +217,7 @@
         goto(`/adventures/${result.slug}`);
       } else {
         const err = await response.json();
-        error = err.message || 'Failed to create adventure';
+        error = err.error || err.message || 'Failed to create adventure';
       }
     } catch (e) {
       error = 'An error occurred. Please try again.';
@@ -235,11 +240,12 @@
 
   <div class="card p-6 md:p-8 animate-in">
     <h1 class="text-2xl md:text-3xl font-display font-semibold text-ink-800 dark:text-cream-100 mb-6">
-      New Adventure
+      Start a new chapter
     </h1>
+    <p class="mb-6 text-[var(--text-secondary)]">Give your adventure a name. Add dates and details if you have them, then save a draft or publish. You can add photos on the next screen.</p>
 
     {#if error}
-      <div class="mb-6 p-3 rounded-lg bg-terra-50 border border-terra-200 text-terra-600 text-sm">
+      <div role="alert" class="mb-6 p-3 rounded-lg bg-terra-50 border border-terra-200 text-terra-600 text-sm">
         {error}
       </div>
     {/if}
@@ -389,7 +395,7 @@
           <label for="endDate" class="block text-sm font-medium text-ink-600 dark:text-cream-200 mb-1.5">
             End Date
           </label>
-          <input type="date" id="endDate" bind:value={endDate} class="input" />
+          <input type="date" id="endDate" min={startDate || undefined} bind:value={endDate} class="input" />
         </div>
       </div>
 

@@ -1095,3 +1095,68 @@ button, a, [role="button"] {
     padding-bottom: calc(84px + env(safe-area-inset-bottom));
   }
 }
+/* Album dashboard: quiet paper surfaces, with photography as the focal point. */
+.album-home { --album-hero-min: 360px; --album-photo-min: 280px; --album-copy-max: 38rem; --album-grid-min: 240px; display: grid; gap: var(--space-8); padding-top: var(--space-6); }
+.album-hero { display: grid; overflow: hidden; border-radius: var(--radius-xl); background: var(--surface-card); box-shadow: var(--shadow-elevated); border: 1px solid var(--border-subtle); }
+.album-intro { padding: var(--space-8) var(--space-6); align-self: center; }
+.album-eyebrow { display: flex; align-items: center; gap: var(--space-2); color: var(--accent-action); font-size: .75rem; font-weight: 600; letter-spacing: .04em; }
+.album-intro h1 { font-family: var(--font-display); font-size: clamp(2rem, 1.5rem + 2.2vw, 2.75rem); line-height: 1.08; letter-spacing: -.022em; color: var(--text-primary); margin: var(--space-6) 0; }
+.album-intro h1 em { color: var(--accent-action); }
+.album-lead { max-width: var(--album-copy-max); color: var(--text-secondary); line-height: 1.5; }
+.album-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-6); }
+.album-note { font-size: .8125rem; color: var(--text-secondary); margin-top: var(--space-6); }
+.album-feature { position: relative; min-height: var(--album-hero-min); overflow: hidden; background: var(--color-forest-900); }
+.album-feature > img { position: absolute; width: 100%; height: 100%; object-fit: cover; }
+.album-photo-caption { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: var(--space-8); color: var(--text-on-accent); background: linear-gradient(transparent, var(--color-forest-900)); }
+.album-photo-caption > span { font-size: .8125rem; }
+.album-photo-caption h2 { font: 600 1.5rem/1.22 var(--font-display); margin: var(--space-2) 0 var(--space-4); }
+.album-photo-link { display: flex; align-items: center; gap: var(--space-2); }
+.album-placeholder { min-height: var(--album-hero-min); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: var(--space-4); padding: var(--space-8); background: var(--surface-grouped); color: var(--text-secondary); }
+.album-placeholder-icon { padding: var(--space-6); border: 1px solid var(--border-default); border-radius: var(--radius-full); color: var(--accent-action); }
+.album-placeholder h2 { font: 600 2rem/1.14 var(--font-display); color: var(--text-primary); }
+.album-stats { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1px; overflow: hidden; background: var(--border-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); }
+.album-stats > a { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-5); background: var(--surface-card); color: var(--accent-action); }
+.album-stats strong { display: block; font: 600 1.5rem/1.2 var(--font-display); font-variant-numeric: tabular-nums; color: var(--text-primary); }
+.album-stats span { font-size: .8125rem; color: var(--text-secondary); }
+.album-stats > a > :last-child { margin-left: auto; }
+.album-section { padding: var(--space-6); border-radius: var(--radius-xl); background: var(--surface-card); border: 1px solid var(--border-subtle); }
+.album-section-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); margin-bottom: var(--space-6); }
+.album-section-heading h2 { margin-top: var(--space-2); font: 700 clamp(1.5rem,1.25rem + 1.1vw,2rem)/1.14 var(--font-display); color: var(--text-primary); }
+.album-journals { display: grid; grid-template-columns: repeat(auto-fill,minmax(min(100%,var(--album-grid-min)),1fr)); gap: var(--space-6); }
+.album-journal { overflow: hidden; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); background: var(--surface-card); }
+.album-journal-image { aspect-ratio: 4/3; display: grid; place-items: center; overflow: hidden; background: var(--surface-grouped); color: var(--accent-action); }
+.album-journal-image img { width: 100%; height: 100%; object-fit: cover; }
+.album-journal-copy { padding: var(--space-5); }
+.album-journal h3, .album-discover h3, .album-empty h3 { font: 600 1.25rem/1.22 var(--font-display); color: var(--text-primary); margin: var(--space-2) 0; }
+.album-journal-copy > p:not(.album-eyebrow) { color: var(--text-secondary); font-size: .9375rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.album-location { display: flex; gap: var(--space-2); align-items: center; padding-top: var(--space-4); margin-top: var(--space-4); border-top: 1px solid var(--border-subtle); font-size: .8125rem; color: var(--text-secondary); }
+.album-location > :last-child { margin-left: auto; flex-shrink: 0; }
+.album-discover { display: grid; gap: var(--space-4); }
+.album-discover > a { display: block; background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-6); color: var(--accent-action); }
+.album-discover p, .album-empty p { color: var(--text-secondary); font-size: .9375rem; }
+.album-discover span { display: flex; gap: var(--space-2); align-items: center; margin-top: var(--space-5); font-size: .8125rem; font-weight: 600; }
+.album-empty { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6); padding-block: var(--space-6); color: var(--accent-action); }
+.album-empty > div { flex: 1 1 var(--album-grid-min); }
+.library-tools { padding: var(--space-5); border-radius: var(--radius-lg); background: var(--surface-card); border: 1px solid var(--border-subtle); display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-end; }
+.library-tools label { display: grid; gap: var(--space-2); font-size: .8125rem; font-weight: 600; color: var(--text-secondary); }
+.library-tools .library-search { flex: 1 1 240px; }
+.library-result { color: var(--text-secondary); font-size: .8125rem; margin: 0; padding-block: var(--space-3); }
+@media (min-width: 768px) { .album-hero { grid-template-columns: 1.1fr 1fr; } .album-intro { padding: var(--space-10); } .album-stats { grid-template-columns: repeat(4,minmax(0,1fr)); } .album-discover { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media (max-width: 639px) { .album-feature { min-height: var(--album-photo-min); } .album-stats > a { padding: var(--space-4); } .album-stats > a > :last-child { display: none; } }
+@media (hover: hover) { .album-journal:hover, .album-discover > a:hover { border-color: var(--accent-action); box-shadow: var(--shadow-card); } .album-stats > a:hover { background: var(--surface-grouped); } }
+
+/* Implement the spacing scale documented in DESIGN.md for every shared component. */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+}

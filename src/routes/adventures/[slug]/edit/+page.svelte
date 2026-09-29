@@ -707,6 +707,8 @@
           {#if path}
           <div
             class="relative aspect-square rounded-xl overflow-hidden group select-none [-webkit-touch-callout:none]"
+            role="group"
+            aria-label="Photo actions"
             onpointerdown={(e) => startHold(e, m)}
             onpointerup={stopHold}
             onpointercancel={stopHold}

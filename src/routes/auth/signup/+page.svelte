@@ -40,7 +40,7 @@
         success = true;
       } else {
         const err = await response.json();
-        error = err.message || 'Signup failed';
+        error = err.error || err.message || 'Signup failed';
       }
     } catch {
       error = 'An error occurred. Please try again.';

@@ -972,17 +972,6 @@
         {#each data.adventure.media as media}
           <div
             class="group relative aspect-square cursor-pointer overflow-hidden rounded-[var(--radius-md)]"
-            role="button"
-            tabindex="0"
-            aria-label="Open {media.caption || media.ai_caption || 'photo'}"
-            onclick={() => openMedia(media)}
-            onkeydown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                openMedia(media);
-              }
-            }}
-            use:longPress={{ onLongPress: () => (menuTarget = media) }}
           >
             {#if media.media_type === 'video'}
               <VideoThumbnail src={media.file_path} alt={media.caption || 'Video'} class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
@@ -1014,13 +1003,18 @@
                 {media.category}
               </div>
             {/if}
+            <button
+              type="button"
+              class="absolute inset-0 z-10 w-full focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent-action)]"
+              aria-label="Open {media.caption || media.ai_caption || 'photo'}"
+              onclick={() => openMedia(media)}
+              use:longPress={{ onLongPress: () => (menuTarget = media) }}
+            ></button>
             {#if data.user && data.user.id === data.adventure.author_id}
               <!-- The whole tile opens the lightbox, so the hover controls have to
                    stop the click or every tap on them also opens the viewer. -->
               <div
-                class="absolute top-2 right-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100"
-                onclick={(e) => e.stopPropagation()}
-                onkeydown={(e) => e.stopPropagation()}
+                class="absolute top-2 right-2 z-20 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100"
               >
                 <button
                   class="p-1.5 rounded-full backdrop-blur-sm transition-all bg-black/30 text-white/60 hover:bg-forest-500/80 hover:text-white"

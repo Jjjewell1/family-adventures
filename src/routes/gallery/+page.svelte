@@ -12,7 +12,10 @@
   import { longPress } from '$lib/actions/longPress';
 
   let { data } = $props();
-  let mediaList = $derived((data.media || []) as LightboxItem[]);
+  let search = $state('');
+  let mediaList = $derived(((data.media || []) as LightboxItem[]).filter(media =>
+    [media.caption, media.ai_caption, media.adventure_title, media.tagged_people, media.ai_tags].join(' ').toLowerCase().includes(search.trim().toLowerCase())
+  ));
   let lightboxIndex = $state(-1);
   let actionTarget = $state<LightboxItem | null>(null);
   let openCategory = $state<string | null>(null);
@@ -56,7 +59,7 @@
 
   // Default view is the grouped grid. A category or type filter switches back to
   // the classic flat (server-filtered) grid so deep links still work.
-  const groupedView = $derived(data.currentCategory === 'all' && data.currentType === 'all');
+  const groupedView = $derived(data.currentCategory === 'all' && data.currentType === 'all' && !search.trim());
 
   // Open the first group once so the page isn't a wall of headers
   $effect(() => {
@@ -89,7 +92,7 @@
     }
     openCategory = cat;
     requestAnimationFrame(() => {
-      document.getElementById(`cat-${cat}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById(`cat-${cat}`)?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
     });
   }
 
@@ -159,22 +162,7 @@
 
 {#snippet tile(media: LightboxItem)}
   <div
-    class="group relative break-inside-avoid w-full cursor-pointer overflow-hidden rounded-[var(--radius-md)]"
-    role="button"
-    tabindex="0"
-    aria-label="Open {media.caption || media.ai_caption || 'photo'}"
-    onclick={() => openLightbox(media)}
-    onkeydown={(e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        openLightbox(media);
-      }
-    }}
-    use:longPress={{
-      onLongPress: () => {
-        actionTarget = media;
-      }
-    }}
+    class="group relative break-inside-avoid w-full overflow-hidden rounded-[var(--radius-md)]"
   >
     <div class="relative">
       {#if media.media_type === 'video'}
@@ -200,9 +188,13 @@
           {/if}
         </div>
       </div>
-      <!-- Sibling, not a child: a nested interactive control inside the tile
-           button was invalid HTML and its click was cancelled outright, so the
-           old download affordance never actually downloaded anything. -->
+      <button
+        type="button"
+        class="absolute inset-0 z-10 w-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent-action)]"
+        aria-label="Open {media.caption || media.ai_caption || 'photo'}"
+        onclick={() => openLightbox(media)}
+        use:longPress={{ onLongPress: () => (actionTarget = media) }}
+      ></button>
       {#if media.media_type !== 'video'}
         <button
           type="button"
@@ -210,7 +202,7 @@
             e.stopPropagation();
             downloadMedia(media);
           }}
-          class="tap pressable absolute right-2 top-2 flex size-9 items-center justify-center rounded-full bg-black/45 text-white/90 backdrop-blur-sm hover:bg-black/65 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+          class="tap pressable absolute right-2 top-2 z-20 flex size-11 items-center justify-center rounded-full bg-black/45 text-white/90 backdrop-blur-sm hover:bg-black/65 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
           aria-label="Download {media.caption || 'image'}"
         >
           <Icon name="download" size={18} />
@@ -227,14 +219,20 @@
     <p class="page-header-desc">All the moments we've captured together</p>
   </div>
 
-  {#if mediaList.length > 0}
-    <!-- Filters -->
-    <div class="flex flex-wrap items-center gap-3">
+  <div class="library-tools">
+    <label class="library-search">Find a memory<input class="input" type="search" bind:value={search} placeholder="Search captions, adventures, or people" /></label>
+    <p class="library-result" aria-live="polite">{mediaList.length} matching memories</p>
+    {#if search || data.currentType !== 'all' || data.currentCategory !== 'all'}
+      <button class="btn-secondary" onclick={() => { search = ''; goto('/gallery', { replaceState: true }); }}>Reset filters</button>
+    {/if}
+  </div>
+    <!-- Filters remain available when a selection returns no media. -->
+    <div class="library-tools">
       <div class="flex items-center gap-1.5">
-        <span class="text-xs font-medium text-cream-100/80 uppercase tracking-wide dark:text-cream-100/80">Type</span>
+        <span class="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">Type</span>
         {#each types as t}
           <button
-            class="badge transition-colors {(data.currentType || 'all') === t ? 'bg-forest-500 text-white' : 'bg-cream-100 text-ink-500 hover:bg-cream-200 dark:bg-ink-700 dark:text-cream-300'}"
+            class="badge min-h-11 transition-colors {(data.currentType || 'all') === t ? 'bg-forest-500 text-white' : 'bg-cream-100 text-ink-500 hover:bg-cream-200 dark:bg-ink-700 dark:text-cream-300'}"
             onclick={() => setFilter('type', t)}
           >
             {t === 'all' ? 'All' : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -243,9 +241,9 @@
       </div>
       <div class="h-4 w-px bg-cream-200 dark:bg-ink-600"></div>
       <div class="flex items-center gap-1.5 flex-wrap">
-        <span class="text-xs font-medium text-cream-100/80 uppercase tracking-wide dark:text-cream-100/80">Category</span>
+        <span class="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">Category</span>
         <button
-          class="badge transition-colors {(data.currentCategory || 'all') === 'all' && groupedView ? 'bg-forest-500 text-white' : 'bg-cream-100 text-ink-500 hover:bg-cream-200 dark:bg-ink-700 dark:text-cream-300'}"
+          class="badge min-h-11 transition-colors {(data.currentCategory || 'all') === 'all' && groupedView ? 'bg-forest-500 text-white' : 'bg-cream-100 text-ink-500 hover:bg-cream-200 dark:bg-ink-700 dark:text-cream-300'}"
           onclick={() => setFilter('category', 'all')}
           title="Show all categories grouped"
         >
@@ -254,7 +252,7 @@
         {#each grouped as g (g.key)}
           {@const active = groupedView ? openCategory === g.key : (data.currentCategory || 'all') === g.key}
           <button
-            class="badge transition-colors {active ? g.conf.chip : 'bg-cream-100 text-ink-500 hover:bg-cream-200 dark:bg-ink-700 dark:text-cream-300'}"
+            class="badge min-h-11 transition-colors {active ? g.conf.chip : 'bg-cream-100 text-ink-500 hover:bg-cream-200 dark:bg-ink-700 dark:text-cream-300'}"
             onclick={() => jumpTo(g.key)}
             title="Go to {g.conf.label}"
           >
@@ -264,14 +262,13 @@
         {/each}
       </div>
     </div>
-  {/if}
 
   {#if mediaList.length === 0}
     <EmptyState
       icon="photo"
       signedIn={!!data.user}
-      title="No photos yet"
-      body="Photos added to an adventure collect here, newest first. Once the family starts adding them, this becomes the whole album."
+      title={search || data.currentType !== 'all' || data.currentCategory !== 'all' ? 'No memories match these filters' : 'No photos yet'}
+      body={search || data.currentType !== 'all' || data.currentCategory !== 'all' ? 'Try another search or reset the filters above to return to your album.' : 'Photos added to an adventure collect here. Start with a favorite day and a few pictures.'}
       actionHref={data.user ? '/adventures/create' : undefined}
       actionLabel={data.user ? 'Log your first adventure' : undefined}
     />

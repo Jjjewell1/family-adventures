@@ -2,10 +2,11 @@
   import '../app.css';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { afterNavigate } from '$app/navigation';
+  import { afterNavigate, goto } from '$app/navigation';
   import InstallBanner from '$lib/components/InstallBanner.svelte';
   import Chatbot from '$lib/components/Chatbot.svelte';
   import BeachScene from '$lib/components/BeachScene.svelte';
+  import Sheet from '$lib/components/Sheet.svelte';
   import SwipeBack from '$lib/components/SwipeBack.svelte';
   import Icon from '$lib/components/Icon.svelte';
   import type { IconName } from '$lib/components/Icon.svelte';
@@ -21,6 +22,7 @@
   let oneSignalReady = $state(false);
   let isSubscribed = $state(false);
   let pageReady = $state(true);
+  let hasInternalHistory = $state(false);
   let tourOpen = $state(false);
   // Null until the client reads storage, so the prompt never flashes for someone
   // who already finished the tour.
@@ -81,13 +83,12 @@
     }
   ];
 
-  const isRootTab = (href: string) => href === '/' && currentPath === '/';
   const isActive = (href: string) =>
     href === '/' ? currentPath === '/' : currentPath.startsWith(href);
 
   // Root tabs render their own large title in the scroll content, so the compact
   // bar stays hidden until the user scrolls — that is the iOS behaviour.
-  const onRootSurface = $derived(tabs.some((tab) => isActive(tab.href)));
+  const onRootSurface = $derived(tabs.some((tab) => currentPath === tab.href));
   const showCompactBar = $derived(!onRootSurface || scrolled);
 
   /** Best-effort label for the compact bar; pages own their own <h1>. */
@@ -103,6 +104,19 @@
 
   function openMore() {
     moreOpen = true;
+  }
+
+  function goBack() {
+    const previous = document.referrer;
+    if (hasInternalHistory || (previous && new URL(previous).origin === location.origin)) {
+      history.back();
+      return;
+    }
+    const destination = currentPath.startsWith('/adventures/') ? '/adventures'
+      : currentPath.startsWith('/people/') ? '/people'
+      : currentPath.startsWith('/share/') ? '/'
+      : '/';
+    goto(destination);
   }
 
   async function toggleNotifications() {
@@ -187,10 +201,8 @@
     const isFirst = firstNav;
     firstNav = false;
     moreOpen = false;
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-    }
     if (isFirst) return;
+    hasInternalHistory = true;
     pageReady = false;
     requestAnimationFrame(() => requestAnimationFrame(() => (pageReady = true)));
   });
@@ -259,7 +271,7 @@
         {#if !onRootSurface}
           <button
             type="button"
-            onclick={() => history.back()}
+            onclick={goBack}
             class="tap pressable -ml-2 flex items-center gap-0.5 rounded-full px-2 py-1.5 text-[var(--accent-action)]"
             aria-label="Go back"
           >
@@ -303,7 +315,7 @@
               {tab.label}
             </a>
           {/each}
-          {#each moreSections.flatMap((section) => section.items) as item}
+          {#each moreSections[0].items.filter((item) => item.href === '/bucket-list' || item.href === '/memories') as item}
             <a
               href={item.href}
               class="nav-link tap hidden xl:block {isActive(item.href) ? 'active' : ''}"
@@ -375,25 +387,8 @@
     </div>
   </header>
 
-  {#if moreOpen}
-    <button
-      type="button"
-      tabindex="-1"
-      aria-hidden="true"
-      class="fixed inset-0 z-[var(--z-scrim)] bg-[var(--surface-scrim)]"
-      onclick={closeMore}
-    ></button>
-
-    <div
-      class="fixed inset-x-0 bottom-0 z-[var(--z-sheet)] mx-auto max-w-lg"
-      role="dialog"
-      aria-modal="true"
-      aria-label="More"
-      style:padding-bottom="env(safe-area-inset-bottom)"
-    >
-      <div class="glass-strong rounded-t-[var(--radius-xl)] p-4 shadow-[var(--shadow-sheet)]">
-        <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--border-default)]"></div>
-
+  <Sheet open={moreOpen} onclose={closeMore} title="Explore your album" detent="large">
+      <div class="p-4">
         <div class="scroll-y max-h-[70dvh]">
           {#each moreSections as section}
             <p class="list-group-label mt-2">{section.label}</p>
@@ -427,6 +422,10 @@
               </button>
             {/if}
 
+            {#if !data.user}
+              <a href="/auth/login" class="list-row tap" onclick={closeMore}><Icon name="person" size={20} /><span class="list-row-title">Sign in</span></a>
+              <a href="/auth/signup" class="list-row tap" onclick={closeMore}><Icon name="plus" size={20} /><span class="list-row-title">Create an account</span></a>
+            {/if}
             {#if data.user}
               <button type="button" class="list-row tap" onclick={signOut}>
                 <Icon name="logout" size={20} class="shrink-0 text-[var(--status-error)]" />
@@ -443,8 +442,7 @@
           </p>
         </div>
       </div>
-    </div>
-  {/if}
+  </Sheet>
 
   <SwipeBack enabled={!moreOpen}>
     <main
@@ -458,7 +456,7 @@
   </SwipeBack>
 
   <!-- Floating primary action, clear of the tab bar and the home indicator. -->
-  {#if data.user}
+  {#if data.user && !currentPath.includes('/create') && !currentPath.endsWith('/edit') && !moreOpen}
     <a
       href="/adventures/create"
       class="fixed right-[max(1rem,env(safe-area-inset-right))] z-[var(--z-raised)] flex size-14 items-center justify-center rounded-full text-white shadow-[var(--shadow-fab)] lg:hidden"
@@ -497,17 +495,12 @@
         </a>
       {/each}
 
-      <a
-        href={data.user ? '/settings' : '/auth/login'}
-        class="tap flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5"
-        style:min-height="var(--tab-bar-height)"
-        class:text-[var(--accent-action)]={isRootTab('/settings')}
-        class:text-[var(--text-secondary)]={!isRootTab('/settings')}
-        aria-current={isRootTab('/settings') ? 'page' : undefined}
-      >
-        <Icon name="more" size={23} strokeWidth={1.75} />
-        <span class="text-[0.625rem] leading-none tracking-[0.01em]">More</span>
-      </a>
+      <button type="button" onclick={openMore} aria-expanded={moreOpen} aria-haspopup="dialog"
+        class="tap flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 text-[var(--text-secondary)]"
+        style:min-height="var(--tab-bar-height)">
+        <Icon name="more" size={23} />
+        <span class="text-xs leading-none">More</span>
+      </button>
     </div>
   </nav>
 
@@ -516,7 +509,7 @@
 
   {#if showTourPrompt}
     <div class="pointer-events-none fixed inset-x-0 bottom-[calc(var(--tab-bar-height)+env(safe-area-inset-bottom)+0.75rem)] z-[var(--z-raised)] mx-auto w-[min(30rem,calc(100vw-1.5rem))] px-3 lg:pb-4">
-      <div class="card-flat pointer-events-auto flex items-center gap-3 p-4 shadow-lg">
+      <div class="card-flat pointer-events-auto flex flex-wrap items-center gap-3 p-4 shadow-lg">
         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cream-100 dark:bg-forest-900/50">
           <Icon name="compass" size={20} class="text-[var(--accent-action)]" />
         </div>

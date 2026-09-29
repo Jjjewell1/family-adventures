@@ -28,12 +28,16 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     tags
   } = body;
 
-  if (!title?.trim()) {
+  if (typeof title !== 'string' || !title.trim()) {
     return json({ error: 'Title is required' }, { status: 400 });
   }
 
+  if (startDate && endDate && endDate < startDate) {
+    return json({ error: 'The end date must be on or after the start date.' }, { status: 400 });
+  }
+
   const id = generateToken();
-  let slug = slugify(title);
+  let slug = slugify(title) || `adventure-${id.slice(0, 8)}`;
 
   // Ensure unique slug
   const existing = await dbGet('SELECT id FROM adventures WHERE slug = ?', slug);
@@ -52,8 +56,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     description || null,
     content || null,
     locationName || null,
-    lat || null,
-    lng || null,
+    lat ?? null,
+    lng ?? null,
     startDate || null,
     endDate || null,
     mood || null,

@@ -30,6 +30,7 @@
   let closing = $state(false);
   let dragY = $state(0);
   let dragging = $state(false);
+  let dragStartY = 0;
 
   let titleId = $derived(`sheet-title-${Math.random().toString(36).slice(2, 9)}`);
 
@@ -84,6 +85,7 @@
 
   function onGrabberPointerDown(event: PointerEvent) {
     if (reducedMotion()) return;
+    dragStartY = event.clientY;
     dragging = true;
     dragY = 0;
     (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
@@ -91,7 +93,7 @@
 
   function onGrabberPointerMove(event: PointerEvent) {
     if (!dragging) return;
-    dragY = Math.max(0, event.clientY);
+    dragY = Math.max(0, event.clientY - dragStartY);
   }
 
   function onGrabberPointerUp(event: PointerEvent) {

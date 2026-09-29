@@ -45,7 +45,7 @@
         window.location.href = '/adventures';
       } else {
         const err = await response.json();
-        error = err.message || 'Invalid email or password';
+        error = err.error || err.message || 'Invalid email or password';
       }
     } catch (e) {
       error = 'An error occurred. Please try again.';
@@ -71,7 +71,7 @@
     </div>
 
     {#if error}
-      <div class="mb-6 p-3 rounded-lg bg-terra-50 border border-terra-200 text-terra-600 text-sm">
+      <div role="alert" class="mb-6 p-3 rounded-lg bg-terra-50 border border-terra-200 text-terra-600 text-sm">
         {error}
       </div>
     {/if}

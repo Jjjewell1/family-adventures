@@ -1,30 +1,38 @@
 <script lang="ts">
   import type { PageData } from './$types';
-  import { goto } from '$app/navigation';
   import { formatDate, timeAgo } from '$lib/shared/utils';
   import Icon from '$lib/components/Icon.svelte';
   import EmptyState from '$lib/components/EmptyState.svelte';
 
   let { data } = $props();
+  let search = $state('');
+  let sort = $state('newest');
   let filterTag = $state<string | null>(null);
   let filterYear = $state<number | null>(null);
 
+  $effect(() => {
+    filterTag = data.initialTag;
+    filterYear = data.initialYear;
+  });
+
   function clearFilters() {
+    search = '';
     filterTag = null;
     filterYear = null;
   }
   
   const years = $derived([...new Set(data.adventures
     .filter((a: any) => a.start_date)
-    .map((a: any) => new Date(a.start_date!).getFullYear())
+    .map((a: any) => Number(a.start_date.slice(0, 4)))
   )].sort((a: number, b: number) => b - a));
 
   const filteredAdventures = $derived(
     data.adventures.filter((a: any) => {
       if (filterTag && !a.tags?.some((t: { id: string }) => t.id === filterTag)) return false;
-      if (filterYear && a.start_date && new Date(a.start_date).getFullYear() !== filterYear) return false;
+      if (filterYear && (!a.start_date || Number(a.start_date.slice(0, 4)) !== filterYear)) return false;
+      if (search.trim() && ![a.title, a.description, a.location_name, a.author_name, ...(a.tags || []).map((t: any) => t.name)].join(' ').toLowerCase().includes(search.trim().toLowerCase())) return false;
       return true;
-    })
+    }).sort((a: any, b: any) => sort === 'title' ? a.title.localeCompare(b.title) : (sort === 'oldest' ? 1 : -1) * (String(a.start_date || a.created_at).localeCompare(String(b.start_date || b.created_at))))
   );
 </script>
 
@@ -52,22 +60,27 @@
     {/if}
   </div>
 
+  <div class="library-tools">
+    <label class="library-search">Search the album<input class="input" type="search" bind:value={search} placeholder="Try a place, person, or favorite day" /></label>
+    <label>Sort adventures<select class="input" bind:value={sort}><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="title">Title A-Z</option></select></label>
+    <p class="library-result" aria-live="polite">{filteredAdventures.length} of {data.adventures.length} adventures</p>
+  </div>
   <!-- Filters -->
   {#if data.tags.length > 0 || years.length > 0}
-    <div class="flex flex-wrap gap-4">
+    <div class="library-tools">
       {#if years.length > 0}
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-cream-100/80 uppercase tracking-wide dark:text-cream-100/80">Year</span>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">Year</span>
           <button
-            class="badge {filterYear === null ? 'bg-forest-500 text-white' : 'bg-cream-100 dark:bg-ink-700 text-ink-500 dark:text-cream-400 hover:bg-cream-200 dark:hover:bg-ink-600'}"
-            onclick={() => filterYear = null}
+            class="badge min-h-11 {filterYear === null ? 'bg-forest-500 text-white' : 'bg-cream-100 dark:bg-ink-700 text-ink-500 dark:text-cream-400 hover:bg-cream-200 dark:hover:bg-ink-600'}"
+            aria-pressed={filterYear === null} onclick={() => filterYear = null}
           >
             All
           </button>
           {#each years as year}
             <button
-              class="badge {filterYear === year ? 'bg-forest-500 text-white' : 'bg-cream-100 text-ink-500 hover:bg-cream-200'}"
-              onclick={() => filterYear = year}
+              class="badge min-h-11 {filterYear === year ? 'bg-forest-500 text-white' : 'bg-cream-100 text-ink-500 hover:bg-cream-200'}"
+              aria-pressed={filterYear === year} onclick={() => filterYear = year}
             >
               {year}
             </button>
@@ -76,19 +89,19 @@
       {/if}
 
       {#if data.tags.length > 0}
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-cream-100/80 uppercase tracking-wide dark:text-cream-100/80">Tag</span>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">Tag</span>
           <button
-            class="badge {filterTag === null ? 'bg-forest-500 text-white' : 'bg-cream-100 dark:bg-ink-700 text-ink-500 dark:text-cream-400 hover:bg-cream-200 dark:hover:bg-ink-600'}"
-            onclick={() => filterTag = null}
+            class="badge min-h-11 {filterTag === null ? 'bg-forest-500 text-white' : 'bg-cream-100 dark:bg-ink-700 text-ink-500 dark:text-cream-400 hover:bg-cream-200 dark:hover:bg-ink-600'}"
+            aria-pressed={filterTag === null} onclick={() => filterTag = null}
           >
             All
           </button>
           {#each data.tags as tag}
             <button
-              class="badge transition-colors"
+              class="badge min-h-11 transition-colors"
               style="background-color: {filterTag === tag.id ? tag.color : 'var(--color-cream-100)'}; color: {filterTag === tag.id ? 'white' : 'var(--color-ink-500)'}"
-              onclick={() => filterTag = tag.id}
+              aria-pressed={filterTag === tag.id} onclick={() => filterTag = tag.id}
             >
               {tag.name}
             </button>
@@ -100,7 +113,7 @@
 
   <!-- Adventures Grid -->
   {#if filteredAdventures.length === 0}
-    {#if filterTag || filterYear}
+    {#if filterTag || filterYear || search.trim()}
       <div class="card-flat px-6 py-14 text-center">
         <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-cream-100 dark:bg-forest-900/50">
           <Icon name="filter" size={28} class="text-ink-500 dark:text-cream-300" />
@@ -124,13 +137,7 @@
   {:else}
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {#each filteredAdventures as adventure}
-        <div 
-          role="link"
-          tabindex="0"
-          onclick={() => goto(`/adventures/${adventure.slug}`)}
-          onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') goto(`/adventures/${adventure.slug}`); }}
-          class="card overflow-hidden cursor-pointer group"
-        >
+        <article class="card overflow-hidden group relative">
           <!-- Cover Image -->
           <div class="relative h-44 bg-cream-100 dark:bg-ink-700 overflow-hidden">
             {#if adventure.cover_file_path}
@@ -149,7 +156,7 @@
             {/if}
             
             {#if adventure.location_name}
-              <div class="absolute bottom-2 left-2 badge bg-black/60 text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="absolute bottom-2 left-2 badge bg-black/60 text-white backdrop-blur-sm transition-opacity">
                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 </svg>
@@ -178,7 +185,7 @@
             </div>
             
             <h2 class="font-display font-semibold text-ink-800 dark:text-cream-100 group-hover:text-forest-600 transition-colors line-clamp-2">
-              {adventure.title}
+              <a class="after:absolute after:inset-0" href="/adventures/{adventure.slug}">{adventure.title}</a>
             </h2>
             
             {#if adventure.description}
@@ -203,7 +210,7 @@
 
             <!-- Author -->
             <div class="flex items-center justify-between mt-4 pt-3 border-t border-cream-200 dark:border-ink-600">
-              <div class="flex items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2">
                 <div class="h-6 w-6 rounded-full bg-terra-500 flex items-center justify-center text-white text-xs font-medium">
                   {adventure.author_name.charAt(0).toUpperCase()}
                 </div>
@@ -212,7 +219,7 @@
               {#if data.user && data.user.id === adventure.author_id}
                 <a
                   href="/adventures/{adventure.slug}/edit"
-                  class="text-xs text-forest-500 hover:text-forest-600 font-medium"
+                  class="relative z-10 tap text-sm text-forest-500 hover:text-forest-600 font-medium"
                   onclick={(e) => e.stopPropagation()}
                 >
                   Edit
@@ -220,7 +227,7 @@
               {/if}
             </div>
           </div>
-        </div>
+        </article>
       {/each}
     </div>
   {/if}
